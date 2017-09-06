@@ -1,0 +1,4 @@
+- [ ] jetcd
+- [ ] Transactions..
+- [ ] TransactionChain?!
+- [ ] L1 (and L2 ?) Cache
