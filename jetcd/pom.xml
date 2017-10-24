@@ -21,10 +21,17 @@
 
   <dependencies>
     <dependency>
+      <groupId>ch.vorburger.exec</groupId>
+      <artifactId>exec</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.coreos</groupId>
       <artifactId>jetcd-core</artifactId>
       <!-- TODO 0.1.0-SNAPSHOT https://github.com/coreos/jetcd/pull/225 -->
       <version>0.0.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
