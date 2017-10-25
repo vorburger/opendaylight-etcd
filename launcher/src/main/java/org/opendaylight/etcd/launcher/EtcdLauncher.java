@@ -5,7 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-package org.opendaylight.etcd.jetcd;
+package org.opendaylight.etcd.launcher;
 
 import ch.vorburger.exec.ManagedProcess;
 import ch.vorburger.exec.ManagedProcessBuilder;
@@ -20,8 +20,6 @@ import java.io.File;
  * @author Michael Vorburger.ch
  */
 public class EtcdLauncher implements AutoCloseable {
-    // TODO move this class into a separate new opendaylight.etcd.launcher bundle
-    // (and make this bundle JUST the one offering jetcd)
 
     // TODO write a custom log pattern matcher which reacts to I/W/E/N and uses correct log level
 

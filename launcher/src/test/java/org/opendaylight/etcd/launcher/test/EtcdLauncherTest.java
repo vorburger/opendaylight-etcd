@@ -5,11 +5,11 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-package org.opendaylight.etcd.jetcd.test;
+package org.opendaylight.etcd.launcher.test;
 
 import ch.vorburger.exec.ManagedProcessException;
 import org.junit.Test;
-import org.opendaylight.etcd.jetcd.EtcdLauncher;
+import org.opendaylight.etcd.launcher.EtcdLauncher;
 
 /**
  * Test for {@link EtcdLauncher}.
