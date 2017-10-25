@@ -26,14 +26,6 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
     }
 
     @Override
-    public DOMDataBroker createDOMDataBroker() {
-        // TODO use
-        // org.opendaylight.controller.cluster.databroker.ConcurrentDOMDataBroker
-        // instead of SerializedDOMDataBroker ?
-        return super.createDOMDataBroker();
-    }
-
-    @Override
     public DOMStore createConfigurationDatastore() {
         DOMStore store = new EtcdDataStore(null, null
                 // CONFIGURATION, getDataTreeChangeListenerExecutor()
@@ -51,6 +43,14 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
         // TODO if EtcdDataStore implements SchemaContextListener:
         // getSchemaService().registerSchemaContextListener(store);
         return store;
+    }
+
+    @Override
+    public DOMDataBroker createDOMDataBroker() {
+        // TODO use
+        // org.opendaylight.controller.cluster.databroker.ConcurrentDOMDataBroker
+        // instead of SerializedDOMDataBroker ?
+        return super.createDOMDataBroker();
     }
 
 }
