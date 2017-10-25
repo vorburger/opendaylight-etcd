@@ -10,6 +10,7 @@ package org.opendaylight.etcd.jetcd;
 import ch.vorburger.exec.ManagedProcess;
 import ch.vorburger.exec.ManagedProcessBuilder;
 import ch.vorburger.exec.ManagedProcessException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 
 /**
@@ -18,27 +19,37 @@ import java.io.File;
  *
  * @author Michael Vorburger.ch
  */
-public class EtcdLauncher {
+public class EtcdLauncher implements AutoCloseable {
+    // TODO move this class into a separate new opendaylight.etcd.launcher bundle
+    // (and make this bundle JUST the one offering jetcd)
 
     // TODO write a custom log pattern matcher which reacts to I/W/E/N and uses correct log level
 
-    private ManagedProcess process;
+    private final ManagedProcess process;
 
-    public EtcdLauncher start() throws ManagedProcessException {
+    public EtcdLauncher() throws ManagedProcessException {
         File etcdWorkingDirectory = new File("target/etcd");
-        etcdWorkingDirectory.mkdirs();
+        mkdirs(etcdWorkingDirectory);
         process = new ManagedProcessBuilder("etcd")
                 // .addArgument("arg1");
                 .setWorkingDirectory(etcdWorkingDirectory)
                 // .getEnvironment().put("ENV_VAR", "...")
                 .setDestroyOnShutdown(true)
                 .build();
+    }
+
+    public EtcdLauncher start() throws ManagedProcessException {
         process.startAndWaitForConsoleMessageMaxMs("embed: ready to serve client requests", 5000);
         return this;
     }
 
-    public EtcdLauncher stop() throws ManagedProcessException {
+    @Override
+    public void close() throws ManagedProcessException {
         process.destroy();
-        return this;
+    }
+
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
+    private void mkdirs(File directory) {
+        directory.mkdirs();
     }
 }

@@ -19,6 +19,57 @@
   <groupId>org.opendaylight.etcd</groupId>
   <artifactId>jetcd</artifactId>
 
+  <dependencyManagement>
+    <!-- Bump all Netty dependencies from 4.1.8 from odlparent to 4.1.16 required by jetcd -->
+    <dependencies>
+      <!-- Netty -->
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <!-- If these are updated, the version in features.xml needs to be changed too -->
+        <version>4.1.16.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-buffer</artifactId>
+        <version>4.1.16.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-codec</artifactId>
+        <version>4.1.16.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-codec-http</artifactId>
+        <version>4.1.16.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-common</artifactId>
+        <version>4.1.16.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-handler</artifactId>
+        <version>4.1.16.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-transport</artifactId>
+        <version>4.1.16.Final</version>
+      </dependency>
+      <!-- Here we need to define all available native epoll implementations; we can't limit ourselves to the build
+      platform and we can't require the build platform to have an implementation (e.g. OS X) -->
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-transport-native-epoll</artifactId>
+        <classifier>linux-x86_64</classifier>
+        <version>4.1.16.Final</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>ch.vorburger.exec</groupId>
@@ -27,11 +78,22 @@
     </dependency>
 
     <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <!-- We MUST override odlparent's too old version -->
+      <version>3.4.0</version>
+    </dependency>
+    <dependency>
+      <!-- TODO This can probably be removed again now that we have dependencyManagement above -->
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty</artifactId>
+      <version>1.7.0</version>
+    </dependency>
+    <dependency>
       <groupId>com.coreos</groupId>
       <artifactId>jetcd-core</artifactId>
       <!-- TODO 0.1.0-SNAPSHOT https://github.com/coreos/jetcd/pull/225 -->
-      <version>0.0.1</version>
-      <scope>test</scope>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

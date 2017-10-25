@@ -20,7 +20,9 @@ public class EtcdLauncherTest {
 
     @Test
     public void testLaunchEtcd() throws ManagedProcessException {
-        new EtcdLauncher().start().stop();
+        // TODO refactor to avoid "// Resource leak: '<unassigned Closeable value>' is never closed"
+        // EtcdLauncherBuilder start should return EtcdLauncher
+        new EtcdLauncher().start().close();
     }
 
 }
