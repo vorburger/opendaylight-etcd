@@ -26,6 +26,7 @@
     <module>bundle-parent</module>
     <module>launcher</module>
     <module>jetcd</module>
+    <module>ds</module>
   </modules>
 
 </project>
