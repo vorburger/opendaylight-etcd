@@ -9,7 +9,6 @@ package org.opendaylight.etcd.testutils;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.test.AbstractDataBrokerTestCustomizer;
-import org.opendaylight.controller.md.sal.binding.test.ConcurrentDataBrokerTestCustomizer;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
 import org.opendaylight.mdsal.binding.generator.impl.ModuleInfoBackedContext;
 import org.opendaylight.yangtools.yang.binding.YangModuleInfo;
@@ -28,7 +27,7 @@ public class TestEtcdDataBrokersProvider {
     private final DOMDataBroker domDataBroker;
 
     public TestEtcdDataBrokersProvider() {
-        AbstractDataBrokerTestCustomizer testCustomizer = new ConcurrentDataBrokerTestCustomizer(true);
+        AbstractDataBrokerTestCustomizer testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer();
         dataBroker = testCustomizer.createDataBroker();
         domDataBroker = testCustomizer.createDOMDataBroker();
         testCustomizer.updateSchema(getSchemaContext());
