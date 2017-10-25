@@ -28,6 +28,8 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
  * @author Michael Vorburger.ch
  */
 public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, AutoCloseable {
+    // TODO implements SchemaContextListener, do we care? If yes, then un-comment
+    // registerSchemaContextListener() in EtcdConcurrentDataBrokerTestCustomizer
 
     private final KV etcdKV;
     private final Watch etcdWatch;
