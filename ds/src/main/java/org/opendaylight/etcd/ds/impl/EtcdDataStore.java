@@ -33,26 +33,28 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
 
     private final KV etcdKV;
     private final Watch etcdWatch;
+    private final boolean debugTransactions;
 
-    public EtcdDataStore(KV etcdKV, Watch etcdWatch) {
+    public EtcdDataStore(KV etcdKV, Watch etcdWatch, boolean debugTransactions) {
         super();
         this.etcdKV = etcdKV;
         this.etcdWatch = etcdWatch;
+        this.debugTransactions = debugTransactions;
     }
 
     @Override
     public DOMStoreReadTransaction newReadOnlyTransaction() {
-        throw new UnsupportedOperationException();
+        return new EtcdReadTransaction(TransactionIdentifier.next(), debugTransactions);
     }
 
     @Override
     public DOMStoreWriteTransaction newWriteOnlyTransaction() {
-        throw new UnsupportedOperationException();
+        return new EtcdWriteTransaction(TransactionIdentifier.next(), debugTransactions);
     }
 
     @Override
     public DOMStoreReadWriteTransaction newReadWriteTransaction() {
-        throw new UnsupportedOperationException();
+        return new EtcdReadWriteTransaction(TransactionIdentifier.next(), debugTransactions);
     }
 
     @Override

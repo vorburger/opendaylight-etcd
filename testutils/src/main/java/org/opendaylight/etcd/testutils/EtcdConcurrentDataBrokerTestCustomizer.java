@@ -7,7 +7,11 @@
  */
 package org.opendaylight.etcd.testutils;
 
+import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.CONFIGURATION;
+import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.OPERATIONAL;
+
 import org.opendaylight.controller.md.sal.binding.test.ConcurrentDataBrokerTestCustomizer;
+import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
 import org.opendaylight.controller.sal.core.spi.data.DOMStore;
 import org.opendaylight.etcd.ds.impl.EtcdDataStore;
@@ -25,10 +29,9 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
         super(true);
     }
 
-    @Override
-    public DOMStore createConfigurationDatastore() {
-        DOMStore store = new EtcdDataStore(null, null
-                // CONFIGURATION, getDataTreeChangeListenerExecutor()
+    private DOMStore createConfigurationDatastore(LogicalDatastoreType type) {
+        DOMStore store = new EtcdDataStore(null, null, true
+                // type, getDataTreeChangeListenerExecutor()
                 );
         // TODO if EtcdDataStore implements SchemaContextListener:
         // getSchemaService().registerSchemaContextListener(store);
@@ -36,13 +39,13 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
     }
 
     @Override
+    public DOMStore createConfigurationDatastore() {
+        return createConfigurationDatastore(CONFIGURATION);
+    }
+
+    @Override
     public DOMStore createOperationalDatastore() {
-        DOMStore store = new EtcdDataStore(null, null
-                // CONFIGURATION, getDataTreeChangeListenerExecutor()
-                );
-        // TODO if EtcdDataStore implements SchemaContextListener:
-        // getSchemaService().registerSchemaContextListener(store);
-        return store;
+        return createConfigurationDatastore(OPERATIONAL);
     }
 
     @Override
