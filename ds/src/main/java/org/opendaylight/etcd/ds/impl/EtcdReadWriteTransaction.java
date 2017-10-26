@@ -31,32 +31,32 @@ class EtcdReadWriteTransaction extends AbstractDOMStoreTransaction<TransactionId
 
     @Override
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public void write(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public void merge(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public void delete(YangInstanceIdentifier path) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public DOMStoreThreePhaseCommitCohort ready() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
