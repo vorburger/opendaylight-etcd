@@ -59,21 +59,21 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
 
     @Override
     public DOMStoreTransactionChain createTransactionChain() {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public <L extends AsyncDataChangeListener<YangInstanceIdentifier, NormalizedNode<?, ?>>>
         ListenerRegistration<L> registerChangeListener(YangInstanceIdentifier path, L listener, DataChangeScope scope) {
 
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     public <L extends DOMDataTreeChangeListener>
         ListenerRegistration<L> registerTreeChangeListener(YangInstanceIdentifier treeId, L listener) {
 
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("TODO");
         // TODO etcdWatch.watch(prefix, options); ...
     }
 
