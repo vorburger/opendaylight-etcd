@@ -10,7 +10,7 @@ package org.opendaylight.etcd.testutils;
 import org.opendaylight.controller.md.sal.binding.test.ConcurrentDataBrokerTestCustomizer;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
 import org.opendaylight.controller.sal.core.spi.data.DOMStore;
-import org.opendaylight.etcd.ds.EtcdDataStore;
+import org.opendaylight.etcd.ds.impl.EtcdDataStore;
 
 /**
  * Customizer, used in {@link TestEtcdDataBrokersProvider}.
