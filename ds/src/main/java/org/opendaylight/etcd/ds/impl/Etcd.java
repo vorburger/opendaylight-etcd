@@ -7,6 +7,8 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.kv.DeleteResponse;
@@ -20,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
@@ -62,26 +65,26 @@ class Etcd implements AutoCloseable {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
 
+    // Please swallow a headache pill ;) before proceeding to read the following code:
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
         return Futures.makeChecked(
                 // TODO CompletionStages.toListenableFuture from https://git.opendaylight.org/gerrit/#/c/64771/ ok?
                 CompletionStages.toListenableFuture(
                     handleException(() -> etcd.get(toByteSequence(path))
-                        .thenApply(getResponse -> {
+                        .thenCompose(getResponse -> handleException(() -> {
                             if (getResponse.getKvs().isEmpty()) {
-                                return Optional.absent();
+                                return CompletableFuture.completedFuture(Optional.absent());
                             } else if (getResponse.getKvs().size() == 1) {
                                 try {
-                                    return Optional.of(fromByteSequence(getResponse.getKvs().get(0).getValue()));
+                                    ByteSequence byteSequence = getResponse.getKvs().get(0).getValue();
+                                    return completedFuture(Optional.of(fromByteSequence(byteSequence)));
                                 } catch (IOException e) {
-                                    // TODO throw new EtcdException("byte[] -> NormalizedNode failed: " + path, e);
-                                    return Optional.absent();
+                                    throw new EtcdException("byte[] -> NormalizedNode failed: " + path, e);
                                 }
                             } else {
-                                // TODO throw new EtcdException("Etcd Reponse had more than 1 keys/values: " + path);
-                                return Optional.absent();
+                                throw new EtcdException("Etcd Reponse had more than 1 keys/values: " + path);
                             }
-                        }))), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
+                        })))), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
     }
 
     public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
