@@ -68,23 +68,23 @@ class Etcd implements AutoCloseable {
     // Please swallow a headache pill ;) before proceeding to read the following code:
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
         return Futures.makeChecked(
-                // TODO CompletionStages.toListenableFuture from https://git.opendaylight.org/gerrit/#/c/64771/ ok?
-                CompletionStages.toListenableFuture(
-                    handleException(() -> etcd.get(toByteSequence(path))
-                        .thenCompose(getResponse -> handleException(() -> {
-                            if (getResponse.getKvs().isEmpty()) {
-                                return CompletableFuture.completedFuture(Optional.absent());
-                            } else if (getResponse.getKvs().size() == 1) {
-                                try {
-                                    ByteSequence byteSequence = getResponse.getKvs().get(0).getValue();
-                                    return completedFuture(Optional.of(fromByteSequence(byteSequence)));
-                                } catch (IOException e) {
-                                    throw new EtcdException("byte[] -> NormalizedNode failed: " + path, e);
-                                }
-                            } else {
-                                throw new EtcdException("Etcd Reponse had more than 1 keys/values: " + path);
+            // TODO CompletionStages.toListenableFuture from https://git.opendaylight.org/gerrit/#/c/64771/ ok?
+            CompletionStages.toListenableFuture(
+                handleException(() -> etcd.get(toByteSequence(path))
+                    .thenCompose(getResponse -> handleException(() -> {
+                        if (getResponse.getKvs().isEmpty()) {
+                            return CompletableFuture.completedFuture(Optional.absent());
+                        } else if (getResponse.getKvs().size() == 1) {
+                            try {
+                                ByteSequence byteSequence = getResponse.getKvs().get(0).getValue();
+                                return completedFuture(Optional.of(fromByteSequence(byteSequence)));
+                            } catch (IOException e) {
+                                throw new EtcdException("byte[] -> NormalizedNode failed: " + path, e);
                             }
-                        })))), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
+                        } else {
+                            throw new EtcdException("Etcd Reponse had more than 1 keys/values: " + path);
+                        }
+                    })))), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
     }
 
     public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
