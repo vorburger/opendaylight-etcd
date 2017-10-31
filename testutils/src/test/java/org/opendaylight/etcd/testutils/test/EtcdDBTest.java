@@ -8,6 +8,7 @@
 package org.opendaylight.etcd.testutils.test;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.OPERATIONAL;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.TOP_FOO_KEY;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.path;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.topLevelList;
@@ -18,6 +19,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
@@ -78,19 +80,24 @@ public class EtcdDBTest {
     // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
 
     @Test
-    public void bPutSomethingIntoDataStoreAndReadItBack() throws Exception {
+    public void bPutSomethingIntoDataStoreReadItBackAndDelete() throws Exception {
         writeInitialState();
         assertThat(isTopInDataStore()).isTrue();
+        WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
+        deleteTx.delete(OPERATIONAL, TOP_PATH);
+        deleteTx.commit().get();
+        assertThat(isTopInDataStore()).isFalse();
     }
 
     @Test
+    @Ignore // TODO think about how to best completely clear out external etcd between tests..
     public void cEnsureDataStoreIsEmptyAgainInNewTest() throws ReadFailedException {
         assertThat(isTopInDataStore()).isFalse();
     }
 
     private void writeInitialState() throws Exception {
         WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
-        initialTx.put(LogicalDatastoreType.OPERATIONAL, TOP_PATH, new TopBuilder().build());
+        initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
                 .setContainerWithUses(new ContainerWithUsesBuilder().setLeafFromGrouping("foo").build()).build();
         initialTx.put(LogicalDatastoreType.OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));

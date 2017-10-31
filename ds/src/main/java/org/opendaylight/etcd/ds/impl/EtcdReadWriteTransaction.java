@@ -7,8 +7,11 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static com.google.common.util.concurrent.Futures.immediateFuture;
+
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.CheckedFuture;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.controller.sal.core.spi.data.AbstractDOMStoreTransaction;
 import org.opendaylight.controller.sal.core.spi.data.DOMStoreReadWriteTransaction;
@@ -68,11 +71,36 @@ class EtcdReadWriteTransaction
 
     @Override
     public DOMStoreThreePhaseCommitCohort ready() {
-        throw new UnsupportedOperationException("TODO");
+        return new SimpleDOMStoreThreePhaseCommitCohort();
     }
 
     @Override
     public void close() {
+    }
+
+    private static class SimpleDOMStoreThreePhaseCommitCohort implements DOMStoreThreePhaseCommitCohort {
+        // TODO This is just to get started, and obviously will need more work, later...
+
+        @Override
+        public ListenableFuture<Boolean> canCommit() {
+            return immediateFuture(Boolean.TRUE);
+        }
+
+        @Override
+        public ListenableFuture<Void> preCommit() {
+            return immediateFuture(null);
+        }
+
+        @Override
+        public ListenableFuture<Void> commit() {
+            return immediateFuture(null);
+        }
+
+        @Override
+        public ListenableFuture<Void> abort() {
+            return immediateFuture(null);
+        }
+
     }
 
 }
