@@ -7,6 +7,7 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 import com.coreos.jetcd.KV;
@@ -44,20 +45,15 @@ class Etcd implements AutoCloseable {
     private final KV etcd;
 
     Etcd(KV etcdKV) {
-        this.etcd = etcdKV;
+        this.etcd = requireNonNull(etcdKV, "KV");
     }
 
-    public CompletionStage<PutResponse> write(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
+    public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(path);
             ByteSequence value = toByteSequence(data);
             return etcd.put(key, value);
         });
-    }
-
-    public void merge(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
-        // TODO is merge() just a put() ?!
-        throw new UnsupportedOperationException("TODO");
     }
 
     public CompletionStage<DeleteResponse> delete(YangInstanceIdentifier path) {

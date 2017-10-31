@@ -7,6 +7,9 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static java.util.Objects.requireNonNull;
+
+import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Watch;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker.DataChangeScope;
@@ -35,26 +38,27 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
     private final Watch etcdWatch;
     private final boolean debugTransactions;
 
-    public EtcdDataStore(KV etcdKV, Watch etcdWatch, boolean debugTransactions) {
-        super();
-        this.etcdKV = etcdKV;
-        this.etcdWatch = etcdWatch;
+    public EtcdDataStore(Client client, boolean debugTransactions) {
+        this.etcdKV = requireNonNull(client, "client").getKVClient();
+        this.etcdWatch = client.getWatchClient();
         this.debugTransactions = debugTransactions;
     }
 
     @Override
     public DOMStoreReadTransaction newReadOnlyTransaction() {
-        return new EtcdReadTransaction(TransactionIdentifier.next(), debugTransactions);
+        // return new EtcdReadTransaction(this, TransactionIdentifier.next(), debugTransactions);
+        return new EtcdReadWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
     }
 
     @Override
     public DOMStoreWriteTransaction newWriteOnlyTransaction() {
-        return new EtcdWriteTransaction(TransactionIdentifier.next(), debugTransactions);
+        // return new EtcdWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
+        return new EtcdReadWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
     }
 
     @Override
     public DOMStoreReadWriteTransaction newReadWriteTransaction() {
-        return new EtcdReadWriteTransaction(TransactionIdentifier.next(), debugTransactions);
+        return new EtcdReadWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
     }
 
     @Override
@@ -81,6 +85,10 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
     public void close() throws Exception {
         etcdKV.close();
         etcdWatch.close();
+    }
+
+    public KV getKV() {
+        return etcdKV;
     }
 
 }
