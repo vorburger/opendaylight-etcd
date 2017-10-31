@@ -10,6 +10,7 @@ package org.opendaylight.etcd.testutils;
 import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.CONFIGURATION;
 import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.OPERATIONAL;
 
+import com.coreos.jetcd.Client;
 import org.opendaylight.controller.md.sal.binding.test.ConcurrentDataBrokerTestCustomizer;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
@@ -23,14 +24,18 @@ import org.opendaylight.etcd.ds.impl.EtcdDataStore;
  */
 // intentionally just package-local, for now
 class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCustomizer {
+
+    private final Client client;
+
     // TODO later generalize this a bit so it can also be used for runtime OSGi service, not just tests
 
-    EtcdConcurrentDataBrokerTestCustomizer() {
+    EtcdConcurrentDataBrokerTestCustomizer(Client client) {
         super(true);
+        this.client = client;
     }
 
     private DOMStore createConfigurationDatastore(LogicalDatastoreType type) {
-        DOMStore store = new EtcdDataStore(null, null, true
+        DOMStore store = new EtcdDataStore(client, true
                 // type, getDataTreeChangeListenerExecutor()
                 );
         // TODO if EtcdDataStore implements SchemaContextListener:

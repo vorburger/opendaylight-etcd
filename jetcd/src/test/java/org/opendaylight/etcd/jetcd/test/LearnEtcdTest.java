@@ -30,7 +30,7 @@ public class LearnEtcdTest {
     public void testEtcd() throws Exception {
         try (EtcdLauncher etcdServer = new EtcdLauncher()) {
             etcdServer.start();
-            try (Client client = Client.builder().endpoints("http://localhost:2379").build()) {
+            try (Client client = Client.builder().endpoints(etcdServer.getEndpointURL()).build()) {
                 try (KV kvClient = client.getKVClient()) {
 
                     ByteSequence key = ByteSequence.fromString("test_key");

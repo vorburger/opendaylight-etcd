@@ -21,10 +21,13 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
  * @author Michael Vorburger.ch
  */
 // intentionally just .impl package-local, for now
-class EtcdReadTransaction extends AbstractDOMStoreTransaction<TransactionIdentifier>
+class EtcdReadTransaction
+        extends AbstractDOMStoreTransaction<TransactionIdentifier>
         implements DOMStoreReadTransaction {
 
-    EtcdReadTransaction(TransactionIdentifier identifier, boolean debug) {
+    // TODO remove this useless class, if I manage to keep everything in EtcdReadWriteTransaction
+
+    EtcdReadTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
     }
 

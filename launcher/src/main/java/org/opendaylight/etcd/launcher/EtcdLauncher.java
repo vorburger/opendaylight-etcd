@@ -36,6 +36,15 @@ public class EtcdLauncher implements AutoCloseable {
                 .build();
     }
 
+    /**
+     * Etcd server endpoint URL.
+     * Typically used to pass as an argument to jetcd Client.builder().endpoints().
+     */
+    public String getEndpointURL() {
+        // TODO later this will return a randomly chosen port
+        return "http://localhost:2379";
+    }
+
     public EtcdLauncher start() throws ManagedProcessException {
         process.startAndWaitForConsoleMessageMaxMs("embed: ready to serve client requests", 5000);
         return this;

@@ -12,6 +12,11 @@ import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUti
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.path;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.topLevelList;
 
+import ch.vorburger.exec.ManagedProcessException;
+import com.coreos.jetcd.Client;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
@@ -19,6 +24,7 @@ import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
 import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
+import org.opendaylight.etcd.launcher.EtcdLauncher;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokersProvider;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugment;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugmentBuilder;
@@ -36,11 +42,32 @@ public class EtcdDBTest {
 
     private static final InstanceIdentifier<Top> TOP_PATH = InstanceIdentifier.create(Top.class);
 
-    private static DataBroker dataBroker;
+    private static EtcdLauncher etcdServer;
+    private static Client client;
+    private DataBroker dataBroker;
 
     @BeforeClass
-    public static void beforeClass() {
-        dataBroker = new TestEtcdDataBrokersProvider().getDataBroker();
+    public static void beforeClass() throws ManagedProcessException {
+        etcdServer = new EtcdLauncher();
+        etcdServer.start();
+    }
+
+    @Before
+    public void before() {
+        client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
+        dataBroker = new TestEtcdDataBrokersProvider(client).getDataBroker();
+    }
+
+    @After
+    public void after() throws ManagedProcessException {
+        client.close();
+        client = null;
+    }
+
+    @AfterClass
+    public static void afterClass() throws ManagedProcessException {
+        etcdServer.close();
+        etcdServer = null;
     }
 
     @Test
@@ -51,7 +78,7 @@ public class EtcdDBTest {
     // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
 
     @Test
-    public void bPutSomethingIntoDataStore() throws Exception {
+    public void bPutSomethingIntoDataStoreAndReadItBack() throws Exception {
         writeInitialState();
         assertThat(isTopInDataStore()).isTrue();
     }

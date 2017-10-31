@@ -7,6 +7,7 @@
  */
 package org.opendaylight.etcd.testutils;
 
+import com.coreos.jetcd.Client;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.test.AbstractDataBrokerTestCustomizer;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
@@ -26,8 +27,8 @@ public class TestEtcdDataBrokersProvider {
     private final DataBroker dataBroker;
     private final DOMDataBroker domDataBroker;
 
-    public TestEtcdDataBrokersProvider() {
-        AbstractDataBrokerTestCustomizer testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer();
+    public TestEtcdDataBrokersProvider(Client client) {
+        AbstractDataBrokerTestCustomizer testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer(client);
         dataBroker = testCustomizer.createDataBroker();
         domDataBroker = testCustomizer.createDOMDataBroker();
         testCustomizer.updateSchema(getSchemaContext());

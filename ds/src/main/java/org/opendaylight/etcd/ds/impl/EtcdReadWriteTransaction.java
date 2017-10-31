@@ -22,35 +22,47 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
  * @author Michael Vorburger.ch
  */
 // intentionally just .impl package-local, for now
-class EtcdReadWriteTransaction extends AbstractDOMStoreTransaction<TransactionIdentifier>
+class EtcdReadWriteTransaction
+        extends AbstractDOMStoreTransaction<TransactionIdentifier>
         implements DOMStoreReadWriteTransaction {
 
-    EtcdReadWriteTransaction(TransactionIdentifier identifier, boolean debug) {
+    private final EtcdDataStore ds;
+    private final Etcd etcd;
+
+    EtcdReadWriteTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
-    }
-
-    @Override
-    public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
-        throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
-        throw new UnsupportedOperationException("TODO");
+        this.ds = etcdDataStore;
+        this.etcd = new Etcd(etcdDataStore.getKV());
     }
 
     @Override
     public void write(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
-        throw new UnsupportedOperationException("TODO");
+        // TODO implementation transactions! ;)
+        etcd.put(path, data);
     }
 
     @Override
     public void merge(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
-        throw new UnsupportedOperationException("TODO");
+        // TODO implementation transactions! ;)
+        // TODO a merge() is NOT just a put() ..
+        etcd.put(path, data);
     }
 
     @Override
     public void delete(YangInstanceIdentifier path) {
+        // TODO implementation transactions! ;)
+        etcd.delete(path);
+    }
+
+
+    @Override
+    public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
+        // TODO implementation transactions! ;)
+        return etcd.read(path);
+    }
+
+    @Override
+    public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
         throw new UnsupportedOperationException("TODO");
     }
 
