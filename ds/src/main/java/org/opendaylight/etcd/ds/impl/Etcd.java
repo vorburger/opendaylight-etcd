@@ -26,8 +26,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
-import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputStreamReader;
-import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeOutputStreamWriter;
+import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputOutput;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.infrautils.utils.concurrent.CompletionStages;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
@@ -108,7 +107,7 @@ class Etcd implements AutoCloseable {
     private NormalizedNode<?, ?> fromByteSequence(ByteSequence byteSequence) throws IOException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(byteSequence.getBytes())) {
             try (DataInputStream dataInput = new DataInputStream(bais)) {
-                NormalizedNodeDataInput nodeDataInput = new NormalizedNodeInputStreamReader(dataInput, false);
+                NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInput(dataInput);
                 return nodeDataInput.readNormalizedNode();
             }
         }
@@ -118,7 +117,7 @@ class Etcd implements AutoCloseable {
             throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             try (DataOutputStream dataOutput = new DataOutputStream(baos)) {
-                try (NormalizedNodeDataOutput nodeDataOutput = new NormalizedNodeOutputStreamWriter(dataOutput)) {
+                try (NormalizedNodeDataOutput nodeDataOutput = NormalizedNodeInputOutput.newDataOutput(dataOutput)) {
                     consumer.accept(nodeDataOutput);
                     dataOutput.flush();
                     return ByteSequence.fromBytes(baos.toByteArray());
