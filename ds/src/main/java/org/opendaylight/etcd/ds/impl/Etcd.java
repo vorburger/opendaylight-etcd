@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
@@ -151,9 +150,8 @@ class Etcd implements AutoCloseable {
     }
 
     @FunctionalInterface
-    // TODO rm and import the one in infrautils from https://git.opendaylight.org/gerrit/#/c/64768/
-    private interface CheckedCallable<V, E extends Exception> extends Callable<V> {
-        @Override
+    // TODO rm and import the one in infrautils from https://git.opendaylight.org/gerrit/#/c/64768/ & https://git.opendaylight.org/gerrit/#/c/65297/
+    private interface CheckedCallable<V, E extends Exception> {
         V call() throws E;
     }
 }
