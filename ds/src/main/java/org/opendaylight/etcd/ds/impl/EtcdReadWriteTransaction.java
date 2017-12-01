@@ -12,11 +12,15 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.CheckedFuture;
 import com.google.common.util.concurrent.ListenableFuture;
-import javax.annotation.concurrent.ThreadSafe;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.controller.sal.core.spi.data.AbstractDOMStoreTransaction;
 import org.opendaylight.controller.sal.core.spi.data.DOMStoreReadWriteTransaction;
 import org.opendaylight.controller.sal.core.spi.data.DOMStoreThreePhaseCommitCohort;
+import org.opendaylight.infrautils.utils.concurrent.CompletionStages;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 
@@ -25,36 +29,48 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
  *
  * @author Michael Vorburger.ch
  */
-@ThreadSafe
+@NotThreadSafe // TODO discuss if this is OK for ODL??  Prevent abuse via wrapper class detecting multi-threaded access?
 // intentionally just .impl package-local, for now
 class EtcdReadWriteTransaction
         extends AbstractDOMStoreTransaction<TransactionIdentifier>
         implements DOMStoreReadWriteTransaction {
 
     private final Etcd etcd;
+    private CompletionStage<?> lastCompletionStage;
 
     EtcdReadWriteTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
         this.etcd = new Etcd(etcdDataStore.getKV(), etcdDataStore.getPrefix());
+        lastCompletionStage = newNullValueCompletionStage();
+    }
+
+    @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // https://github.com/findbugsproject/findbugs/issues/79
+    private CompletableFuture<?> newNullValueCompletionStage() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private void chainCompletionStage(CompletionStage<?> nextCompletionStage) {
+        // TODO is thenCombine the right one here?? We *JUST* want to "chain" them...
+        lastCompletionStage = lastCompletionStage.thenCombine(nextCompletionStage, (alpha, beta) -> null);
     }
 
     @Override
     public void write(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         // TODO implementation transactions! ;)
-        etcd.put(path, data);
+        chainCompletionStage(etcd.put(path, data));
     }
 
     @Override
     public void merge(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         // TODO implementation transactions! ;)
         // TODO a merge() is NOT just a put() ..
-        etcd.put(path, data);
+        chainCompletionStage(etcd.put(path, data));
     }
 
     @Override
     public void delete(YangInstanceIdentifier path) {
         // TODO implementation transactions! ;)
-        etcd.delete(path);
+        chainCompletionStage(etcd.delete(path));
     }
 
 
@@ -78,7 +94,7 @@ class EtcdReadWriteTransaction
     public void close() {
     }
 
-    private static class SimpleDOMStoreThreePhaseCommitCohort implements DOMStoreThreePhaseCommitCohort {
+    private class SimpleDOMStoreThreePhaseCommitCohort implements DOMStoreThreePhaseCommitCohort {
         // TODO This is just to get started, and obviously will need more work, later...
 
         @Override
@@ -92,8 +108,9 @@ class EtcdReadWriteTransaction
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public ListenableFuture<Void> commit() {
-            return immediateFuture(null);
+            return (ListenableFuture<Void>) CompletionStages.toListenableFuture(lastCompletionStage);
         }
 
         @Override
