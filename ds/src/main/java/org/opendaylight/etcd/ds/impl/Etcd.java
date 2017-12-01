@@ -29,6 +29,7 @@ import org.opendaylight.controller.cluster.datastore.node.utils.stream.Normalize
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputOutput;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
+import org.opendaylight.infrautils.utils.concurrent.CompletableFutures;
 import org.opendaylight.infrautils.utils.concurrent.CompletionStages;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
@@ -43,9 +44,11 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 class Etcd implements AutoCloseable {
 
     private final KV etcd;
+    private final byte prefix;
 
-    Etcd(KV etcdKV) {
+    Etcd(KV etcdKV, byte prefix) {
         this.etcd = requireNonNull(etcdKV, "KV");
+        this.prefix = prefix;
     }
 
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
@@ -96,7 +99,7 @@ class Etcd implements AutoCloseable {
         try {
             return callable.call();
         } catch (EtcdException e) {
-            return CompletionStages.completedExceptionally(e);
+            return CompletableFutures.completedExceptionally(e);
         }
     }
 
@@ -109,10 +112,13 @@ class Etcd implements AutoCloseable {
         }
     }
 
-    private ByteSequence toByteSequence(CheckedConsumer<NormalizedNodeDataOutput, IOException> consumer)
-            throws IOException {
+    private ByteSequence toByteSequence(boolean writePrefix,
+            CheckedConsumer<NormalizedNodeDataOutput, IOException> consumer) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             try (DataOutputStream dataOutput = new DataOutputStream(baos)) {
+                if (writePrefix) {
+                    dataOutput.writeByte(prefix);
+                }
                 try (NormalizedNodeDataOutput nodeDataOutput = NormalizedNodeInputOutput.newDataOutput(dataOutput)) {
                     consumer.accept(nodeDataOutput);
                     dataOutput.flush();
@@ -124,7 +130,7 @@ class Etcd implements AutoCloseable {
 
     private ByteSequence toByteSequence(YangInstanceIdentifier path) throws EtcdException {
         try {
-            return toByteSequence(nodeDataOutput -> nodeDataOutput.writeYangInstanceIdentifier(path));
+            return toByteSequence(true, nodeDataOutput -> nodeDataOutput.writeYangInstanceIdentifier(path));
         } catch (IOException e) {
             throw new EtcdException("YangInstanceIdentifier toByteSequence failed: " + path.toString(), e);
         }
@@ -132,7 +138,7 @@ class Etcd implements AutoCloseable {
 
     private ByteSequence toByteSequence(NormalizedNode<?, ?> node) throws EtcdException {
         try {
-            return toByteSequence(nodeDataOutput -> nodeDataOutput.writeNormalizedNode(node));
+            return toByteSequence(false, nodeDataOutput -> nodeDataOutput.writeNormalizedNode(node));
         } catch (IOException e) {
             throw new EtcdException("NormalizedNode toByteSequence failed: " + node.toString(), e);
         }

@@ -25,6 +25,9 @@ import org.opendaylight.etcd.ds.impl.EtcdDataStore;
 // intentionally just package-local, for now
 class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCustomizer {
 
+    private static final byte CONFIGURATION_PREFIX = 67; // 'C'
+    private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
+
     private final Client client;
 
     // TODO later generalize this a bit so it can also be used for runtime OSGi service, not just tests
@@ -35,9 +38,8 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
     }
 
     private DOMStore createConfigurationDatastore(LogicalDatastoreType type) {
-        DOMStore store = new EtcdDataStore(client, true
-                // type, getDataTreeChangeListenerExecutor()
-                );
+        byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
+        DOMStore store = new EtcdDataStore(prefix, client, true /* , getDataTreeChangeListenerExecutor() */);
         // TODO if EtcdDataStore implements SchemaContextListener:
         // getSchemaService().registerSchemaContextListener(store);
         return store;
