@@ -52,7 +52,9 @@ public class EtcdLauncher implements AutoCloseable {
 
     @Override
     public void close() throws ManagedProcessException {
-        process.destroy();
+        if (process.isAlive()) {
+            process.destroy();
+        }
     }
 
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
