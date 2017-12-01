@@ -38,6 +38,7 @@
       <artifactId>sal-binding-broker-impl</artifactId>
       <version>${controller.version}</version>
       <type>test-jar</type>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>
