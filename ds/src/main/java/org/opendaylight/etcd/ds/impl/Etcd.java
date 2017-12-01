@@ -30,6 +30,8 @@ import org.opendaylight.controller.cluster.datastore.node.utils.stream.Normalize
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.infrautils.utils.concurrent.CompletableFutures;
 import org.opendaylight.infrautils.utils.concurrent.CompletionStages;
+import org.opendaylight.infrautils.utils.function.CheckedCallable;
+import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 
@@ -143,15 +145,4 @@ class Etcd implements AutoCloseable {
         }
     }
 
-    @FunctionalInterface
-    // TODO rm and import the one in infrautils from https://git.opendaylight.org/gerrit/#/c/64676/
-    private interface CheckedConsumer<T, E extends Exception> {
-        void accept(T input) throws E;
-    }
-
-    @FunctionalInterface
-    // TODO rm and import the one in infrautils from https://git.opendaylight.org/gerrit/#/c/64768/ & https://git.opendaylight.org/gerrit/#/c/65297/
-    private interface CheckedCallable<V, E extends Exception> {
-        V call() throws E;
-    }
 }
