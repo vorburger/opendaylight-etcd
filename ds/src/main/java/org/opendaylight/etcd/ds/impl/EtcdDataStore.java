@@ -12,6 +12,7 @@ import static java.util.Objects.requireNonNull;
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Watch;
+import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker.DataChangeScope;
 import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeListener;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataTreeChangeListener;
@@ -30,6 +31,7 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
  *
  * @author Michael Vorburger.ch
  */
+@ThreadSafe
 public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, AutoCloseable {
     // TODO implements SchemaContextListener, do we care? If yes, then un-comment
     // registerSchemaContextListener() in EtcdConcurrentDataBrokerTestCustomizer

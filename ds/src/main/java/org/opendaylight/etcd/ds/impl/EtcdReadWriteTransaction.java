@@ -12,6 +12,7 @@ import static com.google.common.util.concurrent.Futures.immediateFuture;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.CheckedFuture;
 import com.google.common.util.concurrent.ListenableFuture;
+import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.controller.sal.core.spi.data.AbstractDOMStoreTransaction;
 import org.opendaylight.controller.sal.core.spi.data.DOMStoreReadWriteTransaction;
@@ -24,6 +25,7 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
  *
  * @author Michael Vorburger.ch
  */
+@ThreadSafe
 // intentionally just .impl package-local, for now
 class EtcdReadWriteTransaction
         extends AbstractDOMStoreTransaction<TransactionIdentifier>

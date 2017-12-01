@@ -8,12 +8,14 @@
 package org.opendaylight.etcd.ds.impl;
 
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Transaction ID.
  *
  * @author Michael Vorburger.ch
  */
+@ThreadSafe
 // intentionally just .impl package-local, for now
 final class TransactionIdentifier {
 
