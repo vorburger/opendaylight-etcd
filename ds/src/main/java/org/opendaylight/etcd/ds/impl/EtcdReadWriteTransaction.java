@@ -35,7 +35,7 @@ class EtcdReadWriteTransaction
     EtcdReadWriteTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
         this.ds = etcdDataStore;
-        this.etcd = new Etcd(etcdDataStore.getKV());
+        this.etcd = new Etcd(etcdDataStore.getKV(), etcdDataStore.getPrefix());
     }
 
     @Override

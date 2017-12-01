@@ -8,6 +8,7 @@
 package org.opendaylight.etcd.testutils.test;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.CONFIGURATION;
 import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.OPERATIONAL;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.TOP_FOO_KEY;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.path;
@@ -83,6 +84,7 @@ public class EtcdDBTest {
     public void bPutSomethingIntoDataStoreReadItBackAndDelete() throws Exception {
         writeInitialState();
         assertThat(isTopInDataStore()).isTrue();
+        assertThat(isTopInDataStore(CONFIGURATION)).isFalse();
         WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
         deleteTx.delete(OPERATIONAL, TOP_PATH);
         deleteTx.commit().get();
@@ -100,13 +102,17 @@ public class EtcdDBTest {
         initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
                 .setContainerWithUses(new ContainerWithUsesBuilder().setLeafFromGrouping("foo").build()).build();
-        initialTx.put(LogicalDatastoreType.OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));
+        initialTx.put(OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));
         initialTx.submit().get();
     }
 
     private boolean isTopInDataStore() throws ReadFailedException {
+        return isTopInDataStore(OPERATIONAL);
+    }
+
+    private boolean isTopInDataStore(LogicalDatastoreType type) throws ReadFailedException {
         try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
-            return readTx.read(LogicalDatastoreType.OPERATIONAL, TOP_PATH).checkedGet().isPresent();
+            return readTx.read(type, TOP_PATH).checkedGet().isPresent();
         }
     }
 

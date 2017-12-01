@@ -37,8 +37,10 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
     private final KV etcdKV;
     private final Watch etcdWatch;
     private final boolean debugTransactions;
+    private final byte prefix;
 
-    public EtcdDataStore(Client client, boolean debugTransactions) {
+    public EtcdDataStore(byte prefix, Client client, boolean debugTransactions) {
+        this.prefix = prefix;
         this.etcdKV = requireNonNull(client, "client").getKVClient();
         this.etcdWatch = client.getWatchClient();
         this.debugTransactions = debugTransactions;
@@ -89,6 +91,10 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
 
     public KV getKV() {
         return etcdKV;
+    }
+
+    public byte getPrefix() {
+        return prefix;
     }
 
 }
