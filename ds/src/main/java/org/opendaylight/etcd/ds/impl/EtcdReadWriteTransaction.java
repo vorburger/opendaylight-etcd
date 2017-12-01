@@ -29,12 +29,10 @@ class EtcdReadWriteTransaction
         extends AbstractDOMStoreTransaction<TransactionIdentifier>
         implements DOMStoreReadWriteTransaction {
 
-    private final EtcdDataStore ds;
     private final Etcd etcd;
 
     EtcdReadWriteTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
-        this.ds = etcdDataStore;
         this.etcd = new Etcd(etcdDataStore.getKV(), etcdDataStore.getPrefix());
     }
 
