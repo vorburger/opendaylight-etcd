@@ -18,10 +18,6 @@
 
   <artifactId>testutils</artifactId>
 
-  <properties>
-    <controller.version>1.7.0-SNAPSHOT</controller.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -31,12 +27,10 @@
     <dependency>
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-binding-broker-impl</artifactId>
-      <version>${controller.version}</version>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-binding-broker-impl</artifactId>
-      <version>${controller.version}</version>
       <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
@@ -50,7 +44,6 @@
     <dependency>
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-test-model</artifactId>
-      <version>${controller.version}</version>
       <scope>test</scope>
     </dependency>
 
