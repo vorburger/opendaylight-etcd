@@ -36,7 +36,7 @@ class EtcdReadWriteTransaction
         implements DOMStoreReadWriteTransaction {
 
     private final Etcd etcd;
-    private CompletionStage<?> lastCompletionStage;
+    private final CompletionStage<?> lastCompletionStage;
 
     EtcdReadWriteTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
