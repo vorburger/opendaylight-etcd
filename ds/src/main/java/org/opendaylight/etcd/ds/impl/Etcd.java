@@ -37,7 +37,7 @@ import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 
 /**
- * Thingie that really writes to and reads from etcd!
+ * Thingie that really writes to and reads from etcd.
  *
  * @author Michael Vorburger.ch
  */
