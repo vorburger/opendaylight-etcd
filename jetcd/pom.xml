@@ -22,8 +22,13 @@
     <dependency>
       <groupId>com.coreos</groupId>
       <artifactId>jetcd-core</artifactId>
-      <!-- TODO 0.1.0-SNAPSHOT https://github.com/coreos/jetcd/pull/225 -->
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.0.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
