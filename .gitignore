@@ -11,3 +11,4 @@ target-ide/
 .idea
 .fbExcludeFilterFile
 .vscode/
+.apt_generated_tests/
