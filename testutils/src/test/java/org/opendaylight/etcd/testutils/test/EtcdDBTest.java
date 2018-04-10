@@ -16,6 +16,9 @@ import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUti
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
+
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,7 +37,14 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controll
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.complex.from.grouping.ContainerWithUsesBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.Top;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.TopBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.TopLevelList;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.TopLevelListBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.TopLevelListKey;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.top.level.list.NestedList;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.top.level.list.NestedListBuilder;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.top.level.list.NestedListKey;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+
 
 /**
  * Tests the etcd-based data broker.
@@ -89,6 +99,26 @@ public class EtcdDBTest {
         deleteTx.delete(OPERATIONAL, TOP_PATH);
         deleteTx.commit().get();
         assertThat(isTopInDataStore()).isFalse();
+    }
+
+    @Test
+    public void putSomethingForSubTreeIntoDSReadItBackAndDelete() throws Exception {
+        WriteTransaction tx = dataBroker.newWriteOnlyTransaction();
+        NestedList nl1 = new NestedListBuilder().setKey(new NestedListKey("nested1"))
+                .setName("nested1").setType("type1").build();
+        TopLevelList tl1 = new TopLevelListBuilder().setKey(new TopLevelListKey("top1"))
+                .setName("top1").setNestedList(Arrays.asList(nl1)).build();
+        tx.put(OPERATIONAL, TOP_PATH, new TopBuilder().setTopLevelList(Arrays.asList(tl1)).build());
+        tx.submit().get();
+        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isTrue();
+        }
+        WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
+        deleteTx.delete(OPERATIONAL, TOP_PATH);
+        deleteTx.commit().get();
+        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isFalse();
+        }
     }
 
     @Test
