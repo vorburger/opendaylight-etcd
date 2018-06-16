@@ -40,6 +40,8 @@ class EtcdReadWriteTransaction
 
     EtcdReadWriteTransaction(EtcdDataStore etcdDataStore, TransactionIdentifier identifier, boolean debug) {
         super(identifier, debug);
+        // TODO later change lifecycle; our class Etcd currently has nothing Transaction related, and
+        // if later it still does not, the should be instantiated in EtcdDataStore instead of here
         this.etcd = new Etcd(etcdDataStore.getKV(), etcdDataStore.getPrefix());
         lastCompletionStage = newNullValueCompletionStage();
     }
