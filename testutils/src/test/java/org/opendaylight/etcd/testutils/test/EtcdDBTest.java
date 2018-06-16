@@ -64,7 +64,7 @@ public class EtcdDBTest {
     }
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
         dataBroker = new TestEtcdDataBrokersProvider(client).getDataBroker();
     }
