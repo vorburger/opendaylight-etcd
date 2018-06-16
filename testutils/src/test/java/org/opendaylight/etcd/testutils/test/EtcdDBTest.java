@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Red Hat, Inc. and others. All rights reserved.
+ * Copyright (c) 2018 Red Hat, Inc. and others. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
@@ -18,7 +18,6 @@ import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
 
 import java.util.Arrays;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,9 +44,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controll
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.top.level.list.NestedListKey;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 
-
 /**
- * Tests the etcd-based data broker.
+ * Tests the etcd-based DataBroker.
  *
  * @author Michael Vorburger.ch
  */
@@ -84,39 +82,38 @@ public class EtcdDBTest {
     }
 
     @Test
-    public void testSetUp() {
+    public void testDataBrokerIsNotNull() {
         assertThat(dataBroker).isNotNull();
     }
 
     // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
 
     @Test
-    public void bPutSomethingIntoDataStoreReadItBackAndDelete() throws Exception {
+    public void testPutSomethingIntoDataStoreReadItBackAndDelete() throws Exception {
         writeInitialState();
         assertThat(isTopInDataStore()).isTrue();
         assertThat(isTopInDataStore(CONFIGURATION)).isFalse();
-        WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
-        deleteTx.delete(OPERATIONAL, TOP_PATH);
-        deleteTx.commit().get();
+
+        deleteTop();
         assertThat(isTopInDataStore()).isFalse();
     }
 
     @Test
     @Ignore // TODO make this pass!!! ;-) It's, probably, a bit of work...
     public void putSomethingForSubTreeIntoDSReadItBackAndDelete() throws Exception {
-        WriteTransaction tx = dataBroker.newWriteOnlyTransaction();
         NestedList nl1 = new NestedListBuilder().setKey(new NestedListKey("nested1"))
                 .setName("nested1").setType("type1").build();
         TopLevelList tl1 = new TopLevelListBuilder().setKey(new TopLevelListKey("top1"))
                 .setName("top1").setNestedList(Arrays.asList(nl1)).build();
-        tx.put(OPERATIONAL, TOP_PATH, new TopBuilder().setTopLevelList(Arrays.asList(tl1)).build());
-        tx.submit().get();
+        WriteTransaction writeTx = dataBroker.newWriteOnlyTransaction();
+        writeTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().setTopLevelList(Arrays.asList(tl1)).build());
+        writeTx.submit().get();
+
         try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isTrue();
         }
-        WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
-        deleteTx.delete(OPERATIONAL, TOP_PATH);
-        deleteTx.commit().get();
+
+        deleteTop();
         try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isFalse();
         }
@@ -124,8 +121,14 @@ public class EtcdDBTest {
 
     @Test
     @Ignore // TODO think about how to best completely clear out external etcd between tests..
-    public void cEnsureDataStoreIsEmptyAgainInNewTest() throws ReadFailedException {
+    public void testDataStoreIsEmptyInNewTest() throws ReadFailedException {
         assertThat(isTopInDataStore()).isFalse();
+    }
+
+    private void deleteTop() throws Exception {
+        WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
+        deleteTx.delete(OPERATIONAL, TOP_PATH);
+        deleteTx.commit().get();
     }
 
     private void writeInitialState() throws Exception {

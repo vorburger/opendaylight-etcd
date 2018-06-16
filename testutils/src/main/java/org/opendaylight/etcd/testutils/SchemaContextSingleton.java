@@ -21,6 +21,9 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContext;
  */
 public final class SchemaContextSingleton {
 
+    // TODO move org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton
+    // from sal-binding-broker/src/test/java to sal-testutils(?)/src/main/java and use that
+
     private static SchemaContext staticSchemaContext;
 
     public static synchronized SchemaContext getSchemaContext(Supplier<SchemaContext> supplier) {
