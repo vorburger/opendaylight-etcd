@@ -13,8 +13,6 @@ import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Watch;
 import javax.annotation.concurrent.ThreadSafe;
-import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker.DataChangeScope;
-import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeListener;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataTreeChangeListener;
 import org.opendaylight.controller.sal.core.spi.data.DOMStore;
 import org.opendaylight.controller.sal.core.spi.data.DOMStoreReadTransaction;
@@ -24,7 +22,6 @@ import org.opendaylight.controller.sal.core.spi.data.DOMStoreTreeChangePublisher
 import org.opendaylight.controller.sal.core.spi.data.DOMStoreWriteTransaction;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
-import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 
 /**
  * ODL DOM Data Store implementation based on etcd.
@@ -67,13 +64,6 @@ public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, Aut
 
     @Override
     public DOMStoreTransactionChain createTransactionChain() {
-        throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public <L extends AsyncDataChangeListener<YangInstanceIdentifier, NormalizedNode<?, ?>>>
-        ListenerRegistration<L> registerChangeListener(YangInstanceIdentifier path, L listener, DataChangeScope scope) {
-
         throw new UnsupportedOperationException("TODO");
     }
 

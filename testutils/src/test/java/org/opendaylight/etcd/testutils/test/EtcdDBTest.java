@@ -101,9 +101,9 @@ public class EtcdDBTest {
     @Test
     @Ignore // TODO make this pass!!! ;-) It's, probably, a bit of work...
     public void putSomethingForSubTreeIntoDSReadItBackAndDelete() throws Exception {
-        NestedList nl1 = new NestedListBuilder().setKey(new NestedListKey("nested1"))
+        NestedList nl1 = new NestedListBuilder().withKey(new NestedListKey("nested1"))
                 .setName("nested1").setType("type1").build();
-        TopLevelList tl1 = new TopLevelListBuilder().setKey(new TopLevelListKey("top1"))
+        TopLevelList tl1 = new TopLevelListBuilder().withKey(new TopLevelListKey("top1"))
                 .setName("top1").setNestedList(Arrays.asList(nl1)).build();
         WriteTransaction writeTx = dataBroker.newWriteOnlyTransaction();
         writeTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().setTopLevelList(Arrays.asList(tl1)).build());
