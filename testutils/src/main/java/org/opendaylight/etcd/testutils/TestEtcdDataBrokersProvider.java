@@ -10,6 +10,7 @@ package org.opendaylight.etcd.testutils;
 import com.coreos.jetcd.Client;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.test.AbstractDataBrokerTestCustomizer;
+import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
 import org.opendaylight.controller.md.sal.dom.api.DOMDataBroker;
 import org.opendaylight.mdsal.binding.generator.impl.ModuleInfoBackedContext;
 import org.opendaylight.yangtools.yang.binding.YangModuleInfo;
@@ -27,7 +28,7 @@ public class TestEtcdDataBrokersProvider {
     private final DataBroker dataBroker;
     private final DOMDataBroker domDataBroker;
 
-    public TestEtcdDataBrokersProvider(Client client) {
+    public TestEtcdDataBrokersProvider(Client client) throws Exception {
         AbstractDataBrokerTestCustomizer testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer(client);
         dataBroker = testCustomizer.createDataBroker();
         domDataBroker = testCustomizer.createDOMDataBroker();
@@ -50,7 +51,7 @@ public class TestEtcdDataBrokersProvider {
     // but that is too intertwined with AbstractConcurrentDataBrokerTest, so we just
     // have our own implementation here, very similar
 
-    protected SchemaContext getSchemaContext() {
+    protected SchemaContext getSchemaContext() throws Exception {
         return SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
     }
 
