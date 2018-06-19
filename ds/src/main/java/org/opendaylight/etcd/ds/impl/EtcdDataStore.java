@@ -12,16 +12,11 @@ import static java.util.Objects.requireNonNull;
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Watch;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.ThreadSafe;
-import org.opendaylight.controller.md.sal.dom.api.DOMDataTreeChangeListener;
-import org.opendaylight.controller.sal.core.spi.data.DOMStore;
-import org.opendaylight.controller.sal.core.spi.data.DOMStoreReadTransaction;
-import org.opendaylight.controller.sal.core.spi.data.DOMStoreReadWriteTransaction;
-import org.opendaylight.controller.sal.core.spi.data.DOMStoreTransactionChain;
-import org.opendaylight.controller.sal.core.spi.data.DOMStoreTreeChangePublisher;
-import org.opendaylight.controller.sal.core.spi.data.DOMStoreWriteTransaction;
-import org.opendaylight.yangtools.concepts.ListenerRegistration;
-import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
+import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
+import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
 
 /**
  * ODL DOM Data Store implementation based on etcd.
@@ -29,64 +24,37 @@ import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
  * @author Michael Vorburger.ch
  */
 @ThreadSafe
-public class EtcdDataStore implements DOMStore, DOMStoreTreeChangePublisher, AutoCloseable {
-    // TODO implements SchemaContextListener, do we care? If yes, then un-comment
-    // registerSchemaContextListener() in EtcdConcurrentDataBrokerTestCustomizer
+public class EtcdDataStore extends InMemoryDOMDataStore {
+
+    private static final byte CONFIGURATION_PREFIX = 67; // 'C'
+    private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
 
     private final KV etcdKV;
     private final Watch etcdWatch;
-    private final boolean debugTransactions;
-    private final byte prefix;
+    private final Etcd etcd;
 
-    public EtcdDataStore(byte prefix, Client client, boolean debugTransactions) {
-        this.prefix = prefix;
+    public EtcdDataStore(LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
+            int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
+        super(type.name(), type, dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
+
+        byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
         this.etcdKV = requireNonNull(client, "client").getKVClient();
+        this.etcd = new Etcd(etcdKV , prefix);
+
         this.etcdWatch = client.getWatchClient();
-        this.debugTransactions = debugTransactions;
+
+        // TODO need to read back current persistent state from etcd on start-up...
     }
 
     @Override
-    public DOMStoreReadTransaction newReadOnlyTransaction() {
-        // return new EtcdReadTransaction(this, TransactionIdentifier.next(), debugTransactions);
-        return new EtcdReadWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
-    }
-
-    @Override
-    public DOMStoreWriteTransaction newWriteOnlyTransaction() {
-        // return new EtcdWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
-        return new EtcdReadWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
-    }
-
-    @Override
-    public DOMStoreReadWriteTransaction newReadWriteTransaction() {
-        return new EtcdReadWriteTransaction(this, TransactionIdentifier.next(), debugTransactions);
-    }
-
-    @Override
-    public DOMStoreTransactionChain createTransactionChain() {
-        throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public <L extends DOMDataTreeChangeListener>
-        ListenerRegistration<L> registerTreeChangeListener(YangInstanceIdentifier treeId, L listener) {
-
-        throw new UnsupportedOperationException("TODO");
-        // TODO etcdWatch.watch(prefix, options); ...
-    }
-
-    @Override
-    public void close() throws Exception {
+    public void close() {
         etcdKV.close();
         etcdWatch.close();
     }
 
-    public KV getKV() {
-        return etcdKV;
+    @Override
+    protected synchronized void commit(DataTreeCandidate candidate) {
+        // TODO transform DataTreeCandidate into etcd operations...
+        super.commit(candidate);
     }
-
-    public byte getPrefix() {
-        return prefix;
-    }
-
 }
