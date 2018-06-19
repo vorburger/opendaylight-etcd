@@ -47,7 +47,7 @@ class EtcdReadWriteTransaction
     }
 
     @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // https://github.com/findbugsproject/findbugs/issues/79
-    private CompletableFuture<?> newNullValueCompletionStage() {
+    private static CompletableFuture<?> newNullValueCompletionStage() {
         return CompletableFuture.completedFuture(null);
     }
 
@@ -105,6 +105,7 @@ class EtcdReadWriteTransaction
         }
 
         @Override
+        @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // https://github.com/findbugsproject/findbugs/issues/79
         public ListenableFuture<Void> preCommit() {
             return immediateFuture(null);
         }
@@ -116,10 +117,9 @@ class EtcdReadWriteTransaction
         }
 
         @Override
+        @SuppressFBWarnings("NP_NONNULL_PARAM_VIOLATION") // https://github.com/findbugsproject/findbugs/issues/79
         public ListenableFuture<Void> abort() {
             return immediateFuture(null);
         }
-
     }
-
 }

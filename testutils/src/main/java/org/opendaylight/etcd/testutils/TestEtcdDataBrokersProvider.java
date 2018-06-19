@@ -51,13 +51,14 @@ public class TestEtcdDataBrokersProvider {
     // but that is too intertwined with AbstractConcurrentDataBrokerTest, so we just
     // have our own implementation here, very similar
 
-    protected SchemaContext getSchemaContext() throws Exception {
+    // make "final" to avoid http://errorprone.info/bugpattern/ConstructorInvokesOverridable in constructor
+    protected final SchemaContext getSchemaContext() throws Exception {
         return SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
     }
 
     protected SchemaContext newSchemaContext() {
-        final Iterable<YangModuleInfo> moduleInfos = loadModuleInfos();
-        final ModuleInfoBackedContext moduleContext = ModuleInfoBackedContext.create();
+        Iterable<YangModuleInfo> moduleInfos = loadModuleInfos();
+        ModuleInfoBackedContext moduleContext = ModuleInfoBackedContext.create();
         moduleContext.addModuleInfos(moduleInfos);
         return moduleContext.tryToCreateSchemaContext().get();
     }

@@ -98,7 +98,7 @@ class Etcd implements AutoCloseable {
     public void close() throws Exception {
     }
 
-    private <T> CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
+    private static <T> CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
         try {
             return callable.call();
         } catch (EtcdException e) {
@@ -106,7 +106,7 @@ class Etcd implements AutoCloseable {
         }
     }
 
-    private NormalizedNode<?, ?> fromByteSequence(ByteSequence byteSequence) throws IOException {
+    private static NormalizedNode<?, ?> fromByteSequence(ByteSequence byteSequence) throws IOException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(byteSequence.getBytes())) {
             try (DataInputStream dataInput = new DataInputStream(bais)) {
                 NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInput(dataInput);
