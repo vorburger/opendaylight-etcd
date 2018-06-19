@@ -58,7 +58,7 @@ public class EtcdLauncher implements AutoCloseable {
     }
 
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
-    private void mkdirs(File directory) {
+    private static void mkdirs(File directory) {
         directory.mkdirs();
     }
 }

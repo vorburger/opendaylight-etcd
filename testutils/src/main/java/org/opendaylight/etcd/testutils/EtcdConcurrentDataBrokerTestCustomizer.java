@@ -62,5 +62,4 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
         // instead of SerializedDOMDataBroker ?
         return super.createDOMDataBroker();
     }
-
 }
