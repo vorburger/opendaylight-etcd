@@ -7,11 +7,7 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
-import static java.util.Objects.requireNonNull;
-
 import com.coreos.jetcd.Client;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.Watch;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
@@ -36,8 +32,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     private static final byte CONFIGURATION_PREFIX = 67; // 'C'
     private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
 
-    private final KV etcdKV;
-    private final Watch etcdWatch;
     private final Etcd etcd;
 
     public EtcdDataStore(LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
@@ -45,18 +39,15 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         super(type.name(), type, dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
 
         byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
-        this.etcdKV = requireNonNull(client, "client").getKVClient();
-        this.etcd = new Etcd(etcdKV , prefix);
 
-        this.etcdWatch = client.getWatchClient();
+        this.etcd = new Etcd(client, prefix);
 
         // TODO need to read back current persistent state from etcd on start-up...
     }
 
     @Override
     public void close() {
-        etcdKV.close();
-        etcdWatch.close();
+        etcd.close();
     }
 
     @Override
