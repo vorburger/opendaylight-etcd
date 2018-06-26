@@ -108,10 +108,12 @@ public class EtcdDBTest {
         recreateFreshDataBrokerClient();
 
         assertThat(isTopInDataStore()).isTrue();
-        recreateFreshDataBrokerClient();
-
         assertThat(isTopInDataStore(CONFIGURATION)).isFalse();
         recreateFreshDataBrokerClient();
+
+        // TODO modify what we just wrote and read back to make sure value changed in etcd
+
+        // TODO write Top to Oper instead Config, delete Config's, ensure it's gone but Oper's still there
 
         deleteTop();
         assertThat(isTopInDataStore()).isFalse();
@@ -154,9 +156,12 @@ public class EtcdDBTest {
         LOG.info("writeInitialState()");
         WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
         initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
+
+        // TODO make the test actually care about (verify to assert it's there), and implement mapping...
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
                 .setContainerWithUses(new ContainerWithUsesBuilder().setLeafFromGrouping("foo").build()).build();
         initialTx.put(OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));
+
         initialTx.submit().get();
     }
 
