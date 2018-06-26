@@ -34,6 +34,7 @@ import org.opendaylight.infrautils.utils.concurrent.CompletionStages;
 import org.opendaylight.infrautils.utils.function.CheckedCallable;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
+import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 
 /**
@@ -46,6 +47,11 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 // intentionally just .impl package-local, for now
 class Etcd implements AutoCloseable {
 
+    // TODO remove (make optional) the use of the controller.cluster
+    // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
+    // this isn't a problem at this early stage, but as that is added for *EVERY*
+    // key and value, we could (eventually) remove it
+
     private final KV etcd;
     private final byte prefix;
 
@@ -57,6 +63,14 @@ class Etcd implements AutoCloseable {
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(path);
+            ByteSequence value = toByteSequence(data);
+            return etcd.put(key, value);
+        });
+    }
+
+    public CompletionStage<PutResponse> put(PathArgument pathArgument, NormalizedNode<?, ?> data) {
+        return handleException(() -> {
+            ByteSequence key = toByteSequence(pathArgument);
             ByteSequence value = toByteSequence(data);
             return etcd.put(key, value);
         });
@@ -136,6 +150,14 @@ class Etcd implements AutoCloseable {
             return toByteSequence(true, nodeDataOutput -> nodeDataOutput.writeYangInstanceIdentifier(path));
         } catch (IOException e) {
             throw new EtcdException("YangInstanceIdentifier toByteSequence failed: " + path.toString(), e);
+        }
+    }
+
+    private ByteSequence toByteSequence(PathArgument pathArgument) throws EtcdException {
+        try {
+            return toByteSequence(true, nodeDataOutput -> nodeDataOutput.writePathArgument(pathArgument));
+        } catch (IOException e) {
+            throw new EtcdException("PathArgument toByteSequence failed: " + pathArgument.toString(), e);
         }
     }
 
