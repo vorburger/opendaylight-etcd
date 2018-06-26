@@ -10,6 +10,7 @@ package org.opendaylight.etcd.ds.impl;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
+import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.kv.DeleteResponse;
@@ -53,11 +54,21 @@ class Etcd implements AutoCloseable {
     // key and value, we could (eventually) remove it
 
     private final KV etcd;
+    // private final Watch etcdWatch;
+
     private final byte prefix;
 
-    Etcd(KV etcdKV, byte prefix) {
-        this.etcd = requireNonNull(etcdKV, "KV");
+    Etcd(Client client, byte prefix) {
+        this.etcd = requireNonNull(client, "client").getKVClient();
+        // this.etcdWatch = client.getWatchClient();
+
         this.prefix = prefix;
+    }
+
+    @Override
+    public void close() {
+        etcd.close();
+        // etcdWatch.close();
     }
 
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
@@ -106,10 +117,6 @@ class Etcd implements AutoCloseable {
         // TODO how to implement exists() most efficiently? could just do read(), but has overhead..
         // https://github.com/coreos/etcd/issues/4080
         throw new UnsupportedOperationException("TODO");
-    }
-
-    @Override
-    public void close() throws Exception {
     }
 
     private static <T> CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
