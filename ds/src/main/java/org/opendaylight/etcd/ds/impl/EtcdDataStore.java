@@ -17,6 +17,9 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
+import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidateNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ODL DOM Data Store implementation based on etcd.
@@ -25,6 +28,8 @@ import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
  */
 @ThreadSafe
 public class EtcdDataStore extends InMemoryDOMDataStore {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdDataStore.class);
 
     private static final byte CONFIGURATION_PREFIX = 67; // 'C'
     private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
@@ -53,8 +58,32 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     }
 
     @Override
+    // requires https://git.opendaylight.org/gerrit/#/c/73208/ :-( or figure out if we can hook into InMemoryDOMDataStore via a commit cohort?!
     protected synchronized void commit(DataTreeCandidate candidate) {
+        print(candidate);
         // TODO transform DataTreeCandidate into etcd operations...
         super.commit(candidate);
+    }
+
+    private void print(DataTreeCandidate candidate) {
+        LOG.info("DataTreeCandidate: YangInstanceIdentifier path={}", candidate.getRootPath());
+        print("", candidate.getRootNode());
+    }
+
+    private void print(String indent, DataTreeCandidateNode node) {
+        LOG.info("{}DataTreeCandidateNode: PathArgument identifier={}, modificationType={}, dataAfter={}",
+                indent, getIdentifierAsString(node), node.getModificationType(), node.getDataAfter());
+        for (DataTreeCandidateNode childNode : node.getChildNodes()) {
+            print(indent + "  ", childNode);
+        }
+    }
+
+    private String getIdentifierAsString(DataTreeCandidateNode node) {
+        try {
+            return node.getIdentifier().toString();
+        } catch (IllegalStateException e) {
+            // just debugging code; not intended for production
+            return "-ROOT-";
+        }
     }
 }
