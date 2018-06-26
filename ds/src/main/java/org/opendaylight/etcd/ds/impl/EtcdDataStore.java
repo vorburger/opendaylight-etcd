@@ -7,8 +7,16 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import com.coreos.jetcd.Client;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
@@ -53,18 +61,49 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     @Override
     // requires https://git.opendaylight.org/gerrit/#/c/73208/ :-( or figure out if we can hook into InMemoryDOMDataStore via a commit cohort?!
     protected synchronized void commit(DataTreeCandidate candidate) {
-        print(candidate);
-        // TODO transform DataTreeCandidate into etcd operations...
-        super.commit(candidate);
-    }
-
-    private void print(DataTreeCandidate candidate) {
         if (!candidate.getRootPath().equals(YangInstanceIdentifier.EMPTY)) {
             LOG.error("DataTreeCandidate: YangInstanceIdentifier path={}", candidate.getRootPath());
             throw new IllegalArgumentException("I've not learnt how to deal with DataTreeCandidate where "
                     + "root path != YangInstanceIdentifier.EMPTY yet - will you teach me? ;)");
         }
+
         print("", candidate.getRootNode());
+
+        // TODO make InMemoryDOMDataStore.commit(DataTreeCandidate) return ListenableFuture<Void> instead of void,
+        // and then InMemoryDOMStoreThreePhaseCommitCohort.commit() return store.commit(candidate) instead of SUCCESS,
+        // and then do this:
+//        sendToEtcd(candidate.getRootNode()).thenRun(() -> super.commit(candidate)).exceptionally(throwable -> {
+//            LOG.error("sendToEtcd failed", throwable);
+//            return null;
+//        });
+        // but for now let's throw the entire nice async-ity over board and just do:
+        try {
+            sendToEtcd(candidate.getRootNode()).toCompletableFuture().get(1, SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            // This is ugly, wrong, and just temporary
+            throw new RuntimeException(e);
+        }
+        super.commit(candidate);
+    }
+
+    private CompletionStage<Void> sendToEtcd(DataTreeCandidateNode node) {
+        List<CompletableFuture<Void>> futures = new ArrayList<>(1 + node.getChildNodes().size());
+
+        // TODO filter and take more modificationType into account...
+        if (node.getModificationType().equals(ModificationType.WRITE)) {
+            add(futures, etcd.put(node.getIdentifier(),
+                    node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node))));
+        }
+
+        for (DataTreeCandidateNode childNode : node.getChildNodes()) {
+            add(futures, sendToEtcd(childNode));
+        }
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    }
+
+    private void add(List<CompletableFuture<Void>> futures, CompletionStage<?> future) {
+        futures.add(future.thenApply(whatever -> (Void)null).toCompletableFuture());
     }
 
     private void print(String indent, DataTreeCandidateNode node) {
@@ -72,12 +111,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
                 indent, node.getModificationType(), getIdentifierAsString(node));
         // LOG.info("{}  dataBefore= {}", indent, node.getDataBefore());
         LOG.info("{}  dataAfter = {}", indent, node.getDataAfter());
-        // TODO filter and take more modificationType into account...
-        if (node.getModificationType().equals(ModificationType.WRITE)) {
-            // TODO must handle returned CompletionStage and make commit await that!
-            etcd.put(node.getIdentifier(),
-                    node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node)));
-        }
+
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
             print(indent + "    ", childNode);
         }
