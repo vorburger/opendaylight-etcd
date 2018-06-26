@@ -1,6 +1,4 @@
 
-- [ ] make tests that fails now (need to stop & start etcd)
-
 - [ ] implement Chopper with snip() & snap() operations
 
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, just copy/paste all of it?!

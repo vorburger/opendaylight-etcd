@@ -74,11 +74,17 @@ public class EtcdDBTest {
     @Before
     public void before() throws Exception {
         client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
+        recreateFreshDataBrokerClient();
+    }
+
+    private void recreateFreshDataBrokerClient() throws Exception {
+        LOG.info("recreateFreshDataBrokerClient()");
         dataBroker = new TestEtcdDataBrokersProvider(client).getDataBroker();
     }
 
     @After
     public void after() throws ManagedProcessException {
+        dataBroker = null;
         client.close();
         client = null;
     }
@@ -99,8 +105,13 @@ public class EtcdDBTest {
     @Test
     public void testPutSomethingIntoDataStoreReadItBackAndDelete() throws Exception {
         writeInitialState();
+        recreateFreshDataBrokerClient();
+
         assertThat(isTopInDataStore()).isTrue();
+        recreateFreshDataBrokerClient();
+
         assertThat(isTopInDataStore(CONFIGURATION)).isFalse();
+        recreateFreshDataBrokerClient();
 
         deleteTop();
         assertThat(isTopInDataStore()).isFalse();
