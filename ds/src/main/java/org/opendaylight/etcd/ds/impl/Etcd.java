@@ -138,6 +138,8 @@ class Etcd implements AutoCloseable {
 
     private ByteSequence toByteSequence(boolean writePrefix,
             CheckedConsumer<NormalizedNodeDataOutput, IOException> consumer) throws IOException {
+        // TODO Is there any advantage converting this to use Guava's I/O ?
+        // ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             try (DataOutputStream dataOutput = new DataOutputStream(baos)) {
                 if (writePrefix) {
