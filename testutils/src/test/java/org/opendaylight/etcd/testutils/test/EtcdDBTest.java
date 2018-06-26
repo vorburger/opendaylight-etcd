@@ -99,7 +99,7 @@ public class EtcdDBTest {
     }
 
     @Test
-    public void putSomethingForSubTreeIntoDSReadItBackAndDelete() throws Exception {
+    public void testPutSomethingForSubTreeIntoDSReadItBackAndDelete() throws Exception {
         NestedList nl1 = new NestedListBuilder().withKey(new NestedListKey("nested1"))
                 .setName("nested1").setType("type1").build();
         TopLevelList tl1 = new TopLevelListBuilder().withKey(new TopLevelListKey("top1"))
