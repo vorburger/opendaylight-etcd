@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
+import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidateNode;
 import org.slf4j.Logger;
@@ -66,7 +67,11 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     }
 
     private void print(DataTreeCandidate candidate) {
-        LOG.info("DataTreeCandidate: YangInstanceIdentifier path={}", candidate.getRootPath());
+        if (!candidate.getRootPath().equals(YangInstanceIdentifier.EMPTY)) {
+            LOG.error("DataTreeCandidate: YangInstanceIdentifier path={}", candidate.getRootPath());
+            throw new IllegalArgumentException("I've not learnt how to deal with DataTreeCandidate where "
+                    + "root path != YangInstanceIdentifier.EMPTY yet - will you teach me? ;)");
+        }
         print("", candidate.getRootNode());
     }
 
