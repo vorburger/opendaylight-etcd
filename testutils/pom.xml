@@ -46,7 +46,11 @@
       <artifactId>sal-test-model</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.opendaylight.infrautils</groupId>
+      <artifactId>infrautils-testutils</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 </project>

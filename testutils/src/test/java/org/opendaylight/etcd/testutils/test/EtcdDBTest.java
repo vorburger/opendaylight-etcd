@@ -16,13 +16,13 @@ import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUti
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
-
 import java.util.Arrays;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
@@ -31,6 +31,7 @@ import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokersProvider;
+import org.opendaylight.infrautils.testutils.LogRule;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugment;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugmentBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.complex.from.grouping.ContainerWithUsesBuilder;
@@ -43,6 +44,8 @@ import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controll
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.top.level.list.NestedListBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.list.rev140701.two.level.list.top.level.list.NestedListKey;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tests the etcd-based DataBroker.
@@ -51,11 +54,16 @@ import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
  */
 public class EtcdDBTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdDBTest.class);
+
     private static final InstanceIdentifier<Top> TOP_PATH = InstanceIdentifier.create(Top.class);
 
     private static EtcdLauncher etcdServer;
     private static Client client;
+
     private DataBroker dataBroker;
+
+    public @Rule LogRule logRule = new LogRule();
 
     @BeforeClass
     public static void beforeClass() throws ManagedProcessException {
@@ -125,12 +133,14 @@ public class EtcdDBTest {
     }
 
     private void deleteTop() throws Exception {
+        LOG.info("deleteTop()");
         WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
         deleteTx.delete(OPERATIONAL, TOP_PATH);
         deleteTx.commit().get();
     }
 
     private void writeInitialState() throws Exception {
+        LOG.info("writeInitialState()");
         WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
         initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
