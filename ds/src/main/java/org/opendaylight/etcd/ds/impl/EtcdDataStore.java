@@ -19,6 +19,7 @@ import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidateNode;
+import org.opendaylight.yangtools.yang.data.api.schema.tree.ModificationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,10 +77,18 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     }
 
     private void print(String indent, DataTreeCandidateNode node) {
-        LOG.info("{}DataTreeCandidateNode: PathArgument identifier={}, modificationType={}, dataAfter={}",
-                indent, getIdentifierAsString(node), node.getModificationType(), node.getDataAfter());
+        LOG.info("{}DataTreeCandidateNode: modificationType={}, PathArgument identifier={}",
+                indent, node.getModificationType(), getIdentifierAsString(node));
+        // LOG.info("{}  dataBefore= {}", indent, node.getDataBefore());
+        LOG.info("{}  dataAfter = {}", indent, node.getDataAfter());
+        // TODO filter and take more modificationType into account...
+        if (node.getModificationType().equals(ModificationType.WRITE)) {
+            // TODO must handle returned CompletionStage and make commit await that!
+            etcd.put(node.getIdentifier(),
+                    node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node)));
+        }
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
-            print(indent + "  ", childNode);
+            print(indent + "    ", childNode);
         }
     }
 

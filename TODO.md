@@ -1,4 +1,6 @@
 
+- [ ] study jetcd Txn and make class Etcd put() etc. transactional
+
 - [ ] implement Chopper with snip() & snap() operations
 
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, just copy/paste all of it?!
@@ -7,7 +9,7 @@
 
 - [ ] make clustering tests, which start several etcd; write to one, read from another
 
-- [ ] Transactions done or more needed?!
+- [ ] Transactions now done or more needed?!
 
 - [ ] jetcd (?)
 
