@@ -59,6 +59,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     @Override
     public void close() {
         kv.close();
+        watcher.close();
     }
 
     @Override
