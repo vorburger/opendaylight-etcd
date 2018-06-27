@@ -88,6 +88,12 @@ class EtcdKV implements AutoCloseable {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
 
+    public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
+        // TODO how to implement exists() most efficiently? could just do read(), but has overhead..
+        // https://github.com/coreos/etcd/issues/4080
+        throw new UnsupportedOperationException("TODO");
+    }
+
     // Please swallow a headache pill ;) before proceeding to read the following code:
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
         return Futures.makeChecked(
@@ -108,12 +114,6 @@ class EtcdKV implements AutoCloseable {
                             throw new EtcdException("Etcd Reponse had more than 1 keys/values: " + path);
                         }
                     })))), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
-    }
-
-    public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
-        // TODO how to implement exists() most efficiently? could just do read(), but has overhead..
-        // https://github.com/coreos/etcd/issues/4080
-        throw new UnsupportedOperationException("TODO");
     }
 
     private static <T> CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
