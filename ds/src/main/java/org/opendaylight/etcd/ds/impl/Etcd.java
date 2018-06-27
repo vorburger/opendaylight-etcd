@@ -47,6 +47,7 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 @SuppressWarnings("deprecation")
 // intentionally just .impl package-local, for now
 class Etcd implements AutoCloseable {
+    // TODO rename this class to EtcdKV
 
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
@@ -54,21 +55,17 @@ class Etcd implements AutoCloseable {
     // key and value, we could (eventually) remove it
 
     private final KV etcd;
-    // private final Watch etcdWatch;
 
     private final byte prefix;
 
     Etcd(Client client, byte prefix) {
         this.etcd = requireNonNull(client, "client").getKVClient();
-        // this.etcdWatch = client.getWatchClient();
-
         this.prefix = prefix;
     }
 
     @Override
     public void close() {
         etcd.close();
-        // etcdWatch.close();
     }
 
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {

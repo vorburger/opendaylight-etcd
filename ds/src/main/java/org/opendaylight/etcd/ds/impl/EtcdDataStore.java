@@ -40,17 +40,21 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     private static final byte CONFIGURATION_PREFIX = 67; // 'C'
     private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
 
+    // TODO rename this field to kv and class to EtcdKV
     private final Etcd etcd;
+    private final EtcdWatcher watcher;
 
     public EtcdDataStore(LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
             int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
         super(type.name(), type, dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
 
         byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
-
-        this.etcd = new Etcd(client, prefix);
-
+        etcd = new Etcd(client, prefix);
+        watcher = new EtcdWatcher(client);
         // TODO need to read back current persistent state from etcd on start-up...
+        watcher.watch(prefix, 0, watchEvent -> {
+            LOG.info("Watch: eventType={}, KV={}", watchEvent.getEventType(), watchEvent.getKeyValue());
+        });
     }
 
     @Override
