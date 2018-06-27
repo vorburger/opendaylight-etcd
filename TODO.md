@@ -1,5 +1,7 @@
 
-- [ ] study watcher API and use it to read initial state?
+- [ ] figure out why EtcdWatcher never prints watch hits.. run as a separate main() process, any different?
+
+- [ ] make EtcdWatcher read initial DataTree state
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
 
