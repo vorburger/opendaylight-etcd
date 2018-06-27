@@ -1,18 +1,11 @@
 
-- [ ] clean up EtcdDataStore print() VS real write()
-
-- [ ] grep usages of DataTreeCandidateInputOutput and SerializationUtils
-
-- [ ] re-use some of org.opendaylight.controller.cluster.datastore.persisted.DataTreeCandidateInputOutput?
-      Can't completely as-is, because we need DataTreeCandidateNode granularity, not DataTreeCandidate.
-
 - [ ] study watcher API and use it to read initial state?
-
-- [ ] NormalizedNodeStreamWriter VS NormalizedNodeDataOutput; use e.g. LoggingNormalizedNodeStreamWriter ?
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
 
-- [ ] implement Chopper with snip() & snap() operations
+- [ ] NormalizedNodeStreamWriter VS NormalizedNodeDataOutput; use e.g. LoggingNormalizedNodeStreamWriter ?
+
+- [ ] implement Chopper with snip() & snap() operations (no longer needed, now?)
 
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, just copy/paste all of it?!
       "you should just need an InMemoryDataTree. Pattern after ShardDataTree instead."
@@ -22,6 +15,6 @@
 
 - [ ] Transactions now done or more needed?!
 
-- [ ] jetcd (?)
+- [ ] MUCH clean-up and MANY TODOs ;)
 
-
+- [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
