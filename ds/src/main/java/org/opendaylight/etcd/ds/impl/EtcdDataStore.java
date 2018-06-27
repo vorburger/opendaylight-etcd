@@ -40,8 +40,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     private static final byte CONFIGURATION_PREFIX = 67; // 'C'
     private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
 
-    // TODO rename this field to kv and class to EtcdKV
-    private final Etcd etcd;
+    private final EtcdKV kv;
     private final EtcdWatcher watcher;
 
     public EtcdDataStore(LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
@@ -49,7 +48,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         super(type.name(), type, dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
 
         byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
-        etcd = new Etcd(client, prefix);
+        kv = new EtcdKV(client, prefix);
         watcher = new EtcdWatcher(client);
         // TODO need to read back current persistent state from etcd on start-up...
         watcher.watch(prefix, 0, watchEvent -> {
@@ -59,7 +58,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     @Override
     public void close() {
-        etcd.close();
+        kv.close();
     }
 
     @Override
@@ -95,7 +94,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
         // TODO filter and take more modificationType into account...
         if (node.getModificationType().equals(ModificationType.WRITE)) {
-            add(futures, etcd.put(node.getIdentifier(),
+            add(futures, kv.put(node.getIdentifier(),
                     node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node))));
         }
 
