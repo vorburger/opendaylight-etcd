@@ -46,7 +46,7 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 @ThreadSafe
 @SuppressWarnings("deprecation")
 // intentionally just .impl package-local, for now
-class Etcd implements AutoCloseable {
+class EtcdKV implements AutoCloseable {
     // TODO rename this class to EtcdKV
 
     // TODO remove (make optional) the use of the controller.cluster
@@ -58,7 +58,7 @@ class Etcd implements AutoCloseable {
 
     private final byte prefix;
 
-    Etcd(Client client, byte prefix) {
+    EtcdKV(Client client, byte prefix) {
         this.etcd = requireNonNull(client, "client").getKVClient();
         this.prefix = prefix;
     }
