@@ -13,30 +13,37 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
+import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.kv.DeleteResponse;
 import com.coreos.jetcd.kv.PutResponse;
-import com.google.common.base.Optional;
+import com.coreos.jetcd.options.GetOption;
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import com.google.common.util.concurrent.CheckedFuture;
-import com.google.common.util.concurrent.Futures;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputOutput;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
+import org.opendaylight.etcd.utils.LoggingKV;
 import org.opendaylight.infrautils.utils.concurrent.CompletableFutures;
-import org.opendaylight.infrautils.utils.concurrent.CompletionStages;
 import org.opendaylight.infrautils.utils.function.CheckedCallable;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
+import org.opendaylight.infrautils.utils.function.CheckedFunction;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
+import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Thingie that really writes to and reads from etcd.
@@ -47,7 +54,9 @@ import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 @SuppressWarnings("deprecation")
 // intentionally just .impl package-local, for now
 class EtcdKV implements AutoCloseable {
-    // TODO rename this class to EtcdKV
+
+    // TODO remove this Logger again; this class should not log, only throw Exceptions or return failed CompletionStage
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdKV.class);
 
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
@@ -57,17 +66,23 @@ class EtcdKV implements AutoCloseable {
     private final KV etcd;
 
     private final byte prefix;
+    private final ByteSequence prefixByteSequence;
 
     EtcdKV(Client client, byte prefix) {
-        this.etcd = requireNonNull(client, "client").getKVClient();
+        // TODO make the LoggingKV a configuration option (for performance)
+        this.etcd = new LoggingKV(requireNonNull(client, "client").getKVClient());
         this.prefix = prefix;
+
+        byte[] prefixAsBytes = new byte[1];
+        prefixAsBytes[0] = prefix;
+        prefixByteSequence = ByteSequence.fromBytes(prefixAsBytes);
     }
 
     @Override
     public void close() {
         etcd.close();
     }
-
+/*
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(path);
@@ -75,6 +90,7 @@ class EtcdKV implements AutoCloseable {
             return etcd.put(key, value);
         });
     }
+*/
 
     public CompletionStage<PutResponse> put(PathArgument pathArgument, NormalizedNode<?, ?> data) {
         return handleException(() -> {
@@ -93,27 +109,44 @@ class EtcdKV implements AutoCloseable {
         // https://github.com/coreos/etcd/issues/4080
         throw new UnsupportedOperationException("TODO");
     }
-
-    // Please swallow a headache pill ;) before proceeding to read the following code:
+/*
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
         return Futures.makeChecked(
-            // TODO CompletionStages.toListenableFuture from https://git.opendaylight.org/gerrit/#/c/64771/ ok?
             CompletionStages.toListenableFuture(
-                handleException(() -> etcd.get(toByteSequence(path))
-                    .thenCompose(getResponse -> handleException(() -> {
-                        if (getResponse.getKvs().isEmpty()) {
-                            return CompletableFuture.completedFuture(Optional.absent());
-                        } else if (getResponse.getKvs().size() == 1) {
-                            try {
-                                ByteSequence byteSequence = getResponse.getKvs().get(0).getValue();
-                                return completedFuture(Optional.of(fromByteSequence(byteSequence)));
-                            } catch (IOException e) {
-                                throw new EtcdException("byte[] -> NormalizedNode failed: " + path, e);
-                            }
-                        } else {
-                            throw new EtcdException("Etcd Reponse had more than 1 keys/values: " + path);
-                        }
-                    })))), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
+                read(toByteSequence(path), GetOption.DEFAULT, kvs -> {
+                    if (kvs.isEmpty()) {
+                        return CompletableFuture.completedFuture(Optional.absent());
+                    } else if (kvs.size() == 1) {
+                        ByteSequence byteSequence = kvs.get(0).getValue();
+                        return completedFuture(Optional.of(fromByteSequenceToNormalizedNode(byteSequence)));
+                    } else {
+                        throw new EtcdException("Etcd Reponse unexpectedly had more than 1 keys/values: " + path);
+                    }
+                })), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
+    }
+*/
+
+    public void readAllInto(DataTreeModification dataTree) throws EtcdException {
+        try {
+            read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
+                LOG.info("read: KVs.size=" + kvs.size());
+                for (KeyValue kv : kvs) {
+                    PathArgument pathArgument = fromByteSequenceToPathArgument(kv.getKey());
+                    YangInstanceIdentifier path = YangInstanceIdentifier.create(pathArgument);
+                    NormalizedNode<?, ?> data = fromByteSequenceToNormalizedNode(kv.getValue());
+                    dataTree.write(path, data);
+                }
+                return completedFuture(null);
+            }).toCompletableFuture().get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new EtcdException("readAllInto() failed", e);
+        }
+    }
+
+    private <T> CompletionStage<T> read(ByteSequence key, GetOption option,
+            CheckedFunction<List<KeyValue>, CompletionStage<T>, EtcdException> transformer) {
+        return handleException(() -> etcd.get(key, option)
+            .thenCompose(getResponse -> handleException(() -> transformer.apply(getResponse.getKvs()))));
     }
 
     private static <T> CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
@@ -124,12 +157,31 @@ class EtcdKV implements AutoCloseable {
         }
     }
 
-    private static NormalizedNode<?, ?> fromByteSequence(ByteSequence byteSequence) throws IOException {
+    private static NormalizedNode<?, ?> fromByteSequenceToNormalizedNode(ByteSequence byteSequence)
+            throws EtcdException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(byteSequence.getBytes())) {
             try (DataInputStream dataInput = new DataInputStream(bais)) {
                 NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInput(dataInput);
                 return nodeDataInput.readNormalizedNode();
             }
+        } catch (IOException e) {
+            throw new EtcdException("byte[] -> NormalizedNode failed", e);
+        }
+    }
+
+    private PathArgument fromByteSequenceToPathArgument(ByteSequence byteSequence) throws EtcdException {
+        ByteArrayDataInput dataInput = ByteStreams.newDataInput(byteSequence.getBytes());
+        byte readPrefix = dataInput.readByte();
+        if (readPrefix != prefix) {
+            throw new EtcdException(
+                    "The read prefix does not match the expected prefix: " + readPrefix + " -VS- " + prefix);
+        }
+
+        try {
+            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInputWithoutValidation(dataInput);
+            return nodeDataInput.readPathArgument();
+        } catch (IOException e) {
+            throw new EtcdException("byte[] -> YangInstanceIdentifier failed", e);
         }
     }
 

@@ -23,6 +23,8 @@ import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidateNode;
+import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
+import org.opendaylight.yangtools.yang.data.api.schema.tree.DataValidationFailedException;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.ModificationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +51,10 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
         byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
         kv = new EtcdKV(client, prefix);
+
         watcher = new EtcdWatcher(client);
-        // TODO need to read back current persistent state from etcd on start-up...
         watcher.watch(prefix, 0, watchEvent -> {
+            // TODO actually update DataTree on watch notifications
             LOG.info("Watch: eventType={}, KV={}", watchEvent.getEventType(), watchEvent.getKeyValue());
         });
     }
@@ -60,6 +63,32 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     public void close() {
         kv.close();
         watcher.close();
+    }
+
+    /**
+     * On start-up, read back current persistent state from etcd as initial DataTree content.
+     */
+    // TODO make private; this is only temporarily public, for EtcdConcurrentDataBrokerTestCustomizer
+    // The idea is to make this private again later, and have it called automatically whenever we're behind etcd
+    public void initialLoad() throws EtcdException {
+        // TODO requires https://git.opendaylight.org/gerrit/#/c/73482/ which makes dataTree protected instead of private
+        DataTreeModification mod = dataTree.takeSnapshot().newModification();
+        kv.readAllInto(mod);
+        mod.ready();
+
+        try {
+            dataTree.validate(mod);
+        } catch (DataValidationFailedException e) {
+            throw new EtcdException("Initial load from etcd into (supposedly) empty data store caused "
+                    + "unexpected DataValidationFailedException", e);
+        }
+        DataTreeCandidate candidate = dataTree.prepare(mod);
+        dataTree.commit(candidate);
+
+        // also requires https://git.opendaylight.org/gerrit/#/c/73482/ which adds a protected notifyListeners to InMemoryDOMDataStore
+        notifyListeners(candidate);
+
+        LOG.info("initialLoad: DataTreeModification={}, DataTreeCandidate={}", mod, candidate);
     }
 
     @Override
