@@ -28,16 +28,18 @@ import org.opendaylight.etcd.ds.impl.EtcdDataStore;
 // intentionally just package-local, for now
 class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCustomizer {
 
-    private final Client client;
-
     // TODO later generalize this a bit so it can also be used for runtime OSGi service, not just tests
+
+    private final Client client;
+    private EtcdDataStore configurationDataStore;
+    private EtcdDataStore operationalDataStore;
 
     EtcdConcurrentDataBrokerTestCustomizer(Client client) {
         super(true);
         this.client = client;
     }
 
-    private DOMStore createConfigurationDatastore(LogicalDatastoreType type) {
+    private EtcdDataStore createConfigurationDatastore(LogicalDatastoreType type) {
         EtcdDataStore store = new EtcdDataStore(type, getDataTreeChangeListenerExecutor(),
                 InMemoryDOMDataStoreConfigProperties.DEFAULT_MAX_DATA_CHANGE_LISTENER_QUEUE_SIZE, client, true);
         getSchemaService().registerSchemaContextListener(store);
@@ -46,12 +48,28 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
 
     @Override
     public DOMStore createConfigurationDatastore() {
-        return createConfigurationDatastore(CONFIGURATION);
+        if (configurationDataStore != null) {
+            throw new IllegalStateException("Whoa; configurationDataStore already created!");
+        }
+        configurationDataStore = createConfigurationDatastore(CONFIGURATION);
+        return configurationDataStore;
+    }
+
+    public EtcdDataStore getConfigurationDataStore() {
+        return configurationDataStore;
     }
 
     @Override
     public DOMStore createOperationalDatastore() {
-        return createConfigurationDatastore(OPERATIONAL);
+        if (operationalDataStore != null) {
+            throw new IllegalStateException("Whoa; operationalDataStore already created!");
+        }
+        operationalDataStore = createConfigurationDatastore(OPERATIONAL);
+        return operationalDataStore;
+    }
+
+    public EtcdDataStore getOperationalDataStore() {
+        return operationalDataStore;
     }
 
     @Override
