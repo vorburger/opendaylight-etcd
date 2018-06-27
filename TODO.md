@@ -1,7 +1,11 @@
 
-- [ ] figure out why EtcdWatcher never prints watch hits.. run as a separate main() process, any different?
+- [ ] figure out remaining encode/decode issue(s)
 
 - [ ] make EtcdWatcher read initial DataTree state
+
+- [ ] programmatic "rm -rf testutils/target/etcd" via dataDir, like in MariaDB4j
+
+- [ ] figure out why EtcdWatcher never prints watch hits.. run as a separate main() process, any different?
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
 
@@ -20,3 +24,5 @@
 - [ ] MUCH clean-up and MANY TODOs ;)
 
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
+
+- [ ] properly performance profile the code
