@@ -17,6 +17,7 @@ import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.kv.DeleteResponse;
 import com.coreos.jetcd.kv.PutResponse;
 import com.coreos.jetcd.options.GetOption;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.google.common.util.concurrent.CheckedFuture;
@@ -33,6 +34,7 @@ import org.opendaylight.controller.cluster.datastore.node.utils.stream.Normalize
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputOutput;
 import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
+import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.LoggingKV;
 import org.opendaylight.infrautils.utils.concurrent.CompletableFutures;
 import org.opendaylight.infrautils.utils.function.CheckedCallable;
@@ -131,10 +133,18 @@ class EtcdKV implements AutoCloseable {
             read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
                 LOG.info("read: KVs.size=" + kvs.size());
                 for (KeyValue kv : kvs) {
-                    PathArgument pathArgument = fromByteSequenceToPathArgument(kv.getKey());
-                    YangInstanceIdentifier path = YangInstanceIdentifier.create(pathArgument);
-                    NormalizedNode<?, ?> data = fromByteSequenceToNormalizedNode(kv.getValue());
-                    dataTree.write(path, data);
+                    try {
+                        PathArgument pathArgument = fromByteSequenceToPathArgument(kv.getKey());
+                        YangInstanceIdentifier path = YangInstanceIdentifier.create(pathArgument);
+                        NormalizedNode<?, ?> data = fromByteSequenceToNormalizedNode(kv.getValue());
+                        dataTree.write(path, data);
+                    } catch (IllegalArgumentException e) {
+                        // TODO throw, log only to see if 2nd one goes through
+                        LOG.error("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
+                                + " ➠ " + ByteSequences.asString(kv.getValue()), e);
+                        // throw new EtcdException("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
+                        //        + " ➠ " + ByteSequences.asString(kv.getValue()), e);
+                    }
                 }
                 return completedFuture(null);
             }).toCompletableFuture().get();
@@ -169,7 +179,8 @@ class EtcdKV implements AutoCloseable {
         }
     }
 
-    private PathArgument fromByteSequenceToPathArgument(ByteSequence byteSequence) throws EtcdException {
+    @VisibleForTesting
+    PathArgument fromByteSequenceToPathArgument(ByteSequence byteSequence) throws EtcdException {
         ByteArrayDataInput dataInput = ByteStreams.newDataInput(byteSequence.getBytes());
         byte readPrefix = dataInput.readByte();
         if (readPrefix != prefix) {
@@ -178,7 +189,11 @@ class EtcdKV implements AutoCloseable {
         }
 
         try {
-            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInputWithoutValidation(dataInput);
+            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInput(dataInput);
+            byte miByte = nodeDataInput.readByte(); // TODO document why this ugly hack
+            if (miByte != 'M') {
+                throw new EtcdException("Missing 'M' byte: " + ByteSequences.asString(byteSequence));
+            }
             return nodeDataInput.readPathArgument();
         } catch (IOException e) {
             throw new EtcdException("byte[] -> YangInstanceIdentifier failed", e);
@@ -211,9 +226,13 @@ class EtcdKV implements AutoCloseable {
         }
     }
 
-    private ByteSequence toByteSequence(PathArgument pathArgument) throws EtcdException {
+    @VisibleForTesting
+    ByteSequence toByteSequence(PathArgument pathArgument) throws EtcdException {
         try {
-            return toByteSequence(true, nodeDataOutput -> nodeDataOutput.writePathArgument(pathArgument));
+            return toByteSequence(true, nodeDataOutput -> {
+                nodeDataOutput.writeByte((byte) 'M'); // TODO document why this ugly hack
+                nodeDataOutput.writePathArgument(pathArgument);
+            });
         } catch (IOException e) {
             throw new EtcdException("PathArgument toByteSequence failed: " + pathArgument.toString(), e);
         }
