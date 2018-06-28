@@ -1,7 +1,9 @@
 
 - [ ] figure out remaining encode/decode issue(s)
 
-- [ ] make EtcdWatcher read initial DataTree state
+- [ ] aren't we saving keys double now?  Also inside NormalizedNode, it seems.  Reduce this.
+
+- [ ] make EtcdWatcher read initial DataTree state... does it need a revision?
 
 - [ ] programmatic "rm -rf testutils/target/etcd" via dataDir, like in MariaDB4j
 
