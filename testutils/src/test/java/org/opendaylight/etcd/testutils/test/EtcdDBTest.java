@@ -16,7 +16,13 @@ import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUti
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +38,8 @@ import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokersProvider;
 import org.opendaylight.infrautils.testutils.LogRule;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainerBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugment;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugmentBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.complex.from.grouping.ContainerWithUsesBuilder;
@@ -66,7 +74,10 @@ public class EtcdDBTest {
     public @Rule LogRule logRule = new LogRule();
 
     @BeforeClass
-    public static void beforeClass() throws ManagedProcessException {
+    public static void beforeClass() throws ManagedProcessException, IOException {
+        // TODO delete content of etcd tree before() not beforeClass() instead of this
+        // TODO work clean up (and custom data dir) into EtcdLauncher
+        deleteDirectory(Paths.get("target/etcd"));
         etcdServer = new EtcdLauncher();
         etcdServer.start();
     }
@@ -100,10 +111,26 @@ public class EtcdDBTest {
         assertThat(dataBroker).isNotNull();
     }
 
+    @Test
+    public void testSimpleTestModelIntoDataStoreReadItBackAndDelete() throws Exception {
+        InstanceIdentifier<HelloWorldContainer> iid = InstanceIdentifier.create(HelloWorldContainer.class);
+        WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
+        initialTx.put(OPERATIONAL, iid, new HelloWorldContainerBuilder().setName("hello, world").build());
+        initialTx.commit().get();
+
+        recreateFreshDataBrokerClient();
+
+        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            assertThat(readTx.read(OPERATIONAL, iid).get().get().getName()).isEqualTo("hello, world");
+        }
+
+        // TODO delete
+    }
+
     // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
 
     @Test
-    public void testPutSomethingIntoDataStoreReadItBackAndDelete() throws Exception {
+    public void testPutSomethingMoreComplexIntoDataStoreReadItBackAndDelete() throws Exception {
         writeInitialState();
         recreateFreshDataBrokerClient();
 
@@ -120,7 +147,7 @@ public class EtcdDBTest {
     }
 
     @Test
-    public void testPutSomethingForSubTreeIntoDSReadItBackAndDelete() throws Exception {
+    public void testPutSomethingMoreComplexForSubTreeIntoDSReadItBackAndDelete() throws Exception {
         NestedList nl1 = new NestedListBuilder().withKey(new NestedListKey("nested1"))
                 .setName("nested1").setType("type1").build();
         TopLevelList tl1 = new TopLevelListBuilder().withKey(new TopLevelListKey("top1"))
@@ -175,6 +202,26 @@ public class EtcdDBTest {
         }
     }
 
-    // TODO as in org.opendaylight.controller.md.sal.dom.broker.impl.DOMBrokerTest & Co.
+    @SuppressWarnings("checkstyle:AvoidHidingCauseException")
+    private static void deleteDirectory(Path directory) throws IOException {
+        if (!directory.toFile().exists()) {
+            LOG.info("Directory to delete did not exist: {}", directory);
+            return;
+        }
+        try {
+            Files.walk(directory).sorted(Comparator.reverseOrder()).forEach(t -> {
+                try {
+                    Files.delete(t);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
+            LOG.info("Successfully deleted directory: {}", directory);
+        } catch (UncheckedIOException e) {
+            throw e.getCause();
+        }
+    }
+
+    // TODO add more as in org.opendaylight.controller.md.sal.dom.broker.impl.DOMBrokerTest & Co.
 
 }
