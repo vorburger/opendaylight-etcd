@@ -27,6 +27,7 @@
     <module>launcher</module>
     <module>jetcd</module>
     <module>ds</module>
+    <module>test-model</module>
     <module>testutils</module>
   </modules>
 

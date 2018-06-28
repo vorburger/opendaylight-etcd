@@ -1,0 +1,15 @@
+module opendaylight-etcd-test {
+    // yang-version 1.1;
+    namespace "urn:opendaylight:etcd:test";
+    prefix "opendaylight-etcd-test";
+
+    revision "2018-06-28" {
+        description "Initial revision of opendaylight-etcd-test model";
+    }
+
+    container HelloWorldContainer {
+        leaf name {
+            type string;
+        }
+    }
+}
