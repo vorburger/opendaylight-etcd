@@ -9,6 +9,7 @@ package ch.vorburger.dom2kv.impl;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 
 import ch.vorburger.dom2kv.Sequence;
 import java.util.Iterator;
@@ -29,7 +30,7 @@ public class SequenceListImpl<T> implements Sequence<T> {
     private final List<T> delegate;
 
     public SequenceListImpl(List<T> delegate) {
-        this.delegate = delegate;
+        this.delegate = requireNonNull(delegate, "delegate");
     }
 
     @SafeVarargs
@@ -68,4 +69,29 @@ public class SequenceListImpl<T> implements Sequence<T> {
         return delegate.isEmpty();
     }
 
+    @Override
+    public int hashCode() {
+        return 31 + delegate.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        SequenceListImpl<T> other = (SequenceListImpl<T>) obj;
+        return delegate.equals(other.delegate);
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }
