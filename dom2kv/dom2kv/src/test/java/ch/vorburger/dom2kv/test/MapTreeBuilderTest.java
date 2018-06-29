@@ -14,7 +14,9 @@ import ch.vorburger.dom2kv.Tree.NodeOrLeaf;
 import ch.vorburger.dom2kv.impl.MapTreeBuilder;
 import ch.vorburger.dom2kv.impl.TreeBuilderImpl;
 import ch.vorburger.dom2kv.impl.TreeImpl;
+import com.google.common.collect.ImmutableList;
 import java.util.Collections;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -24,25 +26,31 @@ import org.junit.Test;
  */
 public class MapTreeBuilderTest {
 
-    MapTreeBuilder<String, Object> mapTreeBuilder = new MapTreeBuilder<>(() -> new TreeBuilderImpl<>());
+    MapTreeBuilder<String, Object> builder = new MapTreeBuilder<>(() -> new TreeBuilderImpl<>());
 
     @Test
     public void emptyMap() {
-        assertThat(mapTreeBuilder.fromMap(Collections.emptyMap()).root()).isEmpty();
+        assertThat(builder.fromMap(Collections.emptyMap()).root()).isEmpty();
     }
 
     @Test
     public void simple() {
-        Iterable<NodeOrLeaf<String, Object>> nodes = mapTreeBuilder.fromMap(of("k1", "v1", "k2", "v1")).root();
-        assertThat(nodes).hasSize(2);
-        assertThat(nodes).contains(new TreeImpl.LeafImpl<>("k1", "v1"));
+        Iterable<NodeOrLeaf<String, Object>> nodes = builder.fromMap(of("k1", "v1", "k2", "v2")).root();
+        assertThat(nodes).containsExactly(new TreeImpl.LeafImpl<>("k1", "v1"), new TreeImpl.LeafImpl<>("k2", "v2"));
+    }
+
+    @Test
+    @Ignore // TODO
+    public void list() {
+        Iterable<NodeOrLeaf<String, Object>> nodes = builder.fromMap(of("list", ImmutableList.of("a", "b"))).root();
+        // TODO assertThat(nodes).containsExactly(???);
     }
 
     @Test
     public void mapOfMap() {
-        Iterable<NodeOrLeaf<String, Object>> nodes = mapTreeBuilder.fromMap(of("k1", "v1", "k2", of("x", "y"))).root();
-        assertThat(nodes).hasSize(2);
-        assertThat(nodes).contains(new TreeImpl.LeafImpl<>("k1", "v1"));
-        assertThat(nodes).contains(new TreeImpl.NodeImpl<>("k2", new TreeImpl.LeafImpl<>("x", "y")));
+        Iterable<NodeOrLeaf<String, Object>> nodes = builder.fromMap(of("k1", "v1", "k2", of("x", "y"))).root();
+        assertThat(nodes).containsExactly(
+                new TreeImpl.LeafImpl<>("k1", "v1"),
+                new TreeImpl.NodeImpl<>("k2", new TreeImpl.LeafImpl<>("x", "y")));
     }
 }

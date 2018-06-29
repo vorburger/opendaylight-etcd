@@ -10,6 +10,7 @@ package ch.vorburger.dom2kv.impl;
 import ch.vorburger.dom2kv.Sequence;
 import ch.vorburger.dom2kv.Tree;
 import ch.vorburger.dom2kv.TreeBuilder;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -42,6 +43,8 @@ public class MapTreeBuilder<I, V> {
                 @SuppressWarnings("unchecked")
                 Map<I, Object> valueAsMap = (Map<I, Object>) value;
                 transform(valueAsMap, treeBuilder, parentIDs.append(id));
+            } else if (value instanceof List) {
+                throw new UnsupportedOperationException("TODO Implement List support in Tree: " + value);
             } else {
                 @SuppressWarnings("unchecked")
                 V nonMapValue = (V) value;
