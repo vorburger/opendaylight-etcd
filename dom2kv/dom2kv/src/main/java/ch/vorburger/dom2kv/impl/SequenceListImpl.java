@@ -12,6 +12,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 import ch.vorburger.dom2kv.Sequence;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -67,6 +68,14 @@ public class SequenceListImpl<T> implements Sequence<T> {
     @Override
     public boolean isEmpty() {
         return delegate.isEmpty();
+    }
+
+    @Override
+    public Sequence<T> append(T element) {
+        ArrayList<T> newList = new ArrayList<>(delegate.size() + 1);
+        newList.addAll(delegate);
+        newList.add(element);
+        return new SequenceListImpl<>(newList);
     }
 
     @Override

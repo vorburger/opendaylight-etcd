@@ -41,4 +41,10 @@ public class SequenceListImplTest {
         assertThat(new SequenceListImpl<>("hello", "world").tail().head()).isEqualTo("world");
         assertThat(new SequenceListImpl<>("hello", "world").tail().tail().isEmpty()).isTrue();
     }
+
+    @Test public void append() {
+        SequenceListImpl<String> empty = new SequenceListImpl<>();
+        assertThat(empty.append("hello").head()).isEqualTo("hello");
+        assertThat(empty.isEmpty()).isTrue();
+    }
 }
