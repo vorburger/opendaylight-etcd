@@ -7,7 +7,8 @@
  */
 package ch.vorburger.dom2kv;
 
-import java.util.function.Consumer;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 /**
  * Service to transform Documentation Object Model Tree to/from Keys & Values.
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
  */
 public interface Transformer<I, K, V> {
 
-    void tree2kv(Tree<I, V> tree, Consumer<KeyValue<K, V>> kvConsumer);
+    void tree2kv(Tree<I, V> tree, BiConsumer<K, Optional<V>> kvConsumer);
 
     Tree<I, V> kv2tree(Iterable<KeyValue<K, V>> kvs);
 

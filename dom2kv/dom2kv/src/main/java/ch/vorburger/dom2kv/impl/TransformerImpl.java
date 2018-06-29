@@ -17,8 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -29,27 +28,27 @@ import java.util.function.Function;
 public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
 
     private final Function<Iterable<I>, K> idsToKeyFunction;
-    private final BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory;
+    // private final BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory;
 
-    public TransformerImpl(Function<Iterable<I>, K> idsToKeyFunction,
-            BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory) {
+    public TransformerImpl(Function<Iterable<I>, K> idsToKeyFunction
+            /*BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory*/) {
         this.idsToKeyFunction = idsToKeyFunction;
-        this.keyValueFactory = keyValueFactory;
+        // this.keyValueFactory = keyValueFactory;
     }
 
     @Override
-    public void tree2kv(Tree<I, V> tree, Consumer<KeyValue<K, V>> kvConsumer) {
+    public void tree2kv(Tree<I, V> tree, BiConsumer<K, Optional<V>> kvConsumer) {
         tree.root().ifPresent(rootNode -> tree2kv(rootNode, kvConsumer, new ArrayList<>()));
     }
 
     @SuppressWarnings("unchecked")
-    private void tree2kv(Node<I> node, Consumer<KeyValue<K, V>> kvConsumer, Collection<I> parentIDs) {
+    private void tree2kv(Node<I> node, BiConsumer<K, Optional<V>> kvConsumer, Collection<I> parentIDs) {
         // TODO thisNodeFQN can be significantly optimized.. use some sort of smarter Sequence+1 type
         List<I> thisNodeFQN = new ArrayList<>(parentIDs);
         thisNodeFQN.add(node.id());
         K key = idsToKeyFunction.apply(thisNodeFQN);
 
-        kvConsumer.accept(keyValueFactory.apply(key, Optional.empty()));
+        kvConsumer.accept(key, Optional.empty());
         for (NodeOrLeaf<I> child : node.children()) {
             if (child instanceof Node) {
                 tree2kv((Node<I>) child, kvConsumer, thisNodeFQN);
@@ -61,13 +60,13 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
         }
     }
 
-    private void tree2kv(Leaf<I, V> leaf, Consumer<KeyValue<K, V>> kvConsumer, Collection<I> parentIDs) {
+    private void tree2kv(Leaf<I, V> leaf, BiConsumer<K, Optional<V>> kvConsumer, Collection<I> parentIDs) {
         // see above (and don't copy/paste....)
         List<I> thisNodeFQN = new ArrayList<>(parentIDs);
         thisNodeFQN.add(leaf.id());
         K key = idsToKeyFunction.apply(thisNodeFQN);
 
-        kvConsumer.accept(keyValueFactory.apply(key, Optional.of(leaf.value())));
+        kvConsumer.accept(key, Optional.of(leaf.value()));
     }
 
     @Override
