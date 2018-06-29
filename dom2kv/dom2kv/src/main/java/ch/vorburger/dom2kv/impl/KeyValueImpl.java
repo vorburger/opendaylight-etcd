@@ -9,6 +9,8 @@ package ch.vorburger.dom2kv.impl;
 
 import ch.vorburger.dom2kv.KeyValue;
 import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.concurrent.Immutable;
 import org.eclipse.jdt.annotation.NonNull;
 
 /**
@@ -16,14 +18,20 @@ import org.eclipse.jdt.annotation.NonNull;
  *
  * @author Michael Vorburger.ch
  */
+@Immutable
 public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
 
     private final @NonNull K key;
-    private final @NonNull V value;
+    private final @NonNull Optional<V> value;
 
     public KeyValueImpl(K key, V value) {
         this.key = Objects.requireNonNull(key, "key");
-        this.value = Objects.requireNonNull(value, "value");
+        this.value = Optional.of(Objects.requireNonNull(value, "value"));
+    }
+
+    public KeyValueImpl(K key) {
+        this.key = Objects.requireNonNull(key, "key");
+        this.value = Optional.empty();
     }
 
     @Override
@@ -32,7 +40,7 @@ public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
     }
 
     @Override
-    public V value() {
+    public Optional<V> value() {
         return value;
     }
 

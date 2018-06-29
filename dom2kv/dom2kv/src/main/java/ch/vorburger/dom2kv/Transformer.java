@@ -7,7 +7,6 @@
  */
 package ch.vorburger.dom2kv;
 
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 /**
@@ -19,6 +18,6 @@ public interface Transformer<I, K, V> {
 
     void tree2kv(Tree<I, V> tree, Consumer<KeyValue<K, V>> kvConsumer);
 
-    Tree<I, V> kv2tree(Iterator<KeyValue<K, V>> keysAndValues);
+    Tree<I, V> kv2tree(Iterable<KeyValue<K, V>> kvs);
 
 }

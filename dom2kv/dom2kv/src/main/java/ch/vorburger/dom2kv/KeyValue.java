@@ -7,15 +7,16 @@
  */
 package ch.vorburger.dom2kv;
 
+import java.util.Optional;
+
 /**
  * Pair of Key &amp; Value.
  *
  * @author Michael Vorburger.ch
  */
 public interface KeyValue<K, V> {
-    // TODO make type of Key and Value generics
 
     K key();
 
-    V value();
+    Optional<V> value();
 }
