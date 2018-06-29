@@ -7,7 +7,6 @@
  */
 package ch.vorburger.dom2kv.impl;
 
-import ch.vorburger.dom2kv.ByteSeq;
 import ch.vorburger.dom2kv.KeyValue;
 import java.util.Objects;
 import org.eclipse.jdt.annotation.NonNull;
@@ -17,23 +16,23 @@ import org.eclipse.jdt.annotation.NonNull;
  *
  * @author Michael Vorburger.ch
  */
-public final class KeyValueImpl implements KeyValue {
+public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
 
-    private final @NonNull ByteSeq key;
-    private final @NonNull ByteSeq value;
+    private final @NonNull K key;
+    private final @NonNull V value;
 
-    public KeyValueImpl(ByteSeq key, ByteSeq value) {
+    public KeyValueImpl(K key, V value) {
         this.key = Objects.requireNonNull(key, "key");
         this.value = Objects.requireNonNull(value, "value");
     }
 
     @Override
-    public ByteSeq key() {
+    public K key() {
         return key;
     }
 
     @Override
-    public ByteSeq value() {
+    public V value() {
         return value;
     }
 
@@ -57,7 +56,8 @@ public final class KeyValueImpl implements KeyValue {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        KeyValueImpl other = (KeyValueImpl) obj;
+        @SuppressWarnings("unchecked")
+        KeyValueImpl<K, V> other = (KeyValueImpl<K, V>) obj;
         if (!key.equals(other.key)) {
             return false;
         }

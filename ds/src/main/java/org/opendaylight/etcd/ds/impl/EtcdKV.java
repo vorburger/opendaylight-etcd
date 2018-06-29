@@ -189,11 +189,7 @@ class EtcdKV implements AutoCloseable {
         }
 
         try {
-            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInput(dataInput);
-            byte miByte = nodeDataInput.readByte(); // TODO document why this ugly hack
-            if (miByte != 'M') {
-                throw new EtcdException("Missing 'M' byte: " + ByteSequences.asString(byteSequence));
-            }
+            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInputWithoutValidation(dataInput);
             return nodeDataInput.readPathArgument();
         } catch (IOException e) {
             throw new EtcdException("byte[] -> YangInstanceIdentifier failed", e);
@@ -230,7 +226,6 @@ class EtcdKV implements AutoCloseable {
     ByteSequence toByteSequence(PathArgument pathArgument) throws EtcdException {
         try {
             return toByteSequence(true, nodeDataOutput -> {
-                nodeDataOutput.writeByte((byte) 'M'); // TODO document why this ugly hack
                 nodeDataOutput.writePathArgument(pathArgument);
             });
         } catch (IOException e) {

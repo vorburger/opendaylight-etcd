@@ -12,10 +12,10 @@ package ch.vorburger.dom2kv;
  *
  * @author Michael Vorburger.ch
  */
-public interface KeyValue {
+public interface KeyValue<K, V> {
     // TODO make type of Key and Value generics
 
-    ByteSeq key();
+    K key();
 
-    ByteSeq value();
+    V value();
 }
