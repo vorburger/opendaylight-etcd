@@ -50,6 +50,18 @@ public class TransformerTest {
         assertThat(transformer.kv2tree(kvs)).isEqualTo(tree);
     }
 
+    @Test public void flat() {
+        Tree.Leaf<String, String> node1 = new TreeImpl.LeafImpl<>("x", "y");
+        Tree<String, String> tree = new TreeImpl<>(node1);
+        transformer.tree2kv(tree, kvs);
+        assertThat(kvs).containsExactly(new KeyValueImpl<>("x", "y"));
+    }
 
-    // TODO add more tests...
+    @Test public void nesting() {
+        Tree.Node<String, String> node1 = new TreeImpl.NodeImpl<>("a", new TreeImpl.LeafImpl<>("b", "c"));
+        Tree<String, String> tree = new TreeImpl<>(node1);
+        transformer.tree2kv(tree, kvs);
+        assertThat(kvs).contains(new KeyValueImpl<>("a.b", "c"));
+        // NB: It also contains "a" - and that's fine (for now).
+    }
 }
