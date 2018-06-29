@@ -7,7 +7,7 @@
  */
 package org.opendaylight.etcd.utils;
 
-import ch.vorburger.dom2kv.ByteSeq;
+import ch.vorburger.dom2kv.bite.ByteSeq;
 import com.coreos.jetcd.data.ByteSequence;
 
 /**
