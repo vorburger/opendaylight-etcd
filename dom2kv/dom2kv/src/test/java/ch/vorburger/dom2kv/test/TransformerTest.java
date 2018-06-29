@@ -12,9 +12,12 @@ import static com.google.common.truth.Truth.assertThat;
 import ch.vorburger.dom2kv.Transformer;
 import ch.vorburger.dom2kv.Tree;
 import ch.vorburger.dom2kv.impl.KeyValueImpl;
+import ch.vorburger.dom2kv.impl.SequenceListImpl;
 import ch.vorburger.dom2kv.impl.TransformerImpl;
+import ch.vorburger.dom2kv.impl.TreeBuilderImpl;
 import ch.vorburger.dom2kv.impl.TreeImpl;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import java.util.Collections;
 import org.junit.Test;
 
@@ -27,11 +30,15 @@ public class TransformerTest {
 
     ListBiConsumer<String, String> kvs = new ListBiConsumer<>();
 
-    Transformer<String, String, String> transformer = new TransformerImpl<>(ids -> Joiner.on(".").join(ids));
+    Transformer<String, String, String> transformer = new TransformerImpl<>(
+        () -> new SequenceListImpl<>(),
+        ids -> Joiner.on(".").join(ids),
+        key -> new SequenceListImpl<>(Splitter.on(".").split(key)),
+        () -> new TreeBuilderImpl<>());
         // (newKey, newValue) -> new KeyValueImpl<>(newKey, newValue));
 
     @Test public void empty() {
-        assertThat(transformer.kv2tree(Collections.emptyList()).root().isPresent()).isFalse();
+        assertThat(transformer.kv2tree(Collections.emptyList()).root()).isEmpty();
 
         Tree<String, String> emptyTree = new TreeImpl<>();
         transformer.tree2kv(emptyTree, kvs);
@@ -41,10 +48,12 @@ public class TransformerTest {
     }
 
     @Test public void root() {
-        Tree<String, String> tree = new TreeImpl<>(new TreeImpl.NodeImpl<>("groot"));
+        Tree<String, String> tree = new TreeImpl<>(new TreeImpl.NodeImpl<String, String>("groot"));
         transformer.tree2kv(tree, kvs);
         assertThat(kvs).containsExactly(new KeyValueImpl<>("groot"));
         assertThat(transformer.kv2tree(kvs)).isEqualTo(tree);
     }
 
+
+    // TODO add more tests...
 }
