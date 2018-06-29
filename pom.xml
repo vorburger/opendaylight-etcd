@@ -24,6 +24,7 @@
 
   <modules>
     <module>bundle-parent</module>
+    <module>dom2kv</module>
     <module>launcher</module>
     <module>jetcd</module>
     <module>ds</module>
