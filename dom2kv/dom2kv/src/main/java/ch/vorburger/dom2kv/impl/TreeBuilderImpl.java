@@ -45,6 +45,9 @@ public class TreeBuilderImpl<I, V> implements TreeBuilder<I, V> {
 
     @Override
     public TreeBuilder<I, V> createNode(Sequence<I> path) {
+        if (path.isEmpty()) {
+            throw new IllegalArgumentException("path is empty Sequence");
+        }
         create(path, (remainingPath, current) ->
             current.children.computeIfAbsent(remainingPath.head(), id -> new MutableNodeOrLeaf<>()));
         return this;
@@ -54,6 +57,9 @@ public class TreeBuilderImpl<I, V> implements TreeBuilder<I, V> {
     public TreeBuilder<I, V> createLeaf(Sequence<I> path, V value) {
         create(path, (remainingPath, current) -> {
             if (remainingPath.tail().isEmpty()) {
+                if (current.children.containsKey(remainingPath.head())) {
+                    throw new IllegalArgumentException("Path already set: " + path);
+                }
                 return current.children.computeIfAbsent(remainingPath.head(), id -> new MutableNodeOrLeaf<>(value));
             } else {
                 return current.children.computeIfAbsent(remainingPath.head(), id -> new MutableNodeOrLeaf<>());
@@ -63,19 +69,13 @@ public class TreeBuilderImpl<I, V> implements TreeBuilder<I, V> {
     }
 
     private void create(Sequence<I> path, BiFunction1<Sequence<I>, MutableNodeOrLeaf<I, V>> biFunction) {
-        if (path.isEmpty()) {
-            throw new IllegalArgumentException("path is empty Sequence");
-        }
         @Var Sequence<I> remainingPath = path;
         @Var MutableNodeOrLeaf<I, V> current = root;
 
-        while (!remainingPath.isEmpty()) {
-//            if (current.children.containsKey(remainingPath.head())) {
-//                throw new IllegalArgumentException("Path already set: " + path);
-//            }
+        do {
             current = biFunction.apply(remainingPath, current);
             remainingPath = remainingPath.tail();
-        }
+        } while (!remainingPath.isEmpty());
     }
 
     @Override
