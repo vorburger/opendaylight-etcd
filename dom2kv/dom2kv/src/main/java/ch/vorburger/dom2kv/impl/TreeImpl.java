@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An implementation of {@link Tree} (but there could well be others, more optimized).
@@ -20,20 +21,21 @@ import javax.annotation.concurrent.Immutable;
  * @author Michael Vorburger.ch
  */
 @Immutable
+@ThreadSafe
 public class TreeImpl<I, V> implements Tree<I, V> {
 
-    private final Optional<Node<I>> rootNode;
+    private final Optional<Node<I, V>> rootNode;
 
     public TreeImpl() {
         this.rootNode = Optional.empty();
     }
 
-    public TreeImpl(Node<I> rootNode) {
+    public TreeImpl(Node<I, V> rootNode) {
         this.rootNode = Optional.of(rootNode);
     }
 
     @Override
-    public Optional<Node<I>> root() {
+    public Optional<Node<I, V>> root() {
         return rootNode;
     }
 
@@ -60,13 +62,13 @@ public class TreeImpl<I, V> implements Tree<I, V> {
     }
 
 
-    public static class NodeImpl<I> implements Node<I> {
+    public static class NodeImpl<I, V> implements Node<I, V> {
 
         private final I id;
-        private final NodeOrLeaf<I>[] children;
+        private final NodeOrLeaf<I, V>[] children;
 
         @SafeVarargs
-        public NodeImpl(I id, NodeOrLeaf<I>... children) {
+        public NodeImpl(I id, NodeOrLeaf<I, V>... children) {
             this.id = Objects.requireNonNull(id, "id");
             this.children = children;
         }
@@ -77,7 +79,7 @@ public class TreeImpl<I, V> implements Tree<I, V> {
         }
 
         @Override
-        public Iterable<NodeOrLeaf<I>> children() {
+        public Iterable<NodeOrLeaf<I, V>> children() {
             // TODO make children field List, instead doing it every time (and adjust hashCode & equals appropriately)
             return Collections.unmodifiableList(Arrays.asList(children.clone()));
         }
@@ -103,7 +105,7 @@ public class TreeImpl<I, V> implements Tree<I, V> {
                 return false;
             }
             @SuppressWarnings("unchecked")
-            NodeImpl<I> other = (NodeImpl<I>) obj;
+            NodeImpl<I, V> other = (NodeImpl<I, V>) obj;
             if (!Arrays.equals(children, other.children)) {
                 return false;
             }
@@ -158,7 +160,5 @@ public class TreeImpl<I, V> implements Tree<I, V> {
             }
             return value.equals(other.value);
         }
-
-
     }
 }
