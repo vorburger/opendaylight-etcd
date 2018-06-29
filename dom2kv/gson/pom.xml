@@ -24,5 +24,10 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
+    <dependency>
+      <groupId>ch.vorburger.dom2kv</groupId>
+      <artifactId>jetcd</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 </project>
