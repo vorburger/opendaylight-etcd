@@ -14,6 +14,8 @@ package ch.vorburger.dom2kv;
  */
 public interface Tree<I, V> {
 
+    // TODO Think through how to support List... value() of Leaf should List<V> ??
+
     interface NodeOrLeaf<I, V> {
         I id();
     }
