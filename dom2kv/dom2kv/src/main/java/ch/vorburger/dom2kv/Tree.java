@@ -10,7 +10,7 @@ package ch.vorburger.dom2kv;
 import java.util.Iterator;
 
 /**
- * DOM Tree.
+ * <a href="https://en.wikipedia.org/wiki/Dom_(mountain)">DOM</a> Tree.
  *
  * @author Michael Vorburger.ch
  */
