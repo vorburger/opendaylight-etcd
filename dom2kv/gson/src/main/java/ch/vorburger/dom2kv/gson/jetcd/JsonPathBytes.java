@@ -30,4 +30,33 @@ public final class JsonPathBytes {
 
     public static final Function<ByteSequence, Sequence<String>> BYTES_TO_STRING_SEQ
         = key -> new SequenceListImpl<>(Splitter.on(UNIT_SEPARATOR_CHAR).split(new String(key.getBytes())));
+
+/*
+    TODO above works, but is platform specific, so you couldn't copy data to a system with another encoding.
+    Below should be platform independent - but breaks the JsonPathBytesTest; why??
+
+    private static final Charset UTF8 = Charset.forName("UTF-8");
+    private static final CharsetEncoder UTF8_ENCODER = UTF8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT);
+    private static final CharsetDecoder UTF8_DECODER = UTF8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT);
+
+    public static final Function<Sequence<String>, ByteSequence> STRING_SEQ_TO_BYTES = ids -> {
+        try {
+            return new ByteSequence(
+                UTF8_ENCODER.encode(CharBuffer.wrap(Joiner.on(UNIT_SEPARATOR_CHAR).join(ids))).array());
+        } catch (CharacterCodingException e) {
+            throw new IllegalArgumentException("CharacterCodingException for: " + ids, e);
+        }
+    };
+
+    public static final Function<ByteSequence, Sequence<String>> BYTES_TO_STRING_SEQ = key -> {
+        try {
+            return new SequenceListImpl<>(
+                    Splitter.on(UNIT_SEPARATOR_CHAR).split(UTF8_DECODER.decode(ByteBuffer.wrap(key.getBytes()))));
+        } catch (CharacterCodingException e) {
+            throw new IllegalArgumentException("CharacterCodingException for: " + key, e);
+        }
+    };
+*/
 }

@@ -24,9 +24,10 @@ public class JsonPathBytesTest {
     @Test
     public void stringSeqToBytes() {
         Sequence<String> seq = JsonPathBytes.BYTES_TO_STRING_SEQ
-            .apply(JsonPathBytes.STRING_SEQ_TO_BYTES.apply(new SequenceListImpl<>("a", "b", "⛑️")));
+            .apply(JsonPathBytes.STRING_SEQ_TO_BYTES.apply(new SequenceListImpl<>("a", "⛑️", "b", "🇨🇭")));
         assertThat(seq.head()).isEqualTo("a");
-        assertThat(seq.tail().head()).isEqualTo("b");
-        assertThat(seq.tail().tail().head()).isEqualTo("⛑️");
+        assertThat(seq.tail().head()).isEqualTo("⛑️");
+        assertThat(seq.tail().tail().head()).isEqualTo("b");
+        assertThat(seq.tail().tail().tail().head()).isEqualTo("🇨🇭");
     }
 }
