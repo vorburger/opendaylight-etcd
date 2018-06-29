@@ -7,7 +7,6 @@
  */
 package ch.vorburger.dom2kv.impl;
 
-import ch.vorburger.dom2kv.ByteSeq;
 import ch.vorburger.dom2kv.KeyValue;
 import ch.vorburger.dom2kv.Transformer;
 import ch.vorburger.dom2kv.Tree;
@@ -20,17 +19,17 @@ import java.util.function.Consumer;
  *
  * @author Michael Vorburger.ch
  */
-public class TransformerImpl implements Transformer {
+public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
 
-    private BiFunction<ByteSeq, ByteSeq, KeyValue> keyValueFactory;
+    private BiFunction<K, V, KeyValue<K, V>> keyValueFactory;
 
     @Override
-    public void tree2kv(Tree tree, Consumer<KeyValue> kvConsumer) {
+    public void tree2kv(Tree<I, V> tree, Consumer<KeyValue<K, V>> kvConsumer) {
+        tree.root().ifPresent(rootNode -> { });
     }
 
     @Override
-    public Tree kv2tree(Iterator<KeyValue> keysAndValues) {
-        return null;
+    public Tree<I, V> kv2tree(Iterator<KeyValue<K, V>> keysAndValues) {
+        return new TreeImpl<>();
     }
-
 }

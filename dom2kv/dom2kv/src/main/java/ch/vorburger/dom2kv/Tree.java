@@ -8,26 +8,27 @@
 package ch.vorburger.dom2kv;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * <a href="https://en.wikipedia.org/wiki/Dom_(mountain)">DOM</a> Tree.
  *
  * @author Michael Vorburger.ch
  */
-public interface Tree {
+public interface Tree<I, V> {
     // TODO make type of ID and Value generics
 
-    interface NodeOrLeaf {
-        ByteSeq id();
+    interface NodeOrLeaf<I> {
+        I id();
     }
 
-    interface Node extends NodeOrLeaf {
-        Iterator<NodeOrLeaf> children();
+    interface Node<I> extends NodeOrLeaf<I> {
+        Iterator<NodeOrLeaf<I>> children();
     }
 
-    interface Leaf extends NodeOrLeaf {
-        ByteSeq value();
+    interface Leaf<I, V> extends NodeOrLeaf<I> {
+        V value();
     }
 
-    Node root();
+    Optional<Node<I>> root();
 }
