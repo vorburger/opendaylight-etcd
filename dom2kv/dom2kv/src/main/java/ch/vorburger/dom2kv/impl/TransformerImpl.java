@@ -32,9 +32,9 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
     private final Function<K, Sequence<I>> keysToIdFunction;
     private final Supplier<TreeBuilder<I, V>> newTreeBuilderProvider;
 
-    public TransformerImpl(Supplier<Sequence<I>> newEmptySequenceProvider,
-            Function<Sequence<I>, K> idsToKeyFunction,
-            Function<K, Sequence<I>> keysToIdFunction, Supplier<TreeBuilder<I, V>> newTreeBuilderProvider) {
+    public TransformerImpl(Function<Sequence<I>, K> idsToKeyFunction,
+            Function<K, Sequence<I>> keysToIdFunction,
+            Supplier<TreeBuilder<I, V>> newTreeBuilderProvider, Supplier<Sequence<I>> newEmptySequenceProvider) {
         this.newEmptySequenceProvider = newEmptySequenceProvider;
         this.idsToKeyFunction = idsToKeyFunction;
         this.keysToIdFunction = keysToIdFunction;
@@ -43,11 +43,11 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
 
     public TransformerImpl(Function<Sequence<I>, K> idsToKeyFunction,
             Function<K, Sequence<I>> keysToIdFunction, Supplier<TreeBuilder<I, V>> newTreeBuilderProvider) {
-        this(() -> new SequenceListImpl<>(), idsToKeyFunction, keysToIdFunction, newTreeBuilderProvider);
+        this(idsToKeyFunction, keysToIdFunction, newTreeBuilderProvider, () -> new SequenceListImpl<>());
     }
 
     public TransformerImpl(Function<Sequence<I>, K> idsToKeyFunction, Function<K, Sequence<I>> keysToIdFunction) {
-        this(() -> new SequenceListImpl<>(), idsToKeyFunction, keysToIdFunction, () -> new TreeBuilderImpl<>());
+        this(idsToKeyFunction, keysToIdFunction, () -> new TreeBuilderImpl<>(), () -> new SequenceListImpl<>());
     }
 
     @Override
