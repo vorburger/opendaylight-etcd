@@ -9,12 +9,14 @@ package ch.vorburger.dom2kv;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Service to transform Documentation Object Model Tree to/from Keys & Values.
  *
  * @author Michael Vorburger.ch
  */
+@ThreadSafe
 public interface Transformer<I, K, V> {
 
     void tree2kv(Tree<I, V> tree, BiConsumer<K, Optional<V>> kvConsumer);

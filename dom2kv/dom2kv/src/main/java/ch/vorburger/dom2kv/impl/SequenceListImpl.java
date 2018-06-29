@@ -7,8 +7,10 @@
  */
 package ch.vorburger.dom2kv.impl;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
 import ch.vorburger.dom2kv.Sequence;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -32,7 +34,11 @@ public class SequenceListImpl<T> implements Sequence<T> {
 
     @SafeVarargs
     public SequenceListImpl(T... list) {
-        this.delegate = Arrays.asList(list);
+        if (list.length > 0) {
+            this.delegate = asList(list);
+        } else {
+            this.delegate = emptyList();
+        }
     }
 
     @Override

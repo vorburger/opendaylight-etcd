@@ -11,6 +11,7 @@ import ch.vorburger.dom2kv.KeyValue;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 import org.eclipse.jdt.annotation.NonNull;
 
 /**
@@ -19,6 +20,7 @@ import org.eclipse.jdt.annotation.NonNull;
  * @author Michael Vorburger.ch
  */
 @Immutable
+@ThreadSafe
 public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
 
     private final @NonNull K key;
