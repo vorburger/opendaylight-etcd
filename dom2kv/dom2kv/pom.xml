@@ -13,4 +13,12 @@
   <groupId>ch.vorburger.dom2kv</groupId>
   <artifactId>dom2kv</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

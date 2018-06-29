@@ -15,6 +15,7 @@ import ch.vorburger.dom2kv.Tree;
 import ch.vorburger.dom2kv.impl.KeyValueImpl;
 import ch.vorburger.dom2kv.impl.TransformerImpl;
 import ch.vorburger.dom2kv.impl.TreeImpl;
+import com.google.common.base.Joiner;
 import java.util.Collections;
 import org.junit.Test;
 
@@ -26,7 +27,8 @@ import org.junit.Test;
 public class TransformerTest {
 
     ListConsumer<KeyValue<String, String>> kvs = new ListConsumer<>();
-    Transformer<String, String, String> transformer = new TransformerImpl<>();
+    Transformer<String, String, String> transformer = new TransformerImpl<>(ids -> Joiner.on(".").join(ids),
+        (newKey, newValue) -> new KeyValueImpl<>(newKey, newValue));
 
     @Test public void empty() {
         assertThat(transformer.kv2tree(Collections.emptyList()).root().isPresent()).isFalse();

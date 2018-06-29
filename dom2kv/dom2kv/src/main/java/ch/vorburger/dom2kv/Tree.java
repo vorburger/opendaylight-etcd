@@ -7,7 +7,6 @@
  */
 package ch.vorburger.dom2kv;
 
-import java.util.Iterator;
 import java.util.Optional;
 
 /**
@@ -22,7 +21,7 @@ public interface Tree<I, V> {
     }
 
     interface Node<I> extends NodeOrLeaf<I> {
-        Iterator<NodeOrLeaf<I>> children();
+        Iterable<NodeOrLeaf<I>> children();
     }
 
     interface Leaf<I, V> extends NodeOrLeaf<I> {

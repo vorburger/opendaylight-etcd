@@ -34,6 +34,11 @@ public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
         this.value = Optional.empty();
     }
 
+    public KeyValueImpl(K key, Optional<V> value) {
+        this.key = Objects.requireNonNull(key, "key");
+        this.value = Objects.requireNonNull(value, "value");
+    }
+
     @Override
     public K key() {
         return key;
