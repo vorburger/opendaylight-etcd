@@ -5,7 +5,7 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-package ch.vorburger.dom2kv;
+package ch.vorburger.dom2kv.bite;
 
 import com.google.errorprone.annotations.Var;
 import java.util.Arrays;
