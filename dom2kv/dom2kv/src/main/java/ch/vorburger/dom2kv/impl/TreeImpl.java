@@ -9,7 +9,7 @@ package ch.vorburger.dom2kv.impl;
 
 import ch.vorburger.dom2kv.Tree;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
@@ -77,8 +77,9 @@ public class TreeImpl<I, V> implements Tree<I, V> {
         }
 
         @Override
-        public Iterator<NodeOrLeaf<I>> children() {
-            return Arrays.stream(children).iterator();
+        public Iterable<NodeOrLeaf<I>> children() {
+            // TODO make children field List, instead doing it every time (and adjust hashCode & equals appropriately)
+            return Collections.unmodifiableList(Arrays.asList(children.clone()));
         }
 
         @Override
