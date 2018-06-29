@@ -61,7 +61,6 @@ public class TransformerTest {
         Tree.Node<String, String> node1 = new TreeImpl.NodeImpl<>("a", new TreeImpl.LeafImpl<>("b", "c"));
         Tree<String, String> tree = new TreeImpl<>(node1);
         transformer.tree2kv(tree, kvs);
-        assertThat(kvs).contains(new KeyValueImpl<>("a.b", "c"));
-        // NB: It also contains "a" - and that's fine (for now).
+        assertThat(kvs).containsExactly(new KeyValueImpl<>("a"), new KeyValueImpl<>("a.b", "c"));
     }
 }
