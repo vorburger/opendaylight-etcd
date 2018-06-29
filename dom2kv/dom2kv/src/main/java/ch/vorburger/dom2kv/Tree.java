@@ -16,17 +16,17 @@ import java.util.Optional;
  */
 public interface Tree<I, V> {
 
-    interface NodeOrLeaf<I> {
+    interface NodeOrLeaf<I, V> {
         I id();
     }
 
-    interface Node<I> extends NodeOrLeaf<I> {
-        Iterable<NodeOrLeaf<I>> children();
+    interface Node<I, V> extends NodeOrLeaf<I, V> {
+        Iterable<NodeOrLeaf<I, V>> children();
     }
 
-    interface Leaf<I, V> extends NodeOrLeaf<I> {
+    interface Leaf<I, V> extends NodeOrLeaf<I, V> {
         V value();
     }
 
-    Optional<Node<I>> root();
+    Optional<Node<I, V>> root();
 }
