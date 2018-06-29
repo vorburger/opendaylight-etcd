@@ -8,6 +8,7 @@
 package ch.vorburger.dom2kv.test;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
  *
  * @author Michael Vorburger.ch
  */
-public class ListConsumer<T> implements Consumer<T> {
+public class ListConsumer<T> implements Consumer<T>, Iterable<T> {
 
     private final List<T> list = new ArrayList<>();
 
@@ -25,7 +26,8 @@ public class ListConsumer<T> implements Consumer<T> {
         list.add(element);
     }
 
-    public List<T> getList() {
-        return list;
+    @Override
+    public Iterator<T> iterator() {
+        return list.iterator();
     }
 }

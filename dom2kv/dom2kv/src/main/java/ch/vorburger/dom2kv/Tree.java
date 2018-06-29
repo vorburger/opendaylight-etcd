@@ -16,7 +16,6 @@ import java.util.Optional;
  * @author Michael Vorburger.ch
  */
 public interface Tree<I, V> {
-    // TODO make type of ID and Value generics
 
     interface NodeOrLeaf<I> {
         I id();

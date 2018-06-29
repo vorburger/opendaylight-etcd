@@ -12,9 +12,10 @@ import static com.google.common.truth.Truth.assertThat;
 import ch.vorburger.dom2kv.KeyValue;
 import ch.vorburger.dom2kv.Transformer;
 import ch.vorburger.dom2kv.Tree;
+import ch.vorburger.dom2kv.impl.KeyValueImpl;
 import ch.vorburger.dom2kv.impl.TransformerImpl;
+import ch.vorburger.dom2kv.impl.TreeImpl;
 import java.util.Collections;
-import java.util.Optional;
 import org.junit.Test;
 
 /**
@@ -24,15 +25,24 @@ import org.junit.Test;
  */
 public class TransformerTest {
 
+    ListConsumer<KeyValue<String, String>> kvs = new ListConsumer<>();
     Transformer<String, String, String> transformer = new TransformerImpl<>();
 
     @Test public void empty() {
-        assertThat(transformer.kv2tree(Collections.emptyIterator()).root().isPresent()).isFalse();
+        assertThat(transformer.kv2tree(Collections.emptyList()).root().isPresent()).isFalse();
 
-        ListConsumer<KeyValue<String, String>> kvConsumer = new ListConsumer<>();
-        Tree<String, String> emptyTree = () -> Optional.empty();
-        transformer.tree2kv(emptyTree, kvConsumer);
-        assertThat(kvConsumer.getList()).isEmpty();
+        Tree<String, String> emptyTree = new TreeImpl<>();
+        transformer.tree2kv(emptyTree, kvs);
+        assertThat(kvs).isEmpty();
+
+        assertThat(transformer.kv2tree(kvs)).isEqualTo(emptyTree);
+    }
+
+    @Test public void root() {
+        Tree<String, String> tree = new TreeImpl<>(new TreeImpl.NodeImpl<>("groot"));
+        transformer.tree2kv(tree, kvs);
+        assertThat(kvs).containsExactly(new KeyValueImpl<>("groot"));
+        assertThat(transformer.kv2tree(kvs)).isEqualTo(tree);
     }
 
 }

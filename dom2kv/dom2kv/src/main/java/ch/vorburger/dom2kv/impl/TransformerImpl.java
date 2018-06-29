@@ -10,7 +10,6 @@ package ch.vorburger.dom2kv.impl;
 import ch.vorburger.dom2kv.KeyValue;
 import ch.vorburger.dom2kv.Transformer;
 import ch.vorburger.dom2kv.Tree;
-import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -29,7 +28,7 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
     }
 
     @Override
-    public Tree<I, V> kv2tree(Iterator<KeyValue<K, V>> keysAndValues) {
+    public Tree<I, V> kv2tree(Iterable<KeyValue<K, V>> keysAndValues) {
         return new TreeImpl<>();
     }
 }
