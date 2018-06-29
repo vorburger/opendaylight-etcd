@@ -9,7 +9,6 @@ package ch.vorburger.dom2kv.test;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import ch.vorburger.dom2kv.KeyValue;
 import ch.vorburger.dom2kv.Transformer;
 import ch.vorburger.dom2kv.Tree;
 import ch.vorburger.dom2kv.impl.KeyValueImpl;
@@ -26,9 +25,10 @@ import org.junit.Test;
  */
 public class TransformerTest {
 
-    ListConsumer<KeyValue<String, String>> kvs = new ListConsumer<>();
-    Transformer<String, String, String> transformer = new TransformerImpl<>(ids -> Joiner.on(".").join(ids),
-        (newKey, newValue) -> new KeyValueImpl<>(newKey, newValue));
+    ListBiConsumer<String, String> kvs = new ListBiConsumer<>();
+
+    Transformer<String, String, String> transformer = new TransformerImpl<>(ids -> Joiner.on(".").join(ids));
+        // (newKey, newValue) -> new KeyValueImpl<>(newKey, newValue));
 
     @Test public void empty() {
         assertThat(transformer.kv2tree(Collections.emptyList()).root().isPresent()).isFalse();
