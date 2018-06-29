@@ -33,6 +33,11 @@ public class TreeImpl<I, V> implements Tree<I, V> {
         this.rootNodes = ImmutableList.copyOf(rootNodes);
     }
 
+    @SafeVarargs
+    public TreeImpl(NodeOrLeaf<I, V>... rootNodes) {
+        this(ImmutableList.copyOf(rootNodes));
+    }
+
     @Override
     public Iterable<NodeOrLeaf<I, V>> root() {
         return rootNodes;

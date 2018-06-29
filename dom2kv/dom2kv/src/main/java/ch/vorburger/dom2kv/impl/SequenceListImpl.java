@@ -8,10 +8,10 @@
 package ch.vorburger.dom2kv.impl;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 
 import ch.vorburger.dom2kv.Sequence;
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,9 +19,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Implementation of {@link Sequence} based on a {@link List}. This
- * implementation intentionally (for performance) does NOT guard against
- * external modification of the supplied list delegate.
+ * Implementation of {@link Sequence} based on a {@link List}.
  *
  * @author Michael Vorburger.ch
  */
@@ -30,17 +28,13 @@ public class SequenceListImpl<T> implements Sequence<T> {
 
     private final List<T> delegate;
 
-    public SequenceListImpl(List<T> delegate) {
-        this.delegate = requireNonNull(delegate, "delegate");
+    public SequenceListImpl(Iterable<T> delegate) {
+        this.delegate = ImmutableList.copyOf(requireNonNull(delegate, "delegate"));
     }
 
     @SafeVarargs
     public SequenceListImpl(T... list) {
-        if (list.length > 0) {
-            this.delegate = asList(list);
-        } else {
-            this.delegate = emptyList();
-        }
+        this(list.length > 0 ? asList(list) : ImmutableList.of());
     }
 
     @Override

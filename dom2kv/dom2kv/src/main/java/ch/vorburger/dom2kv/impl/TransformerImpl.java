@@ -8,17 +8,17 @@
 package ch.vorburger.dom2kv.impl;
 
 import ch.vorburger.dom2kv.KeyValue;
+import ch.vorburger.dom2kv.Sequence;
 import ch.vorburger.dom2kv.Transformer;
 import ch.vorburger.dom2kv.Tree;
 import ch.vorburger.dom2kv.Tree.Leaf;
 import ch.vorburger.dom2kv.Tree.Node;
 import ch.vorburger.dom2kv.Tree.NodeOrLeaf;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import ch.vorburger.dom2kv.TreeBuilder;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Implementation of {@link Transformer}.
@@ -27,50 +27,64 @@ import java.util.function.Function;
  */
 public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
 
-    private final Function<Iterable<I>, K> idsToKeyFunction;
-    // private final BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory;
+    // private final BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory; // TODO remove?
+    private final Supplier<Sequence<I>> newEmptySequenceProvider;
+    private final Function<Sequence<I>, K> idsToKeyFunction;
+    private final Function<K, Sequence<I>> keysToIdFunction;
+    private final Supplier<TreeBuilder<I, V>> newTreeBuilderProvider;
 
-    public TransformerImpl(Function<Iterable<I>, K> idsToKeyFunction
+    public TransformerImpl(Supplier<Sequence<I>> newEmptySequenceProvider,
+            Function<Sequence<I>, K> idsToKeyFunction,
+            Function<K, Sequence<I>> keysToIdFunction, Supplier<TreeBuilder<I, V>> newTreeBuilderProvider
             /*BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory*/) {
+        this.newEmptySequenceProvider = newEmptySequenceProvider;
         this.idsToKeyFunction = idsToKeyFunction;
+        this.keysToIdFunction = keysToIdFunction;
+        this.newTreeBuilderProvider = newTreeBuilderProvider;
         // this.keyValueFactory = keyValueFactory;
     }
 
     @Override
     public void tree2kv(Tree<I, V> tree, BiConsumer<K, Optional<V>> kvConsumer) {
-        tree.root().ifPresent(rootNode -> tree2kv(rootNode, kvConsumer, new ArrayList<>()));
+        tree2kv(tree.root(), kvConsumer, newEmptySequenceProvider.get());
     }
 
-    @SuppressWarnings("unchecked")
-    private void tree2kv(Node<I> node, BiConsumer<K, Optional<V>> kvConsumer, Collection<I> parentIDs) {
-        // TODO thisNodeFQN can be significantly optimized.. use some sort of smarter Sequence+1 type
-        List<I> thisNodeFQN = new ArrayList<>(parentIDs);
-        thisNodeFQN.add(node.id());
-        K key = idsToKeyFunction.apply(thisNodeFQN);
-
-        kvConsumer.accept(key, Optional.empty());
-        for (NodeOrLeaf<I> child : node.children()) {
+    private void tree2kv(Iterable<NodeOrLeaf<I, V>> nodesOrLeafs, BiConsumer<K, Optional<V>> kvConsumer,
+            Sequence<I> parentIDs) {
+        for (NodeOrLeaf<I, V> child : nodesOrLeafs) {
             if (child instanceof Node) {
-                tree2kv((Node<I>) child, kvConsumer, thisNodeFQN);
+                tree2kv((Node<I, V>) child, kvConsumer, parentIDs);
             } else if (child instanceof Leaf) {
-                tree2kv((Leaf<I, V>) child, kvConsumer, thisNodeFQN);
+                tree2kv((Leaf<I, V>) child, kvConsumer, parentIDs);
             } else {
                 throw new IllegalArgumentException("Unknown NodeOrLeaf sub-type: " + child.getClass());
             }
         }
     }
 
-    private void tree2kv(Leaf<I, V> leaf, BiConsumer<K, Optional<V>> kvConsumer, Collection<I> parentIDs) {
-        // see above (and don't copy/paste....)
-        List<I> thisNodeFQN = new ArrayList<>(parentIDs);
-        thisNodeFQN.add(leaf.id());
-        K key = idsToKeyFunction.apply(thisNodeFQN);
+    private void tree2kv(Node<I, V> node, BiConsumer<K, Optional<V>> kvConsumer, Sequence<I> parentIDs) {
+        K key = idsToKeyFunction.apply(parentIDs.append(node.id()));
+        kvConsumer.accept(key, Optional.empty());
+        tree2kv(node.children(), kvConsumer, parentIDs);
+    }
 
+    private void tree2kv(Leaf<I, V> leaf, BiConsumer<K, Optional<V>> kvConsumer, Sequence<I> parentIDs) {
+        K key = idsToKeyFunction.apply(parentIDs.append(leaf.id()));
         kvConsumer.accept(key, Optional.of(leaf.value()));
     }
 
     @Override
     public Tree<I, V> kv2tree(Iterable<KeyValue<K, V>> keysAndValues) {
-        return new TreeImpl<>(); // TODO implement!
+        TreeBuilder<I, V> treeBuilder = newTreeBuilderProvider.get();
+        for (KeyValue<K, V> kv : keysAndValues) {
+            Sequence<I> id = keysToIdFunction.apply(kv.key());
+            Optional<V> value = kv.value();
+            if (value.isPresent()) {
+                treeBuilder.createLeaf(id, value.get());
+            } else {
+                treeBuilder.createNode(id);
+            }
+        }
+        return treeBuilder.build();
     }
 }
