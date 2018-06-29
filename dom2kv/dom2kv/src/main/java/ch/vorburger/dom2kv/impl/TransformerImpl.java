@@ -59,9 +59,9 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
             Sequence<I> parentIDs) {
         for (NodeOrLeaf<I, V> child : nodesOrLeafs) {
             if (child instanceof Node) {
-                tree2kv((Node<I, V>) child, kvConsumer, parentIDs);
+                tree2kv((Node<I, V>) child, kvConsumer, parentIDs.append(child.id()));
             } else if (child instanceof Leaf) {
-                tree2kv((Leaf<I, V>) child, kvConsumer, parentIDs);
+                tree2kv((Leaf<I, V>) child, kvConsumer, parentIDs.append(child.id()));
             } else {
                 throw new IllegalArgumentException("Unknown NodeOrLeaf sub-type: " + child.getClass());
             }
@@ -69,13 +69,13 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
     }
 
     private void tree2kv(Node<I, V> node, BiConsumer<K, Optional<V>> kvConsumer, Sequence<I> parentIDs) {
-        K key = idsToKeyFunction.apply(parentIDs.append(node.id()));
+        K key = idsToKeyFunction.apply(parentIDs);
         kvConsumer.accept(key, Optional.empty());
         tree2kv(node.children(), kvConsumer, parentIDs);
     }
 
     private void tree2kv(Leaf<I, V> leaf, BiConsumer<K, Optional<V>> kvConsumer, Sequence<I> parentIDs) {
-        K key = idsToKeyFunction.apply(parentIDs.append(leaf.id()));
+        K key = idsToKeyFunction.apply(parentIDs);
         kvConsumer.accept(key, Optional.of(leaf.value()));
     }
 
