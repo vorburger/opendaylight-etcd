@@ -85,6 +85,4 @@ public class JsonTest {
 
         assertThat(kvConsumer.getProperties()).hasSize(10);
     }
-
-
 }
