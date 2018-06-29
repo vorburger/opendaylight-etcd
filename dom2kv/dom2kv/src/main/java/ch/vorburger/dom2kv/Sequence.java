@@ -36,5 +36,12 @@ public interface Sequence<T> extends Iterable<T> {
      */
     boolean isEmpty();
 
-    // TODO MutableSequence extends Sequence: Sequence<T> add(T element);
+    /**
+     * Return a new (not <code>this</code>) Sequence with element appended to it.
+     * This Sequence is not modified.
+     *
+     * @param element the element to append to this Sequence
+     * @return new Sequence with element appended to it
+     */
+    Sequence<T> append(T element);
 }
