@@ -17,6 +17,7 @@
 
   <modules>
     <module>dom2kv</module>
+    <module>gson</module>
   </modules>
 
 </project>

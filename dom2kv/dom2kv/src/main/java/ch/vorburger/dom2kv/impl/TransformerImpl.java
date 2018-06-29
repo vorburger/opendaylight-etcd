@@ -27,7 +27,6 @@ import java.util.function.Supplier;
  */
 public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
 
-    // private final BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory; // TODO remove?
     private final Supplier<Sequence<I>> newEmptySequenceProvider;
     private final Function<Sequence<I>, K> idsToKeyFunction;
     private final Function<K, Sequence<I>> keysToIdFunction;
@@ -35,13 +34,20 @@ public class TransformerImpl<I, K, V> implements Transformer<I, K, V> {
 
     public TransformerImpl(Supplier<Sequence<I>> newEmptySequenceProvider,
             Function<Sequence<I>, K> idsToKeyFunction,
-            Function<K, Sequence<I>> keysToIdFunction, Supplier<TreeBuilder<I, V>> newTreeBuilderProvider
-            /*BiFunction<K, Optional<V>, KeyValue<K, V>> keyValueFactory*/) {
+            Function<K, Sequence<I>> keysToIdFunction, Supplier<TreeBuilder<I, V>> newTreeBuilderProvider) {
         this.newEmptySequenceProvider = newEmptySequenceProvider;
         this.idsToKeyFunction = idsToKeyFunction;
         this.keysToIdFunction = keysToIdFunction;
         this.newTreeBuilderProvider = newTreeBuilderProvider;
-        // this.keyValueFactory = keyValueFactory;
+    }
+
+    public TransformerImpl(Function<Sequence<I>, K> idsToKeyFunction,
+            Function<K, Sequence<I>> keysToIdFunction, Supplier<TreeBuilder<I, V>> newTreeBuilderProvider) {
+        this(() -> new SequenceListImpl<>(), idsToKeyFunction, keysToIdFunction, newTreeBuilderProvider);
+    }
+
+    public TransformerImpl(Function<Sequence<I>, K> idsToKeyFunction, Function<K, Sequence<I>> keysToIdFunction) {
+        this(() -> new SequenceListImpl<>(), idsToKeyFunction, keysToIdFunction, () -> new TreeBuilderImpl<>());
     }
 
     @Override

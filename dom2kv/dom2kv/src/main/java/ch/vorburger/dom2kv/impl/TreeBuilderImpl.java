@@ -33,7 +33,8 @@ public class TreeBuilderImpl<I, V> implements TreeBuilder<I, V> {
         final Optional<V> value;
 
         MutableNodeOrLeaf(V value) {
-            this.value = Optional.of(value);
+            // Intentionally ofNullable not just null!
+            this.value = Optional.ofNullable(value);
         }
 
         MutableNodeOrLeaf() {
