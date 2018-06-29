@@ -7,8 +7,6 @@
  */
 package ch.vorburger.dom2kv;
 
-import java.util.Optional;
-
 /**
  * <a href="https://en.wikipedia.org/wiki/Dom_(mountain)">DOM</a> Tree.
  *
@@ -28,5 +26,5 @@ public interface Tree<I, V> {
         V value();
     }
 
-    Optional<Node<I, V>> root();
+    Iterable<NodeOrLeaf<I, V>> root();
 }
