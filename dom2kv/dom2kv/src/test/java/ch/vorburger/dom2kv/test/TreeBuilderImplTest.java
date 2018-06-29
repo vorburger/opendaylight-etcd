@@ -16,6 +16,7 @@ import ch.vorburger.dom2kv.TreeBuilder;
 import ch.vorburger.dom2kv.impl.SequenceListImpl;
 import ch.vorburger.dom2kv.impl.TreeBuilderImpl;
 import java.util.Iterator;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -72,4 +73,28 @@ public class TreeBuilderImplTest {
         assertThat(((Tree.Leaf<String, String>) file).value()).isEqualTo("...");
     }
 
+    @Ignore // TODO broken, make work; if this ever is useful? (for tests; the API allows it, for other impls)
+    @Test public void leafsOnRoot() {
+        Tree<String, String> tree = treeBuilder
+                .createLeaf(new SequenceListImpl<>(), "a")
+                .createLeaf(new SequenceListImpl<>(), "b")
+                .build();
+        assertThat(tree.root()).hasSize(2);
+        assertThat(tree.root().iterator().next()).isInstanceOf(Tree.Leaf.class);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void idReuseNodeLeaf() {
+        treeBuilder
+                .createNode(new SequenceListImpl<>("/", "dir1"))
+                .createLeaf(new SequenceListImpl<>("/", "dir1"), "...")
+                .build();
+    }
+
+    @Ignore // this is a little more tricky to detect with the implementation as-is
+    @Test(expected = IllegalArgumentException.class) public void idReuseNodeNode() {
+        treeBuilder
+                .createNode(new SequenceListImpl<>("/", "dir1"))
+                .createNode(new SequenceListImpl<>("/", "dir1"))
+                .build();
+    }
 }
