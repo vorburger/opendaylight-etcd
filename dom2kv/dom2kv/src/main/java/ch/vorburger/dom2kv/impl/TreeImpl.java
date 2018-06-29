@@ -8,10 +8,9 @@
 package ch.vorburger.dom2kv.impl;
 
 import ch.vorburger.dom2kv.Tree;
-import java.util.Arrays;
+import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -24,24 +23,24 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class TreeImpl<I, V> implements Tree<I, V> {
 
-    private final Optional<Node<I, V>> rootNode;
+    private final Iterable<NodeOrLeaf<I, V>> rootNodes;
 
     public TreeImpl() {
-        this.rootNode = Optional.empty();
+        this.rootNodes = Collections.emptyList();
     }
 
-    public TreeImpl(Node<I, V> rootNode) {
-        this.rootNode = Optional.of(rootNode);
+    public TreeImpl(Iterable<NodeOrLeaf<I, V>> rootNodes) {
+        this.rootNodes = ImmutableList.copyOf(rootNodes);
     }
 
     @Override
-    public Optional<Node<I, V>> root() {
-        return rootNode;
+    public Iterable<NodeOrLeaf<I, V>> root() {
+        return rootNodes;
     }
 
     @Override
     public int hashCode() {
-        return 31 + rootNode.hashCode();
+        return 31 + rootNodes.hashCode();
     }
 
     @Override
@@ -58,19 +57,23 @@ public class TreeImpl<I, V> implements Tree<I, V> {
 
         @SuppressWarnings("unchecked")
         TreeImpl<I, V> other = (TreeImpl<I, V>) obj;
-        return rootNode.equals(other.rootNode);
+        return rootNodes.equals(other.rootNodes);
     }
 
 
     public static class NodeImpl<I, V> implements Node<I, V> {
 
         private final I id;
-        private final NodeOrLeaf<I, V>[] children;
+        private final Iterable<NodeOrLeaf<I, V>> children;
+
+        public NodeImpl(I id, Iterable<NodeOrLeaf<I, V>> children) {
+            this.id = Objects.requireNonNull(id, "id");
+            this.children = ImmutableList.copyOf(children);
+        }
 
         @SafeVarargs
         public NodeImpl(I id, NodeOrLeaf<I, V>... children) {
-            this.id = Objects.requireNonNull(id, "id");
-            this.children = children;
+            this(id, ImmutableList.copyOf(children));
         }
 
         @Override
@@ -80,15 +83,14 @@ public class TreeImpl<I, V> implements Tree<I, V> {
 
         @Override
         public Iterable<NodeOrLeaf<I, V>> children() {
-            // TODO make children field List, instead doing it every time (and adjust hashCode & equals appropriately)
-            return Collections.unmodifiableList(Arrays.asList(children.clone()));
+            return children;
         }
 
         @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + Arrays.hashCode(children);
+            result = prime * result + children.hashCode();
             result = prime * result + id.hashCode();
             return result;
         }
@@ -106,7 +108,7 @@ public class TreeImpl<I, V> implements Tree<I, V> {
             }
             @SuppressWarnings("unchecked")
             NodeImpl<I, V> other = (NodeImpl<I, V>) obj;
-            if (!Arrays.equals(children, other.children)) {
+            if (!children.equals(other.children)) {
                 return false;
             }
             return id.equals(other.id);
