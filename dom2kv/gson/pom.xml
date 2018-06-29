@@ -11,13 +11,18 @@
   </parent>
 
   <groupId>ch.vorburger.dom2kv</groupId>
-  <artifactId>dom2kv</artifactId>
+  <artifactId>gson</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
+      <groupId>ch.vorburger.dom2kv</groupId>
+      <artifactId>dom2kv</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
     </dependency>
   </dependencies>
 </project>

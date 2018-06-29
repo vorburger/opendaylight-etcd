@@ -14,7 +14,6 @@ import ch.vorburger.dom2kv.Tree;
 import ch.vorburger.dom2kv.impl.KeyValueImpl;
 import ch.vorburger.dom2kv.impl.SequenceListImpl;
 import ch.vorburger.dom2kv.impl.TransformerImpl;
-import ch.vorburger.dom2kv.impl.TreeBuilderImpl;
 import ch.vorburger.dom2kv.impl.TreeImpl;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -31,11 +30,8 @@ public class TransformerTest {
     ListBiConsumer<String, String> kvs = new ListBiConsumer<>();
 
     Transformer<String, String, String> transformer = new TransformerImpl<>(
-        () -> new SequenceListImpl<>(),
         ids -> Joiner.on(".").join(ids),
-        key -> new SequenceListImpl<>(Splitter.on(".").split(key)),
-        () -> new TreeBuilderImpl<>());
-        // (newKey, newValue) -> new KeyValueImpl<>(newKey, newValue));
+        key -> new SequenceListImpl<>(Splitter.on(".").split(key)));
 
     @Test public void empty() {
         assertThat(transformer.kv2tree(Collections.emptyList()).root()).isEmpty();

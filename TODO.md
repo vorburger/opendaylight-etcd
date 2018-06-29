@@ -1,4 +1,6 @@
 
+- [ ] TransformerImpl could chain to / stream directly from a TreeBuilder
+
 - [ ] figure out remaining encode/decode issue(s)
 
 - [ ] aren't we saving keys double now?  Also inside NormalizedNode, it seems.  Reduce this.
