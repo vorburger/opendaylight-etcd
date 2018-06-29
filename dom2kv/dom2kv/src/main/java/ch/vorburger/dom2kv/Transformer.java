@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Service to transform Documentation Object Model Tree to/from Keys & Values.
+ * Service to transform Documentation Object Model Tree to/from Keys &amp; Values.
  *
  * @author Michael Vorburger.ch
  */

@@ -56,8 +56,8 @@ public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
     public int hashCode() {
         int prime = 31;
         @Var int result = 1;
-        result = prime * result + (key == null ? 0 : key.hashCode());
-        result = prime * result + (value == null ? 0 : value.hashCode());
+        result = prime * result + key.hashCode();
+        result = prime * result + value.hashCode();
         return result;
     }
 
