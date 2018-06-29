@@ -8,6 +8,7 @@
 package ch.vorburger.dom2kv.impl;
 
 import ch.vorburger.dom2kv.KeyValue;
+import com.google.errorprone.annotations.Var;
 import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
@@ -53,8 +54,8 @@ public final class KeyValueImpl<K, V> implements KeyValue<K, V> {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
+        int prime = 31;
+        @Var int result = 1;
         result = prime * result + (key == null ? 0 : key.hashCode());
         result = prime * result + (value == null ? 0 : value.hashCode());
         return result;

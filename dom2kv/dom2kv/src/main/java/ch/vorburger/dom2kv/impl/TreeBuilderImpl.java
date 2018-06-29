@@ -89,7 +89,7 @@ public class TreeBuilderImpl<I, V> implements TreeBuilder<I, V> {
         return new TreeImpl<>(transform(root.children));
     }
 
-    private Iterable<NodeOrLeaf<I, V>> transform(Map<I, MutableNodeOrLeaf<I, V>> map) {
+    private ImmutableList<NodeOrLeaf<I, V>> transform(Map<I, MutableNodeOrLeaf<I, V>> map) {
         Builder<NodeOrLeaf<I, V>> listBuilder = ImmutableList.<NodeOrLeaf<I, V>>builderWithExpectedSize(map.size());
         map.forEach((id, mutableNodeOrLeaf) -> {
             if (mutableNodeOrLeaf.value.isPresent()) {

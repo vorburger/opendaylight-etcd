@@ -9,6 +9,7 @@ package ch.vorburger.dom2kv.impl;
 
 import ch.vorburger.dom2kv.Tree;
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.Var;
 import java.util.Collections;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
@@ -93,8 +94,8 @@ public class TreeImpl<I, V> implements Tree<I, V> {
 
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
+            int prime = 31;
+            @Var int result = 1;
             result = prime * result + children.hashCode();
             result = prime * result + id.hashCode();
             return result;
@@ -142,8 +143,8 @@ public class TreeImpl<I, V> implements Tree<I, V> {
 
         @Override
         public int hashCode() {
-            final int prime = 31;
-            int result = 1;
+            int prime = 31;
+            @Var int result = 1;
             result = prime * result + id.hashCode();
             result = prime * result + value.hashCode();
             return result;
