@@ -31,7 +31,6 @@ public class GsonTree {
         if (map == null) {
             throw new JsonSyntaxException("Empty; no JSON.");
         }
-        // System. out. println(map);
         return mapTreeBuilder.fromMap(map);
     }
 }
