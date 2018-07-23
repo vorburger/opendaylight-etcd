@@ -131,7 +131,7 @@ class EtcdKV implements AutoCloseable {
     public void readAllInto(DataTreeModification dataTree) throws EtcdException {
         try {
             read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
-                LOG.info("read: KVs.size=" + kvs.size());
+                LOG.info("read: KVs.size={}", kvs.size());
                 for (KeyValue kv : kvs) {
                     try {
                         PathArgument pathArgument = fromByteSequenceToPathArgument(kv.getKey());
@@ -140,8 +140,8 @@ class EtcdKV implements AutoCloseable {
                         dataTree.write(path, data);
                     } catch (IllegalArgumentException e) {
                         // TODO throw, log only to see if 2nd one goes through
-                        LOG.error("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
-                                + " ➠ " + ByteSequences.asString(kv.getValue()), e);
+                        LOG.error("readAllInto write failed: {} ➠ {}", ByteSequences.asString(kv.getKey()),
+                                ByteSequences.asString(kv.getValue()), e);
                         // throw new EtcdException("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
                         //        + " ➠ " + ByteSequences.asString(kv.getValue()), e);
                     }
