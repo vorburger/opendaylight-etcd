@@ -9,6 +9,7 @@ package ch.vorburger.dom2kv.gson.jetcd;
 
 import com.coreos.jetcd.data.ByteSequence;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.function.Function;
 
 /**
@@ -25,6 +26,7 @@ public final class JsonValueBytes {
     public static final Function<Object, ByteSequence> OBJECT_TO_BYTES = value -> {
         if (value instanceof String) {
             // see JsonPathBytes re. String byte[] encoding
+            // TODO UTF-8 instead of platform specific when https://github.com/coreos/jetcd/issues/342 is available
             return prefix(2, ByteSequence.fromString((String) value));
         } else if (value instanceof Double) {
             byte[] bytes = new byte[8];
@@ -50,7 +52,8 @@ public final class JsonValueBytes {
 
         switch (type) {
             case 2:
-                return new String(dropPrefix(bytes));
+                // TODO change to UTF-8 instead of platform specific when above is changed (and see also JsonPathBytes)
+                return new String(dropPrefix(bytes), Charset.defaultCharset());
 
             case 1:
                 return ByteBuffer.wrap(dropPrefix(bytes)).getDouble();
