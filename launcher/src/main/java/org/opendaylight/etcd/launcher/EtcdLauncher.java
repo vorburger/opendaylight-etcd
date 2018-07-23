@@ -23,6 +23,8 @@ public class EtcdLauncher implements AutoCloseable {
 
     // TODO write a custom log pattern matcher which reacts to I/W/E/N and uses correct log level
 
+    // TODO refactor this and introduce an EtcdLauncherBuilder, with a start() that returns an EtcdLauncher
+
     private final ManagedProcess process;
 
     public EtcdLauncher() throws ManagedProcessException {
@@ -45,9 +47,8 @@ public class EtcdLauncher implements AutoCloseable {
         return "http://localhost:2379";
     }
 
-    public EtcdLauncher start() throws ManagedProcessException {
+    public void start() throws ManagedProcessException {
         process.startAndWaitForConsoleMessageMaxMs("embed: ready to serve client requests", 5000);
-        return this;
     }
 
     @Override
