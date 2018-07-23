@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-import org.opendaylight.controller.md.sal.dom.store.impl.InMemoryDOMDataStore;
+import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidateNode;
@@ -47,7 +47,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     public EtcdDataStore(LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
             int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
-        super(type.name(), type, dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
+        super(type.name(), dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
 
         byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
         kv = new EtcdKV(client, prefix);
@@ -150,7 +150,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         }
     }
 
-    private String getIdentifierAsString(DataTreeCandidateNode node) {
+    private static String getIdentifierAsString(DataTreeCandidateNode node) {
         try {
             return node.getIdentifier().toString();
         } catch (IllegalStateException e) {
