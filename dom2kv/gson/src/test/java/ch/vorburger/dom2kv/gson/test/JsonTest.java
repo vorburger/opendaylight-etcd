@@ -51,6 +51,7 @@ public class JsonTest {
     @Test
     public void validComplex() {
         Tree<String, Object> tree = new GsonTree().parse("{\n"
+// TODO support array
 //                + "  \"array\": [\n"
 //                + "    1,\n"
 //                + "    2,\n"
