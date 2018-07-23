@@ -15,9 +15,10 @@ import com.coreos.jetcd.Watch.Watcher;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.watch.WatchEvent;
-import java.util.concurrent.ExecutorService;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import java.util.function.Consumer;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
+import org.opendaylight.infrautils.utils.concurrent.ListenableFutures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,7 @@ class EtcdWatcher implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(EtcdWatcher.class);
 
     private final Watch etcdWatch;
-    private final ExecutorService executor;
+    private final ListeningExecutorService executor;
 
     EtcdWatcher(Client client) {
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
@@ -42,7 +43,7 @@ class EtcdWatcher implements AutoCloseable {
     public void close() {
         // TODO stop background thread...
         etcdWatch.close();
-        executor.shutdownNow();
+        Executors.shutdownAndAwaitTermination(executor);
     }
 
     void watch(byte prefix, long revision, Consumer<WatchEvent> consumer) {
@@ -52,7 +53,7 @@ class EtcdWatcher implements AutoCloseable {
     }
 
     private void watch(ByteSequence prefix, long revision, Consumer<WatchEvent> consumer) {
-        executor.submit(() -> {
+        ListenableFutures.addErrorLogging(executor.submit(() -> {
             while (true) {
                 try (Watcher initialWatcher = etcdWatch.watch(prefix,
                         WatchOption.newBuilder().withRevision(revision).build())) {
@@ -61,6 +62,6 @@ class EtcdWatcher implements AutoCloseable {
                     }
                 }
             }
-        });
+        }), LOG, "executor.submit() eventually failed");
     }
 }
