@@ -29,11 +29,14 @@ public final class JsonPathBytes {
         = ids -> ByteSequence.fromString(Joiner.on(UNIT_SEPARATOR_CHAR).join(ids));
 
     public static final Function<ByteSequence, Sequence<String>> BYTES_TO_STRING_SEQ
-        = key -> new SequenceListImpl<>(Splitter.on(UNIT_SEPARATOR_CHAR).split(new String(key.getBytes())));
+        = key -> new SequenceListImpl<>(Splitter.on(UNIT_SEPARATOR_CHAR).split(new String(key.getBytes(),
+                java.nio.charset.Charset.defaultCharset()))); // see below & https://github.com/coreos/jetcd/issues/342
 
 /*
     TODO above works, but is platform specific, so you couldn't copy data to a system with another encoding.
     Below should be platform independent - but breaks the JsonPathBytesTest; why??
+    Probably because of the UNIT_SEPARATOR_CHAR...
+    also change JsonValueBytes
 
     private static final Charset UTF8 = Charset.forName("UTF-8");
     private static final CharsetEncoder UTF8_ENCODER = UTF8.newEncoder().onMalformedInput(CodingErrorAction.REPORT)
