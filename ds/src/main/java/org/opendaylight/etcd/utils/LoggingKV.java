@@ -21,6 +21,7 @@ import com.coreos.jetcd.options.DeleteOption;
 import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.PutOption;
 import com.google.common.base.MoreObjects;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
@@ -87,7 +88,7 @@ public class LoggingKV implements KV {
     }
 
     // TODO jetcd GetOption & Co. really should have a working toString() - contribute a fix PR there upstream!
-    private String asString(GetOption option) {
+    private static String asString(GetOption option) {
         return MoreObjects.toStringHelper(option)
                 // TODO avoid including fields with default value, to keep it shorter
                 .add("isCountOnly", option.isCountOnly())
@@ -101,8 +102,8 @@ public class LoggingKV implements KV {
                 .toString();
     }
 
-    private String asString(GetResponse getResponse) {
-        StringBuffer sb = new StringBuffer("count=" + getResponse.getCount() + ", KVs=[");
+    private static String asString(GetResponse getResponse) {
+        StringBuilder sb = new StringBuilder("count=" + getResponse.getCount() + ", KVs=[");
         getResponse.getKvs().forEach(kv -> {
             sb.append(ByteSequences.asString(kv.getKey()));
             sb.append(" ➙ ");
@@ -133,10 +134,11 @@ public class LoggingKV implements KV {
         return delegate.txn();
     }
 
+    @SuppressFBWarnings({ "SLF4J_FORMAT_SHOULD_BE_CONST", "SLF4J_SIGN_ONLY_FORMAT" })
     private static class LoggingCompletableFutureWhenCompleteConsumer<T> implements BiConsumer<T, Throwable> {
 
         private final long id;
-        private Function<T, String> messageFunction;
+        private final Function<T, String> messageFunction;
 
         LoggingCompletableFutureWhenCompleteConsumer(long id, Function<T, String> messageFunction) {
             this.id = id;
