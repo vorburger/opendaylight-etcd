@@ -31,6 +31,7 @@ import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgum
  *
  * @author Michael Vorburger.ch
  */
+@SuppressWarnings("javadoc")
 public class EtcdKVTest {
 
     @Test
