@@ -29,6 +29,12 @@
       <artifactId>infrautils-util</artifactId>
     </dependency>
     <dependency>
+      <!--  required to avoid java.lang.NoClassDefFoundError: org/opendaylight/yangtools/yang/binding/ChildOf,
+            Caused by: java.lang.ClassNotFoundException: org.opendaylight.yangtools.yang.binding.ChildOf, in tests. -->
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>yang-binding</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-core-spi</artifactId>
     </dependency>
