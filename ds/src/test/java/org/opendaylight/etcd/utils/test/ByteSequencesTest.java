@@ -33,11 +33,11 @@ public class ByteSequencesTest {
         assertBytesToString("«a·0A»", 97, 10);
     }
 
-    private void assertBytesToString(String expectedText, int... givenBytes) {
+    private static void assertBytesToString(String expectedText, int... givenBytes) {
         assertThat(toStringable(fromBytes(bytes(givenBytes))).toString()).isEqualTo(expectedText);
     }
 
-    private byte[] bytes(int... bytes) {
+    private static byte[] bytes(int... bytes) {
         byte[] byteArray = new byte[bytes.length];
         for (int i = 0; i < bytes.length; i++) {
             byteArray[i] = (byte) bytes[i];
