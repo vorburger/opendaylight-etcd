@@ -8,11 +8,11 @@
 package org.opendaylight.etcd.testutils.test;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.CONFIGURATION;
-import static org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType.OPERATIONAL;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.TOP_FOO_KEY;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.path;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.topLevelList;
+import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
+import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
@@ -30,14 +30,13 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.opendaylight.controller.md.sal.binding.api.DataBroker;
-import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
-import org.opendaylight.controller.md.sal.binding.api.WriteTransaction;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
-import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokersProvider;
 import org.opendaylight.infrautils.testutils.LogRule;
+import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
+import org.opendaylight.mdsal.binding.api.WriteTransaction;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainerBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugment;
@@ -120,7 +119,7 @@ public class EtcdDBTest {
 
         recreateFreshDataBrokerClient();
 
-        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, iid).get().get().getName()).isEqualTo("hello, world");
         }
 
@@ -154,21 +153,21 @@ public class EtcdDBTest {
                 .setName("top1").setNestedList(Arrays.asList(nl1)).build();
         WriteTransaction writeTx = dataBroker.newWriteOnlyTransaction();
         writeTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().setTopLevelList(Arrays.asList(tl1)).build());
-        writeTx.submit().get();
+        writeTx.commit().get();
 
-        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isTrue();
         }
 
         deleteTop();
-        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isFalse();
         }
     }
 
     @Test
     @Ignore // TODO think about how to best completely clear out external etcd between tests..
-    public void testDataStoreIsEmptyInNewTest() throws ReadFailedException {
+    public void testDataStoreIsEmptyInNewTest() throws Exception {
         assertThat(isTopInDataStore()).isFalse();
     }
 
@@ -189,16 +188,16 @@ public class EtcdDBTest {
                 .setContainerWithUses(new ContainerWithUsesBuilder().setLeafFromGrouping("foo").build()).build();
         initialTx.put(OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));
 
-        initialTx.submit().get();
+        initialTx.commit().get();
     }
 
-    private boolean isTopInDataStore() throws ReadFailedException {
+    private boolean isTopInDataStore() throws Exception {
         return isTopInDataStore(OPERATIONAL);
     }
 
-    private boolean isTopInDataStore(LogicalDatastoreType type) throws ReadFailedException {
-        try (ReadOnlyTransaction readTx = dataBroker.newReadOnlyTransaction()) {
-            return readTx.read(type, TOP_PATH).checkedGet().isPresent();
+    private boolean isTopInDataStore(LogicalDatastoreType type) throws Exception {
+        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+            return readTx.read(type, TOP_PATH).get().isPresent();
         }
     }
 
