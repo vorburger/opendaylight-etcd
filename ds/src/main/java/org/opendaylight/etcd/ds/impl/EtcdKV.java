@@ -84,7 +84,7 @@ class EtcdKV implements AutoCloseable {
     public void close() {
         etcd.close();
     }
-/*
+
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(path);
@@ -92,8 +92,8 @@ class EtcdKV implements AutoCloseable {
             return etcd.put(key, value);
         });
     }
-*/
 
+/*
     public CompletionStage<PutResponse> put(PathArgument pathArgument, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(pathArgument);
@@ -101,7 +101,7 @@ class EtcdKV implements AutoCloseable {
             return etcd.put(key, value);
         });
     }
-
+*/
     public CompletionStage<DeleteResponse> delete(YangInstanceIdentifier path) {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
@@ -131,12 +131,12 @@ class EtcdKV implements AutoCloseable {
     public void readAllInto(DataTreeModification dataTree) throws EtcdException {
         try {
             read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
-                LOG.info("read: KVs.size={}", kvs.size());
+                LOG.debug("read: KVs.size={}", kvs.size());
                 for (KeyValue kv : kvs) {
                     try {
-                        PathArgument pathArgument = fromByteSequenceToPathArgument(kv.getKey());
-                        YangInstanceIdentifier path = YangInstanceIdentifier.create(pathArgument);
+                        YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(kv.getKey());
                         NormalizedNode<?, ?> data = fromByteSequenceToNormalizedNode(kv.getValue());
+                        // TODO when to write and when to merge, that is the question ...
                         dataTree.write(path, data);
                     } catch (IllegalArgumentException e) {
                         // LOG.error("readAllInto write failed: {} ➠ {}", ByteSequences.asString(kv.getKey()),
@@ -179,6 +179,25 @@ class EtcdKV implements AutoCloseable {
     }
 
     @VisibleForTesting
+    YangInstanceIdentifier fromByteSequenceToYangInstanceIdentifier(ByteSequence byteSequence) throws EtcdException {
+        ByteArrayDataInput dataInput = ByteStreams.newDataInput(byteSequence.getBytes());
+        byte readPrefix = dataInput.readByte();
+        if (readPrefix != prefix) {
+            throw new EtcdException(
+                    "The read prefix does not match the expected prefix: " + readPrefix + " -VS- " + prefix);
+        }
+
+        try {
+            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInputWithoutValidation(dataInput);
+            return nodeDataInput.readYangInstanceIdentifier();
+        } catch (IOException e) {
+            throw new EtcdException("byte[] -> YangInstanceIdentifier failed", e);
+        }
+    }
+
+    @VisibleForTesting
+    // TODO this method, and it's test, is ultimately probably going to be removed again
+    // TODO if this method is unexpectedly kept after all, then it must copy/paste less from above
     PathArgument fromByteSequenceToPathArgument(ByteSequence byteSequence) throws EtcdException {
         ByteArrayDataInput dataInput = ByteStreams.newDataInput(byteSequence.getBytes());
         byte readPrefix = dataInput.readByte();
@@ -213,7 +232,8 @@ class EtcdKV implements AutoCloseable {
         }
     }
 
-    private ByteSequence toByteSequence(YangInstanceIdentifier path) throws EtcdException {
+    @VisibleForTesting
+    ByteSequence toByteSequence(YangInstanceIdentifier path) throws EtcdException {
         try {
             return toByteSequence(true, nodeDataOutput -> nodeDataOutput.writeYangInstanceIdentifier(path));
         } catch (IOException e) {
@@ -222,6 +242,7 @@ class EtcdKV implements AutoCloseable {
     }
 
     @VisibleForTesting
+    // TODO this method, and it's test, is ultimately probably going to be removed again
     ByteSequence toByteSequence(PathArgument pathArgument) throws EtcdException {
         try {
             return toByteSequence(true, nodeDataOutput -> {

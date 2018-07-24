@@ -1,9 +1,13 @@
 
+- [ ] clean up
+
+- [ ] add more logging to read
+
+- [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
+
 - [ ] TransformerImpl could chain to / stream directly from a TreeBuilder
 
-- [ ] figure out remaining encode/decode issue(s)
-
-- [ ] aren't we saving keys double now?  Also inside NormalizedNode, it seems.  Reduce this.
+- [ ] figure out remaining encode/decode issue(s) by, much, extending test model
 
 - [ ] make EtcdWatcher read initial DataTree state... does it need a revision?
 
@@ -28,5 +32,7 @@
 - [ ] MUCH clean-up and MANY TODOs ;)
 
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
+
+- [ ] compare performance of this VS CDS? But *DO* realize that real app performance issues are NOT because of slow datastore anyway..
 
 - [ ] properly performance profile the code
