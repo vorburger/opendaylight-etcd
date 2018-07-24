@@ -52,8 +52,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
         kv = new EtcdKV(client, prefix);
 
-        watcher = new EtcdWatcher(client);
-        watcher.watch(prefix, 0, watchEvent -> {
+        watcher = new EtcdWatcher(client, prefix, 0, watchEvent -> {
             // TODO actually update DataTree on watch notifications
             LOG.info("Watch: eventType={}, KV={}", watchEvent.getEventType(), watchEvent.getKeyValue());
         });
@@ -61,8 +60,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     @Override
     public void close() {
-        kv.close();
         watcher.close();
+        kv.close();
     }
 
     /**

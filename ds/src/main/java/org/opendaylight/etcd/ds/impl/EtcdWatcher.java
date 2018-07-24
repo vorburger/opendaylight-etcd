@@ -15,15 +15,17 @@ import com.coreos.jetcd.Watch.Watcher;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.watch.WatchEvent;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.util.function.Consumer;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
-import org.opendaylight.infrautils.utils.concurrent.ListenableFutures;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Thingie that watches Etcd and updates DataTree.
+ * Watches Etcd and updates DataTree.
  *
  * @author Michael Vorburger.ch
  */
@@ -33,35 +35,49 @@ class EtcdWatcher implements AutoCloseable {
 
     private final Watch etcdWatch;
     private final ListeningExecutorService executor;
+    private final Watcher theWatcher;
 
-    EtcdWatcher(Client client) {
+    EtcdWatcher(Client client, byte prefix, long revision, Consumer<WatchEvent> consumer) {
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
         executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
+        theWatcher = watch(prefix, revision, consumer);
     }
 
     @Override
     public void close() {
-        // TODO stop background thread...
-        etcdWatch.close();
-        Executors.shutdownAndAwaitTermination(executor);
+        // do not etcdWatch.close(); as that will happen when the Client gets closed
+        executor.shutdownNow(); // intentionally NOT Executors.shutdownAndAwaitTermination(executor);
+        theWatcher.close();
+        LOG.info("{} close", this);
     }
 
-    void watch(byte prefix, long revision, Consumer<WatchEvent> consumer) {
-        byte[] prefixAsBytes = new byte[1];
-        prefixAsBytes[0] = prefix;
-        watch(ByteSequence.fromBytes(prefixAsBytes), revision, consumer);
-    }
+    private Watcher watch(byte prefix, long revision, Consumer<WatchEvent> consumer) {
+        byte[] prefixBytes = new byte[1];
+        prefixBytes[0] = prefix;
+        ByteSequence prefixByteSequence = ByteSequence.fromBytes(prefixBytes);
 
-    private void watch(ByteSequence prefix, long revision, Consumer<WatchEvent> consumer) {
-        ListenableFutures.addErrorLogging(executor.submit(() -> {
+        Watcher watcher = etcdWatch.watch(prefixByteSequence, WatchOption.newBuilder().withRevision(revision).build());
+        Futures.addCallback(executor.submit(() -> {
             while (true) {
-                try (Watcher initialWatcher = etcdWatch.watch(prefix,
-                        WatchOption.newBuilder().withRevision(revision).build())) {
-                    for (WatchEvent event : initialWatcher.listen().getEvents()) {
-                        consumer.accept(event);
-                    }
+                for (WatchEvent event : watcher.listen().getEvents()) {
+                    consumer.accept(event);
                 }
             }
-        }), LOG, "executor.submit() eventually failed");
+        }), new FutureCallback<Void>() {
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                // InterruptedException is normal during close() above
+                if (!(throwable instanceof InterruptedException)) {
+                    LOG.error("watch: executor.submit() (eventually) failed: ", throwable);
+                }
+            }
+
+            @Override
+            public void onSuccess(Void nothing) {
+                // ignore
+            }
+        }, MoreExecutors.directExecutor());
+        return watcher;
     }
 }
