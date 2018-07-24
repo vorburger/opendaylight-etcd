@@ -41,11 +41,8 @@ import org.opendaylight.infrautils.utils.function.CheckedCallable;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.infrautils.utils.function.CheckedFunction;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
-import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Thingie that really writes to and reads from etcd.
@@ -56,9 +53,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("deprecation")
 // intentionally just .impl package-local, for now
 class EtcdKV implements AutoCloseable {
-
-    // TODO remove this Logger again; this class should not log, only throw Exceptions or return failed CompletionStage
-    private static final Logger LOG = LoggerFactory.getLogger(EtcdKV.class);
 
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
@@ -93,15 +87,6 @@ class EtcdKV implements AutoCloseable {
         });
     }
 
-/*
-    public CompletionStage<PutResponse> put(PathArgument pathArgument, NormalizedNode<?, ?> data) {
-        return handleException(() -> {
-            ByteSequence key = toByteSequence(pathArgument);
-            ByteSequence value = toByteSequence(data);
-            return etcd.put(key, value);
-        });
-    }
-*/
     public CompletionStage<DeleteResponse> delete(YangInstanceIdentifier path) {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
@@ -131,7 +116,6 @@ class EtcdKV implements AutoCloseable {
     public void readAllInto(DataTreeModification dataTree) throws EtcdException {
         try {
             read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
-                LOG.debug("read: KVs.size={}", kvs.size());
                 for (KeyValue kv : kvs) {
                     try {
                         YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(kv.getKey());
@@ -195,25 +179,6 @@ class EtcdKV implements AutoCloseable {
         }
     }
 
-    @VisibleForTesting
-    // TODO this method, and it's test, is ultimately probably going to be removed again
-    // TODO if this method is unexpectedly kept after all, then it must copy/paste less from above
-    PathArgument fromByteSequenceToPathArgument(ByteSequence byteSequence) throws EtcdException {
-        ByteArrayDataInput dataInput = ByteStreams.newDataInput(byteSequence.getBytes());
-        byte readPrefix = dataInput.readByte();
-        if (readPrefix != prefix) {
-            throw new EtcdException(
-                    "The read prefix does not match the expected prefix: " + readPrefix + " -VS- " + prefix);
-        }
-
-        try {
-            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInputWithoutValidation(dataInput);
-            return nodeDataInput.readPathArgument();
-        } catch (IOException e) {
-            throw new EtcdException("byte[] -> YangInstanceIdentifier failed", e);
-        }
-    }
-
     private ByteSequence toByteSequence(boolean writePrefix,
             CheckedConsumer<NormalizedNodeDataOutput, IOException> consumer) throws IOException {
         // TODO Is there any advantage converting this to use Guava's I/O ?
@@ -238,18 +203,6 @@ class EtcdKV implements AutoCloseable {
             return toByteSequence(true, nodeDataOutput -> nodeDataOutput.writeYangInstanceIdentifier(path));
         } catch (IOException e) {
             throw new EtcdException("YangInstanceIdentifier toByteSequence failed: " + path.toString(), e);
-        }
-    }
-
-    @VisibleForTesting
-    // TODO this method, and it's test, is ultimately probably going to be removed again
-    ByteSequence toByteSequence(PathArgument pathArgument) throws EtcdException {
-        try {
-            return toByteSequence(true, nodeDataOutput -> {
-                nodeDataOutput.writePathArgument(pathArgument);
-            });
-        } catch (IOException e) {
-            throw new EtcdException("PathArgument toByteSequence failed: " + pathArgument.toString(), e);
         }
     }
 
