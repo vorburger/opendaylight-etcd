@@ -41,8 +41,12 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
 
     @Override
     public void close() {
-        operationalDataStore.close();
-        configurationDataStore.close();
+        if (operationalDataStore != null) {
+            operationalDataStore.close();
+        }
+        if (configurationDataStore != null) {
+            configurationDataStore.close();
+        }
     }
 
     private EtcdDataStore createConfigurationDatastore(LogicalDatastoreType type) {

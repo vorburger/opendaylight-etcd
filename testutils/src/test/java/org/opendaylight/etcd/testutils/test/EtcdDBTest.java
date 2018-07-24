@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -218,13 +219,15 @@ public class EtcdDBTest {
             return;
         }
         try {
-            Files.walk(directory).sorted(Comparator.reverseOrder()).forEach(t -> {
-                try {
-                    Files.delete(t);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
+            try (Stream<Path> stream = Files.walk(directory)) {
+                stream.sorted(Comparator.reverseOrder()).forEach(t -> {
+                    try {
+                        Files.delete(t);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+            }
             LOG.info("Successfully deleted directory: {}", directory);
         } catch (UncheckedIOException e) {
             throw e.getCause();
