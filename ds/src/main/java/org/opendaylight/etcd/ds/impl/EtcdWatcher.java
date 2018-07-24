@@ -36,7 +36,7 @@ class EtcdWatcher implements AutoCloseable {
 
     EtcdWatcher(Client client) {
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
-        executor = Executors.newSingleThreadExecutor("EtcdWatcher", LOG);
+        executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
     }
 
     @Override
