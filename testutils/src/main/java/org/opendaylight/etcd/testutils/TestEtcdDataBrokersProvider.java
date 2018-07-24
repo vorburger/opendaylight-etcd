@@ -21,14 +21,15 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContext;
  *
  * @author Michael Vorburger.ch
  */
-public class TestEtcdDataBrokersProvider {
+public class TestEtcdDataBrokersProvider implements AutoCloseable {
     // TODO later generalize this a bit so it can also be used for runtime OSGi service, not just tests
 
     private final DataBroker dataBroker;
     private final DOMDataBroker domDataBroker;
+    private final EtcdConcurrentDataBrokerTestCustomizer testCustomizer;
 
     public TestEtcdDataBrokersProvider(Client client) throws Exception {
-        EtcdConcurrentDataBrokerTestCustomizer testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer(client);
+        testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer(client);
         dataBroker = testCustomizer.createDataBroker();
         domDataBroker = testCustomizer.createDOMDataBroker();
         testCustomizer.updateSchema(getSchemaContext());
@@ -36,6 +37,11 @@ public class TestEtcdDataBrokersProvider {
         // TODO remove this again once EtcdDataStore automatically (re)loads from etcd
         testCustomizer.getConfigurationDataStore().initialLoad();
         testCustomizer.getOperationalDataStore().initialLoad();
+    }
+
+    @Override
+    public void close() throws Exception {
+        testCustomizer.close();
     }
 
     public DOMDataBroker getDOMDataBroker() {
