@@ -99,6 +99,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
                     + "root path != YangInstanceIdentifier.EMPTY yet - will you teach me? ;)");
         }
 
+        LOG.info("commit: DataTreeCandidate={}", candidate);
         print("", candidate.getRootNode());
 
         // TODO make InMemoryDOMDataStore.commit(DataTreeCandidate) return ListenableFuture<Void> instead of void,
@@ -110,7 +111,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 //        });
         // but for now let's throw the entire nice async-ity over board and just do:
         try {
-            sendToEtcd(candidate.getRootNode()).toCompletableFuture().get(1, SECONDS);
+            sendToEtcd(candidate, candidate.getRootPath(), candidate.getRootNode()).toCompletableFuture().get(1,
+                    SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             // This is ugly, wrong, and just temporary
             throw new RuntimeException(e);
@@ -118,17 +120,20 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         super.commit(candidate);
     }
 
-    private CompletionStage<Void> sendToEtcd(DataTreeCandidateNode node) {
+    private CompletionStage<Void> sendToEtcd(DataTreeCandidate candidate, YangInstanceIdentifier base,
+            DataTreeCandidateNode node) {
         List<CompletableFuture<Void>> futures = new ArrayList<>(1 + node.getChildNodes().size());
+
+        YangInstanceIdentifier newBase = candidate.getRootNode().equals(node) ? base : base.node(node.getIdentifier());
 
         // TODO filter and take more modificationType into account...
         if (node.getModificationType().equals(ModificationType.WRITE)) {
-            add(futures, kv.put(node.getIdentifier(),
+            add(futures, kv.put(newBase,
                     node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node))));
         }
 
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
-            add(futures, sendToEtcd(childNode));
+            add(futures, sendToEtcd(candidate, newBase, childNode));
         }
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
