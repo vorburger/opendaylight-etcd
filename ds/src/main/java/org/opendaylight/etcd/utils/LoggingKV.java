@@ -37,6 +37,11 @@ import org.slf4j.helpers.MessageFormatter;
  */
 public class LoggingKV implements KV {
 
+    // NB: This has bad performance (due to asString)
+    // TODO make use of this wrapper a configurable option
+
+    // TODO upstream this into jetcd
+
     private static final Logger LOG = LoggerFactory.getLogger(LoggingKV.class);
 
     private final AtomicLong counter = new AtomicLong();
@@ -48,31 +53,36 @@ public class LoggingKV implements KV {
 
     @Override
     public CompletableFuture<CompactResponse> compact(long rev) {
-        // TODO add logging, like for other methods
-        return delegate.compact(rev);
+        long id = counter.incrementAndGet();
+        LOG.info("#{} compact: {}", id, rev);
+        return delegate.compact(rev).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<CompactResponse> compact(long rev, CompactOption option) {
-        // TODO add logging, like for other methods
-        return delegate.compact(rev, option);
+        long id = counter.incrementAndGet();
+        LOG.info("#{} compact: {} ({})", id, rev, asString(option));
+        return delegate.compact(rev, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<DeleteResponse> delete(ByteSequence key) {
-        // TODO add logging, like for other methods
-        return delegate.delete(key);
+        long id = counter.incrementAndGet();
+        LOG.info("#{} delete: {}", id, toStringable(key));
+        return delegate.delete(key).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<DeleteResponse> delete(ByteSequence key, DeleteOption option) {
-        // TODO add logging, like for other methods
-        return delegate.delete(key, option);
+        long id = counter.incrementAndGet();
+        LOG.info("#{} delete: {} ({})", id, toStringable(key), asString(option));
+        return delegate.delete(key, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<GetResponse> get(ByteSequence key) {
         long id = counter.incrementAndGet();
+        LOG.info("#{} get: {}", id, toStringable(key));
         return delegate.get(key).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id,
             getResponse -> MessageFormatter.arrayFormat("#{} get: {} ➞ {}",
                 new Object[] { id, ByteSequences.asString(key), asString(getResponse) }).getMessage()));
@@ -81,13 +91,14 @@ public class LoggingKV implements KV {
     @Override
     public CompletableFuture<GetResponse> get(ByteSequence key, GetOption option) {
         long id = counter.incrementAndGet();
+        LOG.info("#{} get: {} ({})", id, toStringable(key), asString(option));
         return delegate.get(key, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id,
             getResponse -> MessageFormatter.arrayFormat("#{} get: {} ({}) ➞ {}",
                 new Object[] { id, ByteSequences.asString(key), asString(option), asString(getResponse) })
                 .getMessage()));
     }
 
-    // TODO jetcd GetOption & Co. really should have a working toString() - contribute a fix PR there upstream!
+    // TODO jetcd GetOption & Co. really should just have a working toString() - contribute a fix PR there upstream!
     private static String asString(GetOption option) {
         return MoreObjects.toStringHelper(option)
                 // TODO avoid including fields with default value, to keep it shorter
@@ -102,13 +113,36 @@ public class LoggingKV implements KV {
                 .toString();
     }
 
+    private static String asString(PutOption option) {
+        return MoreObjects.toStringHelper(option)
+                .add("leaseId", option.getLeaseId())
+                .add("prevKV", option.getPrevKV())
+                .toString();
+    }
+
+    private static String asString(DeleteOption option) {
+        return MoreObjects.toStringHelper(option)
+                .add("endKey", option.getEndKey())
+                .add("prevKV", option.isPrevKV())
+                .toString();
+    }
+
+    private static String asString(CompactOption option) {
+        return MoreObjects.toStringHelper(option)
+                .add("physical", option.isPhysical())
+                .toString();
+    }
+
     private static String asString(GetResponse getResponse) {
         StringBuilder sb = new StringBuilder("count=" + getResponse.getCount() + ", KVs=[");
+        if (!getResponse.getKvs().isEmpty()) {
+            sb.append('\n');
+        }
         getResponse.getKvs().forEach(kv -> {
             sb.append(ByteSequences.asString(kv.getKey()));
             sb.append(" ➙ ");
             sb.append(ByteSequences.asString(kv.getValue()));
-            sb.append(", ");
+            sb.append('\n');
         });
         sb.append(']');
         return sb.toString();
@@ -124,7 +158,7 @@ public class LoggingKV implements KV {
     @Override
     public CompletableFuture<PutResponse> put(ByteSequence key, ByteSequence value, PutOption option) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} put: {} ➠ {} ({})", id, toStringable(key), toStringable(value), option);
+        LOG.info("#{} put: {} ➠ {} ({})", id, toStringable(key), toStringable(value), asString(option));
         return delegate.put(key, value).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 

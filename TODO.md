@@ -1,6 +1,4 @@
 
-- [ ] add more logging to read
-
 - [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
 
 - [ ] TransformerImpl could chain to / stream directly from a TreeBuilder
@@ -18,6 +16,8 @@
 - [ ] NormalizedNodeStreamWriter VS NormalizedNodeDataOutput; use e.g. LoggingNormalizedNodeStreamWriter ?
 
 - [ ] implement Chopper with snip() & snap() operations (no longer needed, now?)
+
+- [ ]refactor code to make generic non-etcd specific kv layer, pluggable for other KV stores
 
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, just copy/paste all of it?!
       "you should just need an InMemoryDataTree. Pattern after ShardDataTree instead."
