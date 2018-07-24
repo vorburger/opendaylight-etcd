@@ -12,6 +12,7 @@ import static java.util.Objects.requireNonNull;
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.Watch;
 import com.coreos.jetcd.Watch.Watcher;
+import com.coreos.jetcd.common.exception.ClosedClientException;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.watch.WatchEvent;
@@ -68,7 +69,8 @@ class EtcdWatcher implements AutoCloseable {
             @Override
             public void onFailure(Throwable throwable) {
                 // InterruptedException is normal during close() above
-                if (!(throwable instanceof InterruptedException)) {
+                // ClosedClientException happens if we close abruptly due to an error (not normally)
+                if (!(throwable instanceof InterruptedException) && !(throwable instanceof ClosedClientException)) {
                     LOG.error("watch: executor.submit() (eventually) failed: ", throwable);
                 }
             }
