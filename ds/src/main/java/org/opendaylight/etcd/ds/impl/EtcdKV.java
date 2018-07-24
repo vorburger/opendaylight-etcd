@@ -139,11 +139,10 @@ class EtcdKV implements AutoCloseable {
                         NormalizedNode<?, ?> data = fromByteSequenceToNormalizedNode(kv.getValue());
                         dataTree.write(path, data);
                     } catch (IllegalArgumentException e) {
-                        // TODO throw, log only to see if 2nd one goes through
-                        LOG.error("readAllInto write failed: {} ➠ {}", ByteSequences.asString(kv.getKey()),
-                                ByteSequences.asString(kv.getValue()), e);
-                        // throw new EtcdException("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
-                        //        + " ➠ " + ByteSequences.asString(kv.getValue()), e);
+                        // LOG.error("readAllInto write failed: {} ➠ {}", ByteSequences.asString(kv.getKey()),
+                        //        ByteSequences.asString(kv.getValue()), e);
+                        throw new EtcdException("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
+                                + " ➠ " + ByteSequences.asString(kv.getValue()), e);
                     }
                 }
                 return completedFuture(null);
