@@ -1,4 +1,5 @@
-- [ ] test delete root
+
+- [ ] isTopInDataStore() should really verify the presence of what writeInitialState() wrote
 
 - [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
 

@@ -57,7 +57,6 @@ class EtcdKV implements AutoCloseable {
     // key and value, we could (eventually) remove it
 
     private final KV etcd;
-
     private final byte prefix;
     private final ByteSequence prefixByteSequence;
 
@@ -65,10 +64,11 @@ class EtcdKV implements AutoCloseable {
         // TODO make the LoggingKV a configuration option (for performance)
         this.etcd = new LoggingKV(requireNonNull(client, "client").getKVClient());
         this.prefix = prefix;
+        this.prefixByteSequence = ByteSequence.fromBytes(bytes(prefix));
+    }
 
-        byte[] prefixAsBytes = new byte[1];
-        prefixAsBytes[0] = prefix;
-        prefixByteSequence = ByteSequence.fromBytes(prefixAsBytes);
+    private byte[] bytes(byte... bytes) {
+        return bytes;
     }
 
     @Override
