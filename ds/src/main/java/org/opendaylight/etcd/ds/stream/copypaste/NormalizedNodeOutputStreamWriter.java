@@ -25,14 +25,14 @@ import org.opendaylight.yangtools.yang.common.Revision;
  * then will call
  * {@link #leafNode(org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.NodeIdentifier, Object)} twice
  * and then, {@link #endNode()} to end container node.
- * <p/>
- * Based on the each node, the node type is also written to the stream, that helps in reconstructing the object,
+ *
+ * <p>Based on the each node, the node type is also written to the stream, that helps in reconstructing the object,
  * while reading.
  */
 public class NormalizedNodeOutputStreamWriter extends AbstractNormalizedNodeDataOutput {
     private final Map<String, Integer> stringCodeMap = new HashMap<>();
 
-    protected NormalizedNodeOutputStreamWriter(final DataOutput output) {
+    protected NormalizedNodeOutputStreamWriter(DataOutput output) {
         super(output);
     }
 
@@ -42,16 +42,16 @@ public class NormalizedNodeOutputStreamWriter extends AbstractNormalizedNodeData
     }
 
     @Override
-    protected void writeQName(final QName qname) throws IOException {
+    protected void writeQName(QName qname) throws IOException {
         writeString(qname.getLocalName());
         writeString(qname.getNamespace().toString());
         writeString(qname.getRevision().map(Revision::toString).orElse(null));
     }
 
     @Override
-    protected void writeString(final String string) throws IOException {
+    protected void writeString(String string) throws IOException {
         if (string != null) {
-            final Integer value = stringCodeMap.get(string);
+            Integer value = stringCodeMap.get(string);
             if (value == null) {
                 stringCodeMap.put(string, stringCodeMap.size());
                 writeByte(TokenTypes.IS_STRING_VALUE);

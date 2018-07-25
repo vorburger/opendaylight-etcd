@@ -10,6 +10,7 @@ package org.opendaylight.etcd.ds.stream.copypaste;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.errorprone.annotations.Var;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.StringReader;
@@ -23,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
@@ -77,13 +79,13 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
 
     private boolean readSignatureMarker = true;
 
-    protected NormalizedNodeInputStreamReader(final DataInput input, final boolean versionChecked) {
+    protected NormalizedNodeInputStreamReader(DataInput input, boolean versionChecked) {
         this.input = Preconditions.checkNotNull(input);
         readSignatureMarker = !versionChecked;
     }
 
     @Override
-    public NormalizedNode<?, ?> readNormalizedNode() throws IOException {
+    public @Nullable NormalizedNode<?, ?> readNormalizedNode() throws IOException {
         readSignatureMarkerAndVersionIfNeeded();
         return readNormalizedNodeInternal();
     }
@@ -92,20 +94,20 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
         if (readSignatureMarker) {
             readSignatureMarker = false;
 
-            final byte marker = input.readByte();
+            byte marker = input.readByte();
             if (marker != TokenTypes.SIGNATURE_MARKER) {
                 throw new InvalidNormalizedNodeStreamException(String.format(
                         "Invalid signature marker: %d", marker));
             }
 
-            final short version = input.readShort();
+            short version = input.readShort();
             if (version != TokenTypes.LITHIUM_VERSION) {
                 throw new InvalidNormalizedNodeStreamException(String.format("Unhandled stream version %s", version));
             }
         }
     }
 
-    private NormalizedNode<?, ?> readNormalizedNodeInternal() throws IOException {
+    private @Nullable NormalizedNode<?, ?> readNormalizedNodeInternal() throws IOException {
         // each node should start with a byte
         byte nodeType = input.readByte();
 
@@ -126,7 +128,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
                         .withNodeIdentifier(augIdentifier)).build();
 
             case NodeTypes.LEAF_SET_ENTRY_NODE :
-                QName name = lastLeafSetQName;
+                @Var QName name = lastLeafSetQName;
                 if (name == null) {
                     name = readQName();
                 }
@@ -171,7 +173,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
         return leafSetEntryBuilder;
     }
 
-    private NormalizedNode<?, ?> readNodeIdentifierDependentNode(final byte nodeType, final NodeIdentifier identifier)
+    private @Nullable NormalizedNode<?, ?> readNodeIdentifierDependentNode(byte nodeType, NodeIdentifier identifier)
         throws IOException {
 
         switch (nodeType) {
@@ -216,12 +218,10 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
 
             case NodeTypes.ORDERED_LEAF_SET:
                 LOG.trace("Read ordered leaf set node {}", identifier);
-                ListNodeBuilder<Object, LeafSetEntryNode<Object>> orderedLeafSetBuilder =
-                        Builders.orderedLeafSetBuilder().withNodeIdentifier(identifier);
-                orderedLeafSetBuilder = addLeafSetChildren(identifier.getNodeType(), orderedLeafSetBuilder);
-                return orderedLeafSetBuilder.build();
+                return addLeafSetChildren(identifier.getNodeType(),
+                        Builders.orderedLeafSetBuilder().withNodeIdentifier(identifier)).build();
 
-            default :
+            default:
                 return null;
         }
     }
@@ -258,7 +258,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     }
 
 
-    private String readCodedString() throws IOException {
+    private @Nullable String readCodedString() throws IOException {
         byte valueType = input.readByte();
         if (valueType == TokenTypes.IS_CODE_VALUE) {
             return codedStringMap.get(input.readInt());
@@ -292,7 +292,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
         return keyValueMap;
     }
 
-    private Object readObject() throws IOException {
+    private @Nullable Object readObject() throws IOException {
         byte objectType = input.readByte();
         switch (objectType) {
             case ValueTypes.BITS_TYPE:
@@ -360,9 +360,9 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     public SchemaPath readSchemaPath() throws IOException {
         readSignatureMarkerAndVersionIfNeeded();
 
-        final boolean absolute = input.readBoolean();
-        final int size = input.readInt();
-        final Collection<QName> qnames = new ArrayList<>(size);
+        boolean absolute = input.readBoolean();
+        int size = input.readInt();
+        Collection<QName> qnames = new ArrayList<>(size);
         for (int i = 0; i < size; ++i) {
             qnames.add(readQName());
         }
@@ -397,7 +397,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     }
 
     @Override
-    public PathArgument readPathArgument() throws IOException {
+    public @Nullable PathArgument readPathArgument() throws IOException {
         // read Type
         int type = input.readByte();
 
@@ -421,15 +421,14 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     }
 
     @SuppressWarnings("unchecked")
-    private ListNodeBuilder<Object, LeafSetEntryNode<Object>> addLeafSetChildren(final QName nodeType,
-            final ListNodeBuilder<Object, LeafSetEntryNode<Object>> builder) throws IOException {
+    private ListNodeBuilder<Object, LeafSetEntryNode<Object>> addLeafSetChildren(QName nodeType,
+            ListNodeBuilder<Object, LeafSetEntryNode<Object>> builder) throws IOException {
 
         LOG.trace("Reading children of leaf set");
 
         lastLeafSetQName = nodeType;
 
-        LeafSetEntryNode<Object> child = (LeafSetEntryNode<Object>)readNormalizedNodeInternal();
-
+        @Var LeafSetEntryNode<Object> child = (LeafSetEntryNode<Object>)readNormalizedNodeInternal();
         while (child != null) {
             builder.withChild(child);
             child = (LeafSetEntryNode<Object>)readNormalizedNodeInternal();
@@ -439,11 +438,10 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private NormalizedNodeContainerBuilder addDataContainerChildren(
-            final NormalizedNodeContainerBuilder builder) throws IOException {
+            NormalizedNodeContainerBuilder builder) throws IOException {
         LOG.trace("Reading data container (leaf nodes) nodes");
 
-        NormalizedNode<?, ?> child = readNormalizedNodeInternal();
-
+        @Var NormalizedNode<?, ?> child = readNormalizedNodeInternal();
         while (child != null) {
             builder.addChild(child);
             child = readNormalizedNodeInternal();
@@ -452,19 +450,19 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     }
 
     @Override
-    public void readFully(final byte[] value) throws IOException {
+    public void readFully(byte[] value) throws IOException {
         readSignatureMarkerAndVersionIfNeeded();
         input.readFully(value);
     }
 
     @Override
-    public void readFully(final byte[] str, final int off, final int len) throws IOException {
+    public void readFully(byte[] str, int off, int len) throws IOException {
         readSignatureMarkerAndVersionIfNeeded();
         input.readFully(str, off, len);
     }
 
     @Override
-    public int skipBytes(final int num) throws IOException {
+    public int skipBytes(int num) throws IOException {
         readSignatureMarkerAndVersionIfNeeded();
         return input.skipBytes(num);
     }

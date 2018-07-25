@@ -46,7 +46,7 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     private boolean headerWritten;
     private QName lastLeafSetQName;
 
-    AbstractNormalizedNodeDataOutput(final DataOutput output) {
+    AbstractNormalizedNodeDataOutput(DataOutput output) {
         this.output = Preconditions.checkNotNull(output);
     }
 
@@ -65,85 +65,85 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     protected abstract void writeString(String string) throws IOException;
 
     @Override
-    public final void write(final int value) throws IOException {
+    public final void write(int value) throws IOException {
         ensureHeaderWritten();
         output.write(value);
     }
 
     @Override
-    public final void write(final byte[] bytes) throws IOException {
+    public final void write(byte[] bytes) throws IOException {
         ensureHeaderWritten();
         output.write(bytes);
     }
 
     @Override
-    public final void write(final byte[] bytes, final int off, final int len) throws IOException {
+    public final void write(byte[] bytes, int off, int len) throws IOException {
         ensureHeaderWritten();
         output.write(bytes, off, len);
     }
 
     @Override
-    public final void writeBoolean(final boolean value) throws IOException {
+    public final void writeBoolean(boolean value) throws IOException {
         ensureHeaderWritten();
         output.writeBoolean(value);
     }
 
     @Override
-    public final void writeByte(final int value) throws IOException {
+    public final void writeByte(int value) throws IOException {
         ensureHeaderWritten();
         output.writeByte(value);
     }
 
     @Override
-    public final void writeShort(final int value) throws IOException {
+    public final void writeShort(int value) throws IOException {
         ensureHeaderWritten();
         output.writeShort(value);
     }
 
     @Override
-    public final void writeChar(final int value) throws IOException {
+    public final void writeChar(int value) throws IOException {
         ensureHeaderWritten();
         output.writeChar(value);
     }
 
     @Override
-    public final void writeInt(final int value) throws IOException {
+    public final void writeInt(int value) throws IOException {
         ensureHeaderWritten();
         output.writeInt(value);
     }
 
     @Override
-    public final void writeLong(final long value) throws IOException {
+    public final void writeLong(long value) throws IOException {
         ensureHeaderWritten();
         output.writeLong(value);
     }
 
     @Override
-    public final void writeFloat(final float value) throws IOException {
+    public final void writeFloat(float value) throws IOException {
         ensureHeaderWritten();
         output.writeFloat(value);
     }
 
     @Override
-    public final void writeDouble(final double value) throws IOException {
+    public final void writeDouble(double value) throws IOException {
         ensureHeaderWritten();
         output.writeDouble(value);
     }
 
     @Override
-    public final void writeBytes(final String str) throws IOException {
+    public final void writeBytes(String str) throws IOException {
         ensureHeaderWritten();
         output.writeBytes(str);
     }
 
     @Override
-    public final void writeChars(final String str) throws IOException {
+    public final void writeChars(String str) throws IOException {
         ensureHeaderWritten();
         output.writeChars(str);
     }
 
     @Override
-    public final void writeUTF(final String str) throws IOException {
+    public final void writeUTF(String str) throws IOException {
         ensureHeaderWritten();
         output.writeUTF(str);
     }
@@ -161,43 +161,43 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     }
 
     @Override
-    public void writeNormalizedNode(final NormalizedNode<?, ?> node) throws IOException {
+    public void writeNormalizedNode(NormalizedNode<?, ?> node) throws IOException {
         ensureHeaderWritten();
         normalizedNodeWriter().write(node);
     }
 
     @Override
-    public void leafNode(final NodeIdentifier name, final Object value) throws IOException, IllegalArgumentException {
+    public void leafNode(NodeIdentifier name, Object value) throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Writing a new leaf node");
-        startNode(name.getNodeType(), NodeTypes.LEAF_NODE);
+        startNode(NodeTypes.LEAF_NODE, name.getNodeType());
 
         writeObject(value);
     }
 
     @Override
-    public void startLeafSet(final NodeIdentifier name, final int childSizeHint)
+    public void startLeafSet(NodeIdentifier name, int childSizeHint)
 
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new leaf set");
 
         lastLeafSetQName = name.getNodeType();
-        startNode(name.getNodeType(), NodeTypes.LEAF_SET);
+        startNode(NodeTypes.LEAF_SET, name.getNodeType());
     }
 
     @Override
-    public void startOrderedLeafSet(final NodeIdentifier name, final int childSizeHint)
+    public void startOrderedLeafSet(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new ordered leaf set");
 
         lastLeafSetQName = name.getNodeType();
-        startNode(name.getNodeType(), NodeTypes.ORDERED_LEAF_SET);
+        startNode(NodeTypes.ORDERED_LEAF_SET, name.getNodeType());
     }
 
     @Override
-    public void leafSetEntryNode(final QName name, final Object value) throws IOException, IllegalArgumentException {
+    public void leafSetEntryNode(QName name, Object value) throws IOException, IllegalArgumentException {
         LOG.trace("Writing a new leaf set entry node");
 
         output.writeByte(NodeTypes.LEAF_SET_ENTRY_NODE);
@@ -212,83 +212,83 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     }
 
     @Override
-    public void startContainerNode(final NodeIdentifier name, final int childSizeHint)
+    public void startContainerNode(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
 
         LOG.trace("Starting a new container node");
 
-        startNode(name.getNodeType(), NodeTypes.CONTAINER_NODE);
+        startNode(NodeTypes.CONTAINER_NODE, name.getNodeType());
     }
 
     @Override
-    public void startYangModeledAnyXmlNode(final NodeIdentifier name, final int childSizeHint)
+    public void startYangModeledAnyXmlNode(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
 
         LOG.trace("Starting a new yang modeled anyXml node");
 
-        startNode(name.getNodeType(), NodeTypes.YANG_MODELED_ANY_XML_NODE);
+        startNode(NodeTypes.YANG_MODELED_ANY_XML_NODE, name.getNodeType());
     }
 
     @Override
-    public void startUnkeyedList(final NodeIdentifier name, final int childSizeHint)
+    public void startUnkeyedList(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new unkeyed list");
 
-        startNode(name.getNodeType(), NodeTypes.UNKEYED_LIST);
+        startNode(NodeTypes.UNKEYED_LIST, name.getNodeType());
     }
 
     @Override
-    public void startUnkeyedListItem(final NodeIdentifier name, final int childSizeHint)
+    public void startUnkeyedListItem(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalStateException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new unkeyed list item");
 
-        startNode(name.getNodeType(), NodeTypes.UNKEYED_LIST_ITEM);
+        startNode(NodeTypes.UNKEYED_LIST_ITEM, name.getNodeType());
     }
 
     @Override
-    public void startMapNode(final NodeIdentifier name, final int childSizeHint)
+    public void startMapNode(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new map node");
 
-        startNode(name.getNodeType(), NodeTypes.MAP_NODE);
+        startNode(NodeTypes.MAP_NODE, name.getNodeType());
     }
 
     @Override
-    public void startMapEntryNode(final NodeIdentifierWithPredicates identifier, final int childSizeHint)
+    public void startMapEntryNode(NodeIdentifierWithPredicates identifier, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(identifier, "Node identifier should not be null");
         LOG.trace("Starting a new map entry node");
-        startNode(identifier.getNodeType(), NodeTypes.MAP_ENTRY_NODE);
+        startNode(NodeTypes.MAP_ENTRY_NODE, identifier.getNodeType());
 
         writeKeyValueMap(identifier.getKeyValues());
 
     }
 
     @Override
-    public void startOrderedMapNode(final NodeIdentifier name, final int childSizeHint)
+    public void startOrderedMapNode(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new ordered map node");
 
-        startNode(name.getNodeType(), NodeTypes.ORDERED_MAP_NODE);
+        startNode(NodeTypes.ORDERED_MAP_NODE, name.getNodeType());
     }
 
     @Override
-    public void startChoiceNode(final NodeIdentifier name, final int childSizeHint)
+    public void startChoiceNode(NodeIdentifier name, int childSizeHint)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Starting a new choice node");
 
-        startNode(name.getNodeType(), NodeTypes.CHOICE_NODE);
+        startNode(NodeTypes.CHOICE_NODE, name.getNodeType());
     }
 
     @Override
-    public void startAugmentationNode(final AugmentationIdentifier identifier)
+    public void startAugmentationNode(AugmentationIdentifier identifier)
             throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(identifier, "Node identifier should not be null");
         LOG.trace("Starting a new augmentation node");
@@ -298,11 +298,11 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     }
 
     @Override
-    public void anyxmlNode(final NodeIdentifier name, final Object value) throws IOException, IllegalArgumentException {
+    public void anyxmlNode(NodeIdentifier name, Object value) throws IOException, IllegalArgumentException {
         Preconditions.checkNotNull(name, "Node identifier should not be null");
         LOG.trace("Writing any xml node");
 
-        startNode(name.getNodeType(), NodeTypes.ANY_XML_NODE);
+        startNode(NodeTypes.ANY_XML_NODE, name.getNodeType());
 
         try {
             StreamResult xmlOutput = new StreamResult(new StringWriter());
@@ -332,21 +332,21 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
         }
     }
 
-    protected void startNode(final QName qname, final byte nodeType) throws IOException {
+    protected void startNode(byte nodeType, QName qname) throws IOException {
         Preconditions.checkNotNull(qname, "QName of node identifier should not be null.");
         startNode(nodeType);
         // Write Start Tag
         writeQName(qname);
     }
 
-    protected void startNode(final byte nodeType) throws IOException {
+    protected void startNode(byte nodeType) throws IOException {
         ensureHeaderWritten();
 
         // First write the type of node
         output.writeByte(nodeType);
     }
 
-    private void writeObjSet(final Set<?> set) throws IOException {
+    private void writeObjSet(Set<?> set) throws IOException {
         output.writeInt(set.size());
         for (Object o : set) {
             Preconditions.checkArgument(o instanceof String, "Expected value type to be String but was %s (%s)",
@@ -357,11 +357,11 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     }
 
     @Override
-    public void writeSchemaPath(final SchemaPath path) throws IOException {
+    public void writeSchemaPath(SchemaPath path) throws IOException {
         ensureHeaderWritten();
         output.writeBoolean(path.isAbsolute());
 
-        final Collection<QName> qnames = path.getPath();
+        Collection<QName> qnames = path.getPath();
         output.writeInt(qnames.size());
         for (QName qname : qnames) {
             writeQName(qname);
@@ -369,12 +369,12 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     }
 
     @Override
-    public void writeYangInstanceIdentifier(final YangInstanceIdentifier identifier) throws IOException {
+    public void writeYangInstanceIdentifier(YangInstanceIdentifier identifier) throws IOException {
         ensureHeaderWritten();
         writeYangInstanceIdentifierInternal(identifier);
     }
 
-    private void writeYangInstanceIdentifierInternal(final YangInstanceIdentifier identifier) throws IOException {
+    private void writeYangInstanceIdentifierInternal(YangInstanceIdentifier identifier) throws IOException {
         Collection<PathArgument> pathArguments = identifier.getPathArguments();
         output.writeInt(pathArguments.size());
 
@@ -386,7 +386,7 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
     @SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST",
             justification = "The casts in the switch clauses are indirectly confirmed via the determination of 'type'.")
     @Override
-    public void writePathArgument(final PathArgument pathArgument) throws IOException {
+    public void writePathArgument(PathArgument pathArgument) throws IOException {
 
         byte type = PathArgumentTypes.getSerializablePathArgumentType(pathArgument);
 
@@ -430,7 +430,7 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
         }
     }
 
-    private void writeKeyValueMap(final Map<QName, Object> keyValueMap) throws IOException {
+    private void writeKeyValueMap(Map<QName, Object> keyValueMap) throws IOException {
         if (keyValueMap != null && !keyValueMap.isEmpty()) {
             output.writeInt(keyValueMap.size());
 
@@ -443,7 +443,7 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
         }
     }
 
-    private void writeQNameSet(final Set<QName> children) throws IOException {
+    private void writeQNameSet(Set<QName> children) throws IOException {
         // Write each child's qname separately, if list is empty send count as 0
         if (children != null && !children.isEmpty()) {
             output.writeInt(children.size());
@@ -456,7 +456,7 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
         }
     }
 
-    private void writeObject(final Object value) throws IOException {
+    private void writeObject(Object value) throws IOException {
 
         byte type = ValueTypes.getSerializableType(value);
         // Write object type first
@@ -495,7 +495,7 @@ abstract class AbstractNormalizedNodeDataOutput implements NormalizedNodeDataOut
             case ValueTypes.EMPTY_TYPE:
                 break;
             case ValueTypes.STRING_BYTES_TYPE:
-                final byte[] valueBytes = value.toString().getBytes(StandardCharsets.UTF_8);
+                byte[] valueBytes = value.toString().getBytes(StandardCharsets.UTF_8);
                 output.writeInt(valueBytes.length);
                 output.write(valueBytes);
                 break;

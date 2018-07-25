@@ -66,6 +66,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     /**
      * On start-up, read back current persistent state from etcd as initial DataTree content.
+     * @throws EtcdException if loading failed
      */
     // TODO make private; this is only temporarily public, for EtcdConcurrentDataBrokerTestCustomizer
     // The idea is to make this private again later, and have it called automatically whenever we're behind etcd

@@ -10,7 +10,6 @@ package org.opendaylight.etcd.ds.stream.copypaste;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import java.util.Map;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 
 final class PathArgumentTypes {
@@ -23,14 +22,14 @@ final class PathArgumentTypes {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    private static final Map<Class<?>, Byte> CLASS_TO_ENUM_MAP = ImmutableMap.<Class<?>, Byte>builder()
+    private static final ImmutableMap<Class<?>, Byte> CLASS_TO_ENUM_MAP = ImmutableMap.<Class<?>, Byte>builder()
             .put(YangInstanceIdentifier.AugmentationIdentifier.class, AUGMENTATION_IDENTIFIER)
             .put(YangInstanceIdentifier.NodeIdentifier.class, NODE_IDENTIFIER)
             .put(YangInstanceIdentifier.NodeIdentifierWithPredicates.class, NODE_IDENTIFIER_WITH_PREDICATES)
             .put(YangInstanceIdentifier.NodeWithValue.class, NODE_IDENTIFIER_WITH_VALUE).build();
 
     public static byte getSerializablePathArgumentType(YangInstanceIdentifier.PathArgument pathArgument) {
-        final Byte type = CLASS_TO_ENUM_MAP.get(pathArgument.getClass());
+        Byte type = CLASS_TO_ENUM_MAP.get(pathArgument.getClass());
         Preconditions.checkArgument(type != null, "Unknown type of PathArgument = %s", pathArgument);
         return type;
     }

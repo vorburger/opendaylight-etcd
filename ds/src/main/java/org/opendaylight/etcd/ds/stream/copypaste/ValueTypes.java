@@ -45,21 +45,21 @@ final class ValueTypes {
     private static final Map<Class<?>, Byte> TYPES;
 
     static {
-        final Builder<Class<?>, Byte> b = ImmutableMap.builder();
+        Builder<Class<?>, Byte> builder = ImmutableMap.builder();
 
-        b.put(String.class, STRING_TYPE);
-        b.put(Byte.class, BYTE_TYPE);
-        b.put(Integer.class, INT_TYPE);
-        b.put(Long.class, LONG_TYPE);
-        b.put(Boolean.class, BOOL_TYPE);
-        b.put(QName.class, QNAME_TYPE);
-        b.put(Short.class, SHORT_TYPE);
-        b.put(BigInteger.class, BIG_INTEGER_TYPE);
-        b.put(BigDecimal.class, BIG_DECIMAL_TYPE);
-        b.put(byte[].class, BINARY_TYPE);
-        b.put(Empty.class, EMPTY_TYPE);
+        builder.put(String.class, STRING_TYPE);
+        builder.put(Byte.class, BYTE_TYPE);
+        builder.put(Integer.class, INT_TYPE);
+        builder.put(Long.class, LONG_TYPE);
+        builder.put(Boolean.class, BOOL_TYPE);
+        builder.put(QName.class, QNAME_TYPE);
+        builder.put(Short.class, SHORT_TYPE);
+        builder.put(BigInteger.class, BIG_INTEGER_TYPE);
+        builder.put(BigDecimal.class, BIG_DECIMAL_TYPE);
+        builder.put(byte[].class, BINARY_TYPE);
+        builder.put(Empty.class, EMPTY_TYPE);
 
-        TYPES = b.build();
+        TYPES = builder.build();
     }
 
     private ValueTypes() {
@@ -69,7 +69,7 @@ final class ValueTypes {
     public static byte getSerializableType(Object node) {
         Objects.requireNonNull(node);
 
-        final Byte type = TYPES.get(node.getClass());
+        Byte type = TYPES.get(node.getClass());
         if (type != null) {
             if (type == STRING_TYPE && ((String) node).length() >= STRING_BYTES_LENGTH_THRESHOLD) {
                 return STRING_BYTES_TYPE;
