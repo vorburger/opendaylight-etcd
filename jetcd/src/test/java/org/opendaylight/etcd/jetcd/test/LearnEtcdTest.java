@@ -14,6 +14,7 @@ import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.kv.GetResponse;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
@@ -28,7 +29,7 @@ public class LearnEtcdTest {
 
     @Test
     public void testEtcd() throws Exception {
-        try (EtcdLauncher etcdServer = new EtcdLauncher()) {
+        try (EtcdLauncher etcdServer = new EtcdLauncher(Paths.get("target/etcd"), true)) {
             etcdServer.start();
             try (Client client = Client.builder().endpoints(etcdServer.getEndpointURL()).build()) {
                 try (KV kvClient = client.getKVClient()) {
