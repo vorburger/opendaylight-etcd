@@ -154,11 +154,11 @@ public class EtcdDBTest {
         assertThat(isTopInDataStore()).isFalse();
 
         // make sure etcd really is completely empty
-        assertThatEtcdSubTreeIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
-        assertThatEtcdSubTreeIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
+        assertThatEtcdIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
+        assertThatEtcdIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
     }
 
-    private void assertThatEtcdSubTreeIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
+    private static void assertThatEtcdIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
         try (KV kvClient = client.getKVClient()) {
             CompletableFuture<GetResponse> getFuture = kvClient.get(keyPrefix,
                     GetOption.newBuilder().withPrefix(keyPrefix).build());
@@ -240,7 +240,7 @@ public class EtcdDBTest {
         return isTopInDataStore(OPERATIONAL);
     }
 
-    private byte[] bytes(byte... bytes) {
+    private static byte[] bytes(byte... bytes) {
         return bytes;
     }
 
