@@ -8,6 +8,8 @@
 package org.opendaylight.etcd.launcher.test;
 
 import ch.vorburger.exec.ManagedProcessException;
+import java.io.IOException;
+import java.nio.file.Paths;
 import org.junit.Test;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 
@@ -19,8 +21,8 @@ import org.opendaylight.etcd.launcher.EtcdLauncher;
 public class EtcdLauncherTest {
 
     @Test
-    public void testLaunchEtcd() throws ManagedProcessException {
-        try (EtcdLauncher launcher = new EtcdLauncher()) {
+    public void testLaunchEtcd() throws ManagedProcessException, IOException {
+        try (EtcdLauncher launcher = new EtcdLauncher(Paths.get("target/etcd"), true)) {
             launcher.start();
         }
     }

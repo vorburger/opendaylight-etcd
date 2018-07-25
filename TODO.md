@@ -1,3 +1,4 @@
+- [ ] test delete root
 
 - [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
 

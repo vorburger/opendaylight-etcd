@@ -17,13 +17,8 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.stream.Stream;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -76,10 +71,7 @@ public class EtcdDBTest {
 
     @BeforeClass
     public static void beforeClass() throws ManagedProcessException, IOException {
-        // TODO delete content of etcd tree before() not beforeClass() instead of this
-        // TODO work clean up (and custom data dir) into EtcdLauncher
-        deleteDirectory(Paths.get("target/etcd"));
-        etcdServer = new EtcdLauncher();
+        etcdServer = new EtcdLauncher(Paths.get("target/etcd"), true);
         etcdServer.start();
     }
 
@@ -207,28 +199,6 @@ public class EtcdDBTest {
     private boolean isTopInDataStore(LogicalDatastoreType type) throws Exception {
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             return readTx.read(type, TOP_PATH).get().isPresent();
-        }
-    }
-
-    @SuppressWarnings("checkstyle:AvoidHidingCauseException")
-    private static void deleteDirectory(Path directory) throws IOException {
-        if (!directory.toFile().exists()) {
-            LOG.info("Directory to delete did not exist: {}", directory);
-            return;
-        }
-        try {
-            try (Stream<Path> stream = Files.walk(directory)) {
-                stream.sorted(Comparator.reverseOrder()).forEach(t -> {
-                    try {
-                        Files.delete(t);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                });
-            }
-            LOG.info("Successfully deleted directory: {}", directory);
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
         }
     }
 
