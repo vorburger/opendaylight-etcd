@@ -19,9 +19,9 @@ import org.opendaylight.mdsal.dom.api.DOMDataBroker;
 import org.opendaylight.mdsal.dom.spi.store.DOMStore;
 
 /**
- * Customizer, used in {@link TestEtcdDataBrokersProvider}.
+ * Customizer, used in {@link TestEtcdDataBrokerProvider}.
  *
- * @see TestEtcdDataBrokersProvider
+ * @see TestEtcdDataBrokerProvider
  *
  * @author Michael Vorburger.ch
  */

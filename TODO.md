@@ -11,6 +11,8 @@
 
 - [ ] EntityOwnershipService EOS ?
 
+- [ ] make etcd clustering tests (start several EtcdLauncher, not just clients)
+
 - [ ] git filter out the (un-used) dom2kv/ sub-project into a separate repo
 
 - [ ] refactor code to make generic non-etcd specific kv layer, pluggable for other KV stores
@@ -23,9 +25,11 @@
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
 
-- [ ] testutils' TestEtcdDataBrokersProvider & EtcdConcurrentDataBrokerTestCustomizer should become runtime *Wiring instead
+- [ ] EtcdDOMDataBrokerWiring needs to refactor and move from testutils/ into ds/ to become runtime *Wiring
 
 - [ ] add infrautils.metrics Meters & Timers to implementation
+
+- [ ] com.coreos.jetcd.Maintenance ?
 
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
 
