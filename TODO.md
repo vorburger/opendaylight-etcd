@@ -5,9 +5,11 @@
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
 
-- [ ] update README to document architecture
+- [ ] update README to document architecture better
 - [ ] publicize etc.
 - [ ] ODL repo and carry on there
+
+- [ ] EntityOwnershipService EOS ?
 
 - [ ] git filter out the (un-used) dom2kv/ sub-project into a separate repo
 
