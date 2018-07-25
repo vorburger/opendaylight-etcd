@@ -28,17 +28,20 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
-import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputOutput;
 import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.LoggingKV;
 import org.opendaylight.infrautils.utils.concurrent.CompletableFutures;
 import org.opendaylight.infrautils.utils.function.CheckedCallable;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.infrautils.utils.function.CheckedFunction;
+import org.opendaylight.yangtools.yang.common.QName;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
+import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.AugmentationIdentifier;
+import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
 
@@ -111,7 +114,11 @@ class EtcdKV implements AutoCloseable {
                 for (KeyValue kv : kvs) {
                     try {
                         YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(kv.getKey());
-                        NormalizedNode<?, ?> data = fromByteSequenceToNormalizedNode(kv.getValue());
+                        PathArgument pathArgument = path.getLastPathArgument();
+                        NormalizedNode<?, ?> data = pathArgument instanceof AugmentationIdentifier
+                                // because an AugmentationIdentifier has no node type QName
+                                ? fromByteSequenceToNormalizedNode(kv.getValue())
+                                : fromByteSequenceToNormalizedNode(kv.getValue(), pathArgument.getNodeType());
                         // TODO when to write and when to merge, that is the question ...
                         dataTree.write(path, data);
                     } catch (IllegalArgumentException e) {
@@ -144,10 +151,21 @@ class EtcdKV implements AutoCloseable {
 
     private static NormalizedNode<?, ?> fromByteSequenceToNormalizedNode(ByteSequence byteSequence)
             throws EtcdException {
+        return fromByteSequenceToNormalizedNode(byteSequence,
+            dataInput -> new ShallowNormalizedNodeInputStreamReader(dataInput));
+    }
+
+    private static NormalizedNode<?, ?> fromByteSequenceToNormalizedNode(ByteSequence byteSequence, QName qname)
+            throws EtcdException {
+        return fromByteSequenceToNormalizedNode(byteSequence,
+            dataInput -> new ShallowNormalizedNodeInputStreamReader(dataInput, qname));
+    }
+
+    private static NormalizedNode<?, ?> fromByteSequenceToNormalizedNode(ByteSequence byteSequence,
+            Function<DataInputStream, NormalizedNodeDataInput> nodeDataInputProvider) throws EtcdException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(byteSequence.getBytes())) {
             try (DataInputStream dataInput = new DataInputStream(bais)) {
-                NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInput(dataInput);
-                return nodeDataInput.readNormalizedNode();
+                return nodeDataInputProvider.apply(dataInput).readNormalizedNode();
             }
         } catch (IOException e) {
             throw new EtcdException("byte[] -> NormalizedNode failed", e);
@@ -164,7 +182,7 @@ class EtcdKV implements AutoCloseable {
         }
 
         try {
-            NormalizedNodeDataInput nodeDataInput = NormalizedNodeInputOutput.newDataInputWithoutValidation(dataInput);
+            NormalizedNodeDataInput nodeDataInput = new ShallowNormalizedNodeInputStreamReader(dataInput);
             return nodeDataInput.readYangInstanceIdentifier();
         } catch (IOException e) {
             throw new EtcdException("byte[] -> YangInstanceIdentifier failed", e);
@@ -180,7 +198,7 @@ class EtcdKV implements AutoCloseable {
                 if (writePrefix) {
                     dataOutput.writeByte(prefix);
                 }
-                try (NormalizedNodeDataOutput nodeDataOutput = NormalizedNodeInputOutput.newDataOutput(dataOutput)) {
+                try (NormalizedNodeDataOutput nodeDataOutput = new ShallowNormalizedNodeDataOutputWriter(dataOutput)) {
                     consumer.accept(nodeDataOutput);
                     dataOutput.flush();
                     return ByteSequence.fromBytes(baos.toByteArray());

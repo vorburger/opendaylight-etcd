@@ -1,7 +1,4 @@
 
-- [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
-- [ ] figure out remaining encode/decode issue(s) by, much, extending test model
-
 - [ ] make clustering tests, which start several etcd; write to one, read from another
 - [ ] figure out why EtcdWatcher never prints watch hits.. run as a separate main() process, any different?
 - [ ] make EtcdWatcher continuously read DataTree state... does it need a revision?
