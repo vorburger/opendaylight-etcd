@@ -67,7 +67,7 @@ class EtcdKV implements AutoCloseable {
         this.prefixByteSequence = ByteSequence.fromBytes(bytes(prefix));
     }
 
-    private byte[] bytes(byte... bytes) {
+    private static byte[] bytes(byte... bytes) {
         return bytes;
     }
 
