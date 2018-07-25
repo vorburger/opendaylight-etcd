@@ -76,8 +76,10 @@ public class EtcdDBTest {
     private static Client testsEtcdClient;
 
     private ClientBuilder clientBuilder;
-    private EtcdDOMDataBrokerWiring dbProvider;
-    private DataBroker dataBroker;
+    private EtcdDOMDataBrokerWiring dbProviderA;
+    private DataBroker dataBrokerA;
+    private EtcdDOMDataBrokerWiring dbProviderB;
+    private DataBroker dataBrokerB;
 
     public @Rule LogRule logRule = new LogRule();
 
@@ -102,16 +104,18 @@ public class EtcdDBTest {
 
     private void recreateFreshDataBrokerClient() throws Exception {
         LOG.info("recreateFreshDataBrokerClient()");
-        if (dbProvider != null) {
-            dbProvider.close();
+        if (dbProviderA != null) {
+            dbProviderA.close();
         }
-        dbProvider = new EtcdDOMDataBrokerWiring(clientBuilder, "a");
-        dataBroker = dbProvider.getDataBroker();
+        dbProviderA = new EtcdDOMDataBrokerWiring(clientBuilder, "a");
+        dataBrokerA = dbProviderA.getDataBroker();
+        dbProviderB = new EtcdDOMDataBrokerWiring(clientBuilder, "b");
+        dataBrokerB = dbProviderB.getDataBroker();
     }
 
     @After
     public void after() throws Exception {
-        dbProvider.close();
+        dbProviderA.close();
         testsEtcdClient.close();
     }
 
@@ -123,24 +127,32 @@ public class EtcdDBTest {
 
     @Test
     public void testDataBrokerIsNotNull() {
-        assertThat(dataBroker).isNotNull();
+        assertThat(dataBrokerA).isNotNull();
     }
 
     @Test
     public void testSimpleTestModelIntoDataStoreReadItBackAndDelete() throws Exception {
         InstanceIdentifier<HelloWorldContainer> iid = InstanceIdentifier.create(HelloWorldContainer.class);
-        WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
+        WriteTransaction initialTx = dataBrokerA.newWriteOnlyTransaction();
         initialTx.put(OPERATIONAL, iid, new HelloWorldContainerBuilder().setName("hello, world").build());
         initialTx.commit().get();
 
         recreateFreshDataBrokerClient();
 
-        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataBrokerA.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, iid).get().get().getName()).isEqualTo("hello, world");
         }
     }
 
     // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
+
+    @Test
+    public void testPutSomethingSlightlyMoreComplexIntoAReadItBackOnB() throws Exception {
+        writeInitialState();
+        assertThat(isTopInDataStore(dataBrokerB)).isTrue();
+        deleteTop();
+        assertThat(isTopInDataStore(dataBrokerB)).isFalse();
+    }
 
     @Test
     public void testPutSomethingSlightlyMoreComplexIntoDataStoreReadItBackAndDelete() throws Exception {
@@ -183,18 +195,18 @@ public class EtcdDBTest {
                 .setName("nested1").setType("type1").build();
         TopLevelList tl1 = new TopLevelListBuilder().withKey(new TopLevelListKey("top1"))
                 .setName("top1").setNestedList(Arrays.asList(nl1)).build();
-        WriteTransaction writeTx = dataBroker.newWriteOnlyTransaction();
+        WriteTransaction writeTx = dataBrokerA.newWriteOnlyTransaction();
         writeTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().setTopLevelList(Arrays.asList(tl1)).build());
         writeTx.commit().get();
 
         recreateFreshDataBrokerClient();
-        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataBrokerA.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isTrue();
         }
 
         deleteTop();
         recreateFreshDataBrokerClient();
-        try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
+        try (ReadTransaction readTx = dataBrokerA.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, path(new TopLevelListKey("top1"))).get().isPresent()).isFalse();
         }
     }
@@ -206,14 +218,14 @@ public class EtcdDBTest {
 
     private void deleteTop() throws Exception {
         LOG.info("deleteTop()");
-        WriteTransaction deleteTx = dataBroker.newWriteOnlyTransaction();
+        WriteTransaction deleteTx = dataBrokerA.newWriteOnlyTransaction();
         deleteTx.delete(OPERATIONAL, TOP_PATH);
         deleteTx.commit().get();
     }
 
     private void writeInitialState() throws Exception {
         LOG.info("writeInitialState: put Top & TopLevelList with augmentation");
-        WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
+        WriteTransaction initialTx = dataBrokerA.newWriteOnlyTransaction();
         initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
 
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
@@ -223,7 +235,7 @@ public class EtcdDBTest {
         initialTx.commit().get();
     }
 
-    private boolean isTopInDataStore(LogicalDatastoreType type) throws Exception {
+    private boolean isTopInDataStore(LogicalDatastoreType type, DataBroker dataBroker) throws Exception {
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             Optional<Top> optTop = readTx.read(type, TOP_PATH).get();
             boolean present = optTop.isPresent();
@@ -242,6 +254,14 @@ public class EtcdDBTest {
             }
             return present;
         }
+    }
+
+    private boolean isTopInDataStore(DataBroker dataBroker) throws Exception {
+        return isTopInDataStore(OPERATIONAL, dataBroker);
+    }
+
+    private boolean isTopInDataStore(LogicalDatastoreType type) throws Exception {
+        return isTopInDataStore(type, dataBrokerA);
     }
 
     private boolean isTopInDataStore() throws Exception {
