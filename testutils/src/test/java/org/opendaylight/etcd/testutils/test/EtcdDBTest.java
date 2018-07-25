@@ -20,6 +20,7 @@ import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.kv.GetResponse;
+import com.coreos.jetcd.options.DeleteOption;
 import com.coreos.jetcd.options.GetOption;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -87,6 +88,8 @@ public class EtcdDBTest {
     @Before
     public void before() throws Exception {
         client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
+        deleteEtcd(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
+        deleteEtcd(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
         recreateFreshDataBrokerClient();
     }
 
@@ -101,11 +104,15 @@ public class EtcdDBTest {
 
     @After
     public void after() throws Exception {
-        testEtcdDataBrokersProvider.close();
-        testEtcdDataBrokersProvider = null;
+        if (testEtcdDataBrokersProvider != null) {
+            testEtcdDataBrokersProvider.close();
+            testEtcdDataBrokersProvider = null;
+        }
         dataBroker = null;
-        client.close();
-        client = null;
+        if (client != null) {
+            client.close();
+            client = null;
+        }
     }
 
     @AfterClass
@@ -165,6 +172,12 @@ public class EtcdDBTest {
             GetResponse response = getFuture.get();
             List<KeyValue> values = response.getKvs();
             assertThat(values).isEmpty();
+        }
+    }
+
+    private static void deleteEtcd(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
+        try (KV kvClient = client.getKVClient()) {
+            kvClient.delete(keyPrefix, DeleteOption.newBuilder().withPrefix(keyPrefix).build()).get();
         }
     }
 
