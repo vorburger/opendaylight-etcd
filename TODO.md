@@ -1,6 +1,8 @@
 
 - [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
 
+- [ ] git filter out the (un-used) vorburger.etcd sub-project into a separate repo
+
 - [ ] TransformerImpl could chain to / stream directly from a TreeBuilder
 
 - [ ] figure out remaining encode/decode issue(s) by, much, extending test model

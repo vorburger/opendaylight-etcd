@@ -114,7 +114,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
             sendToEtcd(candidate, candidate.getRootPath(), candidate.getRootNode()).toCompletableFuture().get(1,
                     SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            // This is ugly, wrong, and just temporary
+            // TODO This is ugly, wrong, and just temporary.. but how to correctly return problems from here?!
             throw new RuntimeException(e);
         }
         super.commit(candidate);
@@ -126,10 +126,27 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
         YangInstanceIdentifier newBase = candidate.getRootNode().equals(node) ? base : base.node(node.getIdentifier());
 
-        // TODO filter and take more modificationType into account...
-        if (node.getModificationType().equals(ModificationType.WRITE)) {
-            add(futures, kv.put(newBase,
-                    node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node))));
+        ModificationType modificationType = node.getModificationType();
+        switch (modificationType) {
+            case WRITE:
+                add(futures, kv.put(newBase,
+                        node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node))));
+                break;
+
+            case DELETE:
+                add(futures, kv.delete(newBase));
+                break;
+
+            case UNMODIFIED:
+            case SUBTREE_MODIFIED:
+                // ignore
+                break;
+
+            // TODO TDD and take remaining modificationType/s correctly into account...
+
+            default:
+                // return completedExceptionally(new UnsupportedOperationException(modificationType.name()));
+                throw new UnsupportedOperationException(modificationType.name());
         }
 
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
