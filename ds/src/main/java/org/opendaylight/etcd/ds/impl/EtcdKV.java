@@ -20,7 +20,6 @@ import com.coreos.jetcd.options.GetOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.google.common.util.concurrent.CheckedFuture;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -33,7 +32,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeInputOutput;
-import org.opendaylight.controller.md.sal.common.api.data.ReadFailedException;
 import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.LoggingKV;
 import org.opendaylight.infrautils.utils.concurrent.CompletableFutures;
@@ -50,7 +48,6 @@ import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification
  * @author Michael Vorburger.ch
  */
 @ThreadSafe
-@SuppressWarnings("deprecation")
 // intentionally just .impl package-local, for now
 class EtcdKV implements AutoCloseable {
 
@@ -91,11 +88,6 @@ class EtcdKV implements AutoCloseable {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
 
-    public CheckedFuture<Boolean, ReadFailedException> exists(YangInstanceIdentifier path) {
-        // TODO how to implement exists() most efficiently? could just do read(), but has overhead..
-        // https://github.com/coreos/etcd/issues/4080
-        throw new UnsupportedOperationException("TODO");
-    }
 /*
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
         return Futures.makeChecked(

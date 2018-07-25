@@ -74,7 +74,6 @@ public class EtcdDBTest {
 
     public @Rule LogRule logRule = new LogRule();
 
-
     @BeforeClass
     public static void beforeClass() throws ManagedProcessException, IOException {
         // TODO delete content of etcd tree before() not beforeClass() instead of this
@@ -131,15 +130,12 @@ public class EtcdDBTest {
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             assertThat(readTx.read(OPERATIONAL, iid).get().get().getName()).isEqualTo("hello, world");
         }
-
-        // TODO delete
     }
 
     // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
 
     @Test
-    @Ignore // TODO re-activate this once testSimpleTestModelIntoDataStoreReadItBackAndDelete passes
-    public void testPutSomethingMoreComplexIntoDataStoreReadItBackAndDelete() throws Exception {
+    public void testPutSomethingSlightlyMoreComplexIntoDataStoreReadItBackAndDelete() throws Exception {
         writeInitialState();
         recreateFreshDataBrokerClient();
 
@@ -152,6 +148,8 @@ public class EtcdDBTest {
         // TODO write Top to Oper instead Config, delete Config's, ensure it's gone but Oper's still there
 
         deleteTop();
+        assertThat(isTopInDataStore()).isFalse();
+        recreateFreshDataBrokerClient();
         assertThat(isTopInDataStore()).isFalse();
     }
 
