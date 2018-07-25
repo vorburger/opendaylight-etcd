@@ -16,9 +16,17 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
+import com.coreos.jetcd.KV;
+import com.coreos.jetcd.data.ByteSequence;
+import com.coreos.jetcd.data.KeyValue;
+import com.coreos.jetcd.kv.GetResponse;
+import com.coreos.jetcd.options.GetOption;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,6 +34,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.opendaylight.etcd.ds.impl.EtcdDataStore;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokersProvider;
 import org.opendaylight.infrautils.testutils.LogRule;
@@ -143,6 +152,20 @@ public class EtcdDBTest {
         assertThat(isTopInDataStore()).isFalse();
         recreateFreshDataBrokerClient();
         assertThat(isTopInDataStore()).isFalse();
+
+        // make sure etcd really is completely empty
+        assertThatEtcdSubTreeIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
+        assertThatEtcdSubTreeIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
+    }
+
+    private void assertThatEtcdSubTreeIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
+        try (KV kvClient = client.getKVClient()) {
+            CompletableFuture<GetResponse> getFuture = kvClient.get(keyPrefix,
+                    GetOption.newBuilder().withPrefix(keyPrefix).build());
+            GetResponse response = getFuture.get();
+            List<KeyValue> values = response.getKvs();
+            assertThat(values).isEmpty();
+        }
     }
 
     @Test
@@ -200,6 +223,10 @@ public class EtcdDBTest {
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             return readTx.read(type, TOP_PATH).get().isPresent();
         }
+    }
+
+    private byte[] bytes(byte... bytes) {
+        return bytes;
     }
 
     // TODO add more as in org.opendaylight.controller.md.sal.dom.broker.impl.DOMBrokerTest & Co.

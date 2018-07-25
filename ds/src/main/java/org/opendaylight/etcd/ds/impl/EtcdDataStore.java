@@ -39,8 +39,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdDataStore.class);
 
-    private static final byte CONFIGURATION_PREFIX = 67; // 'C'
-    private static final byte OPERATIONAL_PREFIX   = 79; // 'O'
+    public static final byte CONFIGURATION_PREFIX = 67; // 'C'
+    public static final byte OPERATIONAL_PREFIX   = 79; // 'O'
 
     private final EtcdKV kv;
     private final EtcdWatcher watcher;
