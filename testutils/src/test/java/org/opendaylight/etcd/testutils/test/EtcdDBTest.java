@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.After;
@@ -190,7 +191,6 @@ public class EtcdDBTest {
     }
 
     @Test
-    @Ignore // TODO think about how to best completely clear out external etcd between tests..
     public void testDataStoreIsEmptyInNewTest() throws Exception {
         assertThat(isTopInDataStore()).isFalse();
     }
@@ -203,26 +203,41 @@ public class EtcdDBTest {
     }
 
     private void writeInitialState() throws Exception {
-        LOG.info("writeInitialState()");
+        LOG.info("writeInitialState: put Top");
         WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
         initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
 
-        // TODO make the test actually care about (verify to assert it's there), and implement mapping...
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
                 .setContainerWithUses(new ContainerWithUsesBuilder().setLeafFromGrouping("foo").build()).build();
+        LOG.info("writeInitialState: put TopLevelList with augmentation");
         initialTx.put(OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));
 
         initialTx.commit().get();
     }
 
-    private boolean isTopInDataStore() throws Exception {
-        return isTopInDataStore(OPERATIONAL);
-    }
-
     private boolean isTopInDataStore(LogicalDatastoreType type) throws Exception {
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
-            return readTx.read(type, TOP_PATH).get().isPresent();
+            Optional<Top> optTop = readTx.read(type, TOP_PATH).get();
+            boolean present = optTop.isPresent();
+            if (present) {
+                // verify everything we wrote in the method above is really there...
+                Top top = optTop.get();
+                assertThat(top.getTopLevelList()).hasSize(1);
+                TopLevelList topLevelList0 = top.getTopLevelList().get(0);
+                assertThat(topLevelList0.key()).isEqualTo(TOP_FOO_KEY);
+                assertThat(topLevelList0.getName()).isEqualTo("foo");
+                assertThat(topLevelList0.getNestedList()).isNull();
+                TreeComplexUsesAugment fooAugment = topLevelList0.augmentation(TreeComplexUsesAugment.class);
+                assertThat(fooAugment).isNotNull();
+                assertThat(fooAugment.getListViaUses()).isNull();
+                assertThat(fooAugment.getContainerWithUses().getLeafFromGrouping()).isEqualTo("foo");
+            }
+            return present;
         }
+    }
+
+    private boolean isTopInDataStore() throws Exception {
+        return isTopInDataStore(OPERATIONAL);
     }
 
     private byte[] bytes(byte... bytes) {
