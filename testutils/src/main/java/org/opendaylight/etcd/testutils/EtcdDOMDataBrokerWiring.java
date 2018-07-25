@@ -27,9 +27,9 @@ public class EtcdDOMDataBrokerWiring implements AutoCloseable {
     // be able to be used both for testing and real OSGi and standalone runtime environments.
     // The constructor will likely be extended to accept more args for diff between test/RT.
 
-    public EtcdDOMDataBrokerWiring(ClientBuilder etcdClientBuilder) throws Exception {
+    public EtcdDOMDataBrokerWiring(ClientBuilder etcdClientBuilder, String name) throws Exception {
         this.etcdClient = etcdClientBuilder.build();
-        this.testEtcdDataBrokerProvider = new TestEtcdDataBrokerProvider(etcdClient);
+        this.testEtcdDataBrokerProvider = new TestEtcdDataBrokerProvider(etcdClient, name);
         this.dataBroker = testEtcdDataBrokerProvider.getDataBroker();
     }
 

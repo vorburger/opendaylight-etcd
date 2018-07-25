@@ -45,44 +45,46 @@ public class LoggingKV implements KV {
     private static final Logger LOG = LoggerFactory.getLogger(LoggingKV.class);
 
     private final AtomicLong counter = new AtomicLong();
+    private final String prefix;
     private final KV delegate;
 
-    public LoggingKV(KV delegate) {
+    public LoggingKV(String prefix, KV delegate) {
+        this.prefix = prefix;
         this.delegate = delegate;
     }
 
     @Override
     public CompletableFuture<CompactResponse> compact(long rev) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} compact: {}", id, rev);
+        LOG.info("{}#{} compact: {}", prefix, id, rev);
         return delegate.compact(rev).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<CompactResponse> compact(long rev, CompactOption option) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} compact: {} ({})", id, rev, asString(option));
+        LOG.info("{}#{} compact: {} ({})", prefix, id, rev, asString(option));
         return delegate.compact(rev, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<DeleteResponse> delete(ByteSequence key) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} delete: {}", id, toStringable(key));
+        LOG.info("{}#{} delete: {}", prefix, id, toStringable(key));
         return delegate.delete(key).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<DeleteResponse> delete(ByteSequence key, DeleteOption option) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} delete: {} ({})", id, toStringable(key), asString(option));
+        LOG.info("{}#{} delete: {} ({})", prefix, id, toStringable(key), asString(option));
         return delegate.delete(key, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<GetResponse> get(ByteSequence key) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} get: {}", id, toStringable(key));
+        LOG.info("{}#{} get: {}", prefix, id, toStringable(key));
         return delegate.get(key).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id,
             getResponse -> MessageFormatter.arrayFormat("#{} get: {} ➞ {}",
                 new Object[] { id, ByteSequences.asString(key), asString(getResponse) }).getMessage()));
@@ -91,7 +93,7 @@ public class LoggingKV implements KV {
     @Override
     public CompletableFuture<GetResponse> get(ByteSequence key, GetOption option) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} get: {} ({})", id, toStringable(key), asString(option));
+        LOG.info("{}#{} get: {} ({})", prefix, id, toStringable(key), asString(option));
         return delegate.get(key, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id,
             getResponse -> MessageFormatter.arrayFormat("#{} get: {} ({}) ➞ {}",
                 new Object[] { id, ByteSequences.asString(key), asString(option), asString(getResponse) })
@@ -151,14 +153,14 @@ public class LoggingKV implements KV {
     @Override
     public CompletableFuture<PutResponse> put(ByteSequence key, ByteSequence value) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} put: {} ➠ {}", id, toStringable(key), toStringable(value));
+        LOG.info("{}#{} put: {} ➠ {}", prefix, id, toStringable(key), toStringable(value));
         return delegate.put(key, value).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
     @Override
     public CompletableFuture<PutResponse> put(ByteSequence key, ByteSequence value, PutOption option) {
         long id = counter.incrementAndGet();
-        LOG.info("#{} put: {} ➠ {} ({})", id, toStringable(key), toStringable(value), asString(option));
+        LOG.info("{}#{} put: {} ➠ {} ({})", prefix, id, toStringable(key), toStringable(value), asString(option));
         return delegate.put(key, value).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
     }
 
@@ -169,7 +171,7 @@ public class LoggingKV implements KV {
     }
 
     @SuppressFBWarnings({ "SLF4J_FORMAT_SHOULD_BE_CONST", "SLF4J_SIGN_ONLY_FORMAT" })
-    private static class LoggingCompletableFutureWhenCompleteConsumer<T> implements BiConsumer<T, Throwable> {
+    private class LoggingCompletableFutureWhenCompleteConsumer<T> implements BiConsumer<T, Throwable> {
 
         private final long id;
         private final Function<T, String> messageFunction;
@@ -186,10 +188,10 @@ public class LoggingKV implements KV {
         @Override
         public void accept(T response, Throwable error) {
             if (error != null) {
-                LOG.error("#{} failed", id, error);
+                LOG.error("{}#{} failed", prefix, id, error);
             } else {
                 if (LOG.isInfoEnabled()) {
-                    LOG.info("{}", messageFunction.apply(response));
+                    LOG.info("{}{}", prefix, messageFunction.apply(response));
                 }
             }
         }

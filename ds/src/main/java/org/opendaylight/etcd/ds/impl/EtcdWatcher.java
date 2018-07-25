@@ -37,11 +37,13 @@ class EtcdWatcher implements AutoCloseable {
     private final Watch etcdWatch;
     private final ListeningExecutorService executor;
     private final Watcher theWatcher;
+    private final String name;
 
-    EtcdWatcher(Client client, byte prefix, long revision, Consumer<WatchEvent> consumer) {
+    EtcdWatcher(String name, Client client, byte prefix, long revision, Consumer<WatchEvent> consumer) {
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
-        executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
-        theWatcher = watch(prefix, revision, consumer);
+        this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
+        this.theWatcher = watch(prefix, revision, consumer);
+        this.name = name;
     }
 
     @Override
@@ -49,7 +51,7 @@ class EtcdWatcher implements AutoCloseable {
         // do not etcdWatch.close(); as that will happen when the Client gets closed
         executor.shutdownNow(); // intentionally NOT Executors.shutdownAndAwaitTermination(executor);
         theWatcher.close();
-        LOG.info("{} close", this);
+        LOG.info("{} closed.", name);
     }
 
     private Watcher watch(byte prefix, long revision, Consumer<WatchEvent> consumer) {
@@ -71,7 +73,7 @@ class EtcdWatcher implements AutoCloseable {
                 // InterruptedException is normal during close() above
                 // ClosedClientException happens if we close abruptly due to an error (not normally)
                 if (!(throwable instanceof InterruptedException) && !(throwable instanceof ClosedClientException)) {
-                    LOG.error("watch: executor.submit() (eventually) failed: ", throwable);
+                    LOG.error("{} watch: executor.submit() (eventually) failed: ", name, throwable);
                 }
             }
 

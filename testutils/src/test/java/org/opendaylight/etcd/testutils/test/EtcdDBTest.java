@@ -105,7 +105,7 @@ public class EtcdDBTest {
         if (dbProvider != null) {
             dbProvider.close();
         }
-        dbProvider = new EtcdDOMDataBrokerWiring(clientBuilder);
+        dbProvider = new EtcdDOMDataBrokerWiring(clientBuilder, "a");
         dataBroker = dbProvider.getDataBroker();
     }
 

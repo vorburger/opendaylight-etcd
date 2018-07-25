@@ -27,8 +27,8 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     private final DOMDataBroker domDataBroker;
     private final EtcdConcurrentDataBrokerTestCustomizer testCustomizer;
 
-    public TestEtcdDataBrokerProvider(Client client) throws Exception {
-        testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer(client);
+    public TestEtcdDataBrokerProvider(Client client, String name) throws Exception {
+        testCustomizer = new EtcdConcurrentDataBrokerTestCustomizer(client, name);
         dataBroker = testCustomizer.createDataBroker();
         domDataBroker = testCustomizer.createDOMDataBroker();
         testCustomizer.updateSchema(getSchemaContext());
