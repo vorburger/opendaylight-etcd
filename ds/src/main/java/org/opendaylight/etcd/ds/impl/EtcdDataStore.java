@@ -45,17 +45,26 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     private final EtcdKV kv;
     private final EtcdWatcher watcher;
 
-    public EtcdDataStore(LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
+    public EtcdDataStore(String name, LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
             int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
-        super(type.name(), dataChangeListenerExecutor, maxDataChangeListenerQueueSize, debugTransactions);
+        super(name + "-" + prefixChar(type), dataChangeListenerExecutor, maxDataChangeListenerQueueSize,
+                debugTransactions);
 
-        byte prefix = type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
-        kv = new EtcdKV(client, prefix);
+        kv = new EtcdKV(getIdentifier(), client, prefix(type));
 
-        watcher = new EtcdWatcher(client, prefix, 0, watchEvent -> {
+        watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, watchEvent -> {
             // TODO actually update DataTree on watch notifications
-            LOG.info("Watch: eventType={}, KV={}", watchEvent.getEventType(), watchEvent.getKeyValue());
+            LOG.info("{} Watch: eventType={}, KV={}", getIdentifier(), watchEvent.getEventType(),
+                    watchEvent.getKeyValue());
         });
+    }
+
+    private static char prefixChar(LogicalDatastoreType type) {
+        return (char) prefix(type);
+    }
+
+    private static byte prefix(LogicalDatastoreType type) {
+        return type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
     }
 
     @Override
@@ -88,7 +97,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         // also requires https://git.opendaylight.org/gerrit/#/c/73482/ which adds a protected notifyListeners to InMemoryDOMDataStore
         notifyListeners(candidate);
 
-        LOG.info("initialLoad: DataTreeModification={}, DataTreeCandidate={}", mod, candidate);
+        LOG.info("{} initialLoad: DataTreeModification={}, DataTreeCandidate={}", getIdentifier(), mod, candidate);
     }
 
     @Override
@@ -100,7 +109,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
                     + "root path != YangInstanceIdentifier.EMPTY yet - will you teach me? ;)");
         }
 
-        LOG.info("commit: DataTreeCandidate={}", candidate);
+        LOG.info("{} commit: DataTreeCandidate={}", getIdentifier(), candidate);
         print("", candidate.getRootNode());
 
         // TODO make InMemoryDOMDataStore.commit(DataTreeCandidate) return ListenableFuture<Void> instead of void,
@@ -162,10 +171,10 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     }
 
     private void print(String indent, DataTreeCandidateNode node) {
-        LOG.info("{}DataTreeCandidateNode: modificationType={}, PathArgument identifier={}",
-                indent, node.getModificationType(), getIdentifierAsString(node));
+        LOG.info("{}{} DataTreeCandidateNode: modificationType={}, PathArgument identifier={}",
+                indent, getIdentifier(), node.getModificationType(), getIdentifierAsString(node));
         // LOG.info("{}  dataBefore= {}", indent, node.getDataBefore());
-        LOG.info("{}  dataAfter = {}", indent, node.getDataAfter());
+        LOG.info("{}{}   dataAfter = {}", indent, getIdentifier(), node.getDataAfter());
 
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
             print(indent + "    ", childNode);

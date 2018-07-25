@@ -28,15 +28,15 @@ import org.opendaylight.mdsal.dom.spi.store.DOMStore;
 // intentionally just package-local, for now
 class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCustomizer implements AutoCloseable {
 
-    // TODO later generalize this a bit so it can also be used for runtime OSGi service, not just tests
-
     private final Client client;
+    private final String name;
     private EtcdDataStore configurationDataStore;
     private EtcdDataStore operationalDataStore;
 
-    EtcdConcurrentDataBrokerTestCustomizer(Client client) {
+    EtcdConcurrentDataBrokerTestCustomizer(Client client, String name) {
         super(true);
         this.client = client;
+        this.name = name;
     }
 
     @Override
@@ -50,7 +50,7 @@ class EtcdConcurrentDataBrokerTestCustomizer extends ConcurrentDataBrokerTestCus
     }
 
     private EtcdDataStore createConfigurationDatastore(LogicalDatastoreType type) {
-        EtcdDataStore store = new EtcdDataStore(type, getDataTreeChangeListenerExecutor(),
+        EtcdDataStore store = new EtcdDataStore(name, type, getDataTreeChangeListenerExecutor(),
                 InMemoryDOMDataStoreConfigProperties.DEFAULT_MAX_DATA_CHANGE_LISTENER_QUEUE_SIZE, client, true);
         getSchemaService().registerSchemaContextListener(store);
         return store;
