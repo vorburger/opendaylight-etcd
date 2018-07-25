@@ -7,23 +7,61 @@
  */
 package org.opendaylight.etcd.launcher.test;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import ch.vorburger.exec.ManagedProcessException;
+import com.coreos.jetcd.Client;
+import com.coreos.jetcd.KV;
+import com.coreos.jetcd.data.ByteSequence;
+import com.coreos.jetcd.data.KeyValue;
+import com.coreos.jetcd.kv.GetResponse;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 
 /**
- * Test for {@link EtcdLauncher}.
+ * Tests for {@link EtcdLauncher}.
  *
  * @author Michael Vorburger.ch
  */
 public class EtcdLauncherTest {
 
+    /**
+     * Trivial test just to make sure it starts, without exception.
+     */
     @Test
     public void testLaunchEtcd() throws ManagedProcessException, IOException {
-        try (EtcdLauncher launcher = new EtcdLauncher(Paths.get("target/etcd"), true)) {
-            launcher.start();
+        try (EtcdLauncher etcd = new EtcdLauncher(Paths.get("target/etcd"), true)) {
+            etcd.start();
+        }
+    }
+
+    /**
+     * Simple test illustrating usage of the jetcd client.
+     */
+    @Test
+    public void testEtcd() throws Exception {
+        try (EtcdLauncher etcd = new EtcdLauncher(Paths.get("target/etcd"), true)) {
+            etcd.start();
+            try (Client client = Client.builder().endpoints(etcd.getEndpointURL()).build()) {
+                try (KV kvClient = client.getKVClient()) {
+
+                    ByteSequence key = ByteSequence.fromString("test_key");
+                    ByteSequence value = ByteSequence.fromString("test_value");
+                    kvClient.put(key, value).get();
+
+                    CompletableFuture<GetResponse> getFuture = kvClient.get(key);
+                    GetResponse response = getFuture.get();
+                    List<KeyValue> values = response.getKvs();
+                    assertThat(values).hasSize(1);
+                    KeyValue value1 = values.get(0);
+                    assertThat(value1.getValue()).isEqualTo(value);
+                    assertThat(value1.getKey()).isEqualTo(key);
+                }
+            }
         }
     }
 
