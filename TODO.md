@@ -1,37 +1,26 @@
 
 - [ ] Reduce what we are saving way too much - keys are double (as also inside NormalizedNode), and container node also contains leaf node
-
-- [ ] git filter out the (un-used) vorburger.etcd sub-project into a separate repo
-
-- [ ] TransformerImpl could chain to / stream directly from a TreeBuilder
-
 - [ ] figure out remaining encode/decode issue(s) by, much, extending test model
 
-- [ ] make EtcdWatcher read initial DataTree state... does it need a revision?
-
-- [ ] programmatic "rm -rf testutils/target/etcd" via dataDir, like in MariaDB4j
-
+- [ ] make clustering tests, which start several etcd; write to one, read from another
 - [ ] figure out why EtcdWatcher never prints watch hits.. run as a separate main() process, any different?
+- [ ] make EtcdWatcher continuously read DataTree state... does it need a revision?
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
 
-- [ ] NormalizedNodeStreamWriter VS NormalizedNodeDataOutput; use e.g. LoggingNormalizedNodeStreamWriter ?
+- [ ] git filter out the (un-used) vorburger.etcd sub-project into a separate repo
 
-- [ ] implement Chopper with snip() & snap() operations (no longer needed, now?)
+- [ ] refactor code to make generic non-etcd specific kv layer, pluggable for other KV stores
 
-- [ ]refactor code to make generic non-etcd specific kv layer, pluggable for other KV stores
-
-- [ ] instead EtcdDataStore extends InMemoryDOMDataStore, just copy/paste all of it?!
+- [ ] instead EtcdDataStore extends InMemoryDOMDataStore, discuss an upstream artifact for what is shared
       "you should just need an InMemoryDataTree. Pattern after ShardDataTree instead."
       https://git.opendaylight.org/gerrit/#/c/73208/
-
-- [ ] make clustering tests, which start several etcd; write to one, read from another
-
-- [ ] Transactions now done or more needed?!
 
 - [ ] MUCH clean-up and MANY TODOs ;)
 
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
+
+- [ ] safe keys in a much more compact form; basically do compression, by keeping a dictionary (persisted in etcd) of all PathArgument
 
 - [ ] compare performance of this VS CDS? But *DO* realize that real app performance issues are NOT because of slow datastore anyway..
 
