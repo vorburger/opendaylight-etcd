@@ -16,6 +16,7 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
+import com.coreos.jetcd.ClientBuilder;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
@@ -37,7 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.etcd.ds.impl.EtcdDataStore;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
-import org.opendaylight.etcd.testutils.TestEtcdDataBrokersProvider;
+import org.opendaylight.etcd.testutils.EtcdDOMDataBrokerWiring;
 import org.opendaylight.infrautils.testutils.LogRule;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
@@ -72,12 +73,15 @@ public class EtcdDBTest {
     private static final InstanceIdentifier<Top> TOP_PATH = InstanceIdentifier.create(Top.class);
 
     private static EtcdLauncher etcdServer;
-    private static Client client;
+    private static Client testsEtcdClient;
 
-    private TestEtcdDataBrokersProvider testEtcdDataBrokersProvider;
+    private ClientBuilder clientBuilder;
+    private EtcdDOMDataBrokerWiring dbProvider;
     private DataBroker dataBroker;
 
     public @Rule LogRule logRule = new LogRule();
+
+    // TODO Make an EtcdClassRule to replace the @BeforeClass
 
     @BeforeClass
     public static void beforeClass() throws ManagedProcessException, IOException {
@@ -87,32 +91,28 @@ public class EtcdDBTest {
 
     @Before
     public void before() throws Exception {
-        client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
+        clientBuilder = Client.builder().endpoints(etcdServer.getEndpointURL());
+
+        testsEtcdClient = clientBuilder.build();
         deleteEtcd(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
         deleteEtcd(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
+
         recreateFreshDataBrokerClient();
     }
 
     private void recreateFreshDataBrokerClient() throws Exception {
         LOG.info("recreateFreshDataBrokerClient()");
-        if (testEtcdDataBrokersProvider != null) {
-            testEtcdDataBrokersProvider.close();
+        if (dbProvider != null) {
+            dbProvider.close();
         }
-        testEtcdDataBrokersProvider = new TestEtcdDataBrokersProvider(client);
-        dataBroker = testEtcdDataBrokersProvider.getDataBroker();
+        dbProvider = new EtcdDOMDataBrokerWiring(clientBuilder);
+        dataBroker = dbProvider.getDataBroker();
     }
 
     @After
     public void after() throws Exception {
-        if (testEtcdDataBrokersProvider != null) {
-            testEtcdDataBrokersProvider.close();
-            testEtcdDataBrokersProvider = null;
-        }
-        dataBroker = null;
-        if (client != null) {
-            client.close();
-            client = null;
-        }
+        dbProvider.close();
+        testsEtcdClient.close();
     }
 
     @AfterClass
@@ -151,10 +151,6 @@ public class EtcdDBTest {
         assertThat(isTopInDataStore(CONFIGURATION)).isFalse();
         recreateFreshDataBrokerClient();
 
-        // TODO modify what we just wrote and read back to make sure value changed in etcd
-
-        // TODO write Top to Oper instead Config, delete Config's, ensure it's gone but Oper's still there
-
         deleteTop();
         assertThat(isTopInDataStore()).isFalse();
         recreateFreshDataBrokerClient();
@@ -166,7 +162,7 @@ public class EtcdDBTest {
     }
 
     private static void assertThatEtcdIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
-        try (KV kvClient = client.getKVClient()) {
+        try (KV kvClient = testsEtcdClient.getKVClient()) {
             CompletableFuture<GetResponse> getFuture = kvClient.get(keyPrefix,
                     GetOption.newBuilder().withPrefix(keyPrefix).build());
             GetResponse response = getFuture.get();
@@ -176,7 +172,7 @@ public class EtcdDBTest {
     }
 
     private static void deleteEtcd(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
-        try (KV kvClient = client.getKVClient()) {
+        try (KV kvClient = testsEtcdClient.getKVClient()) {
             kvClient.delete(keyPrefix, DeleteOption.newBuilder().withPrefix(keyPrefix).build()).get();
         }
     }
@@ -216,13 +212,12 @@ public class EtcdDBTest {
     }
 
     private void writeInitialState() throws Exception {
-        LOG.info("writeInitialState: put Top");
+        LOG.info("writeInitialState: put Top & TopLevelList with augmentation");
         WriteTransaction initialTx = dataBroker.newWriteOnlyTransaction();
         initialTx.put(OPERATIONAL, TOP_PATH, new TopBuilder().build());
 
         TreeComplexUsesAugment fooAugment = new TreeComplexUsesAugmentBuilder()
                 .setContainerWithUses(new ContainerWithUsesBuilder().setLeafFromGrouping("foo").build()).build();
-        LOG.info("writeInitialState: put TopLevelList with augmentation");
         initialTx.put(OPERATIONAL, path(TOP_FOO_KEY), topLevelList(TOP_FOO_KEY, fooAugment));
 
         initialTx.commit().get();
