@@ -61,7 +61,7 @@ class ShallowNormalizedNodeDataOutputWriter extends NormalizedNodeOutputStreamWr
     }
 
     @Override
-    protected void startNode(QName qname, byte nodeType) throws IOException {
+    protected void startNode(byte nodeType, QName qname) throws IOException {
         // ditch the QName (startNode variant with only nodeType added in copypaste parent)
         super.startNode(nodeType);
     }
