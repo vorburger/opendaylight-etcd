@@ -141,9 +141,7 @@ public class LoggingKV implements KV {
             sb.append('\n');
         }
         getResponse.getKvs().forEach(kv -> {
-            sb.append(ByteSequences.asString(kv.getKey()));
-            sb.append(" ➙ ");
-            sb.append(ByteSequences.asString(kv.getValue()));
+            KeyValues.append(sb, kv);
             sb.append('\n');
         });
         sb.append(']');
