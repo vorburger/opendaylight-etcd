@@ -108,25 +108,34 @@ class EtcdKV implements AutoCloseable {
     }
 */
 
+    public void applyDelete(DataTreeModification dataTree, ByteSequence key) throws EtcdException {
+        YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(key);
+        dataTree.delete(path);
+    }
+
+    public void applyPut(DataTreeModification dataTree, ByteSequence key, ByteSequence value) throws EtcdException {
+        try {
+            YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(key);
+            PathArgument pathArgument = path.getLastPathArgument();
+            NormalizedNode<?, ?> data = pathArgument instanceof AugmentationIdentifier
+                    // because an AugmentationIdentifier has no node type QName
+                    ? fromByteSequenceToNormalizedNode(value)
+                    : fromByteSequenceToNormalizedNode(value, pathArgument.getNodeType());
+            // TODO when to write and when to merge, that is the question ...
+            dataTree.write(path, data);
+        } catch (IllegalArgumentException e) {
+            // LOG.error("readAllInto write failed: {} ➠ {}", ByteSequences.asString(kv.getKey()),
+            //        ByteSequences.asString(kv.getValue()), e);
+            throw new EtcdException("readAllInto write failed: " + ByteSequences.asString(key)
+                    + " ➠ " + ByteSequences.asString(value), e);
+        }
+    }
+
     public void readAllInto(DataTreeModification dataTree) throws EtcdException {
         try {
             read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
                 for (KeyValue kv : kvs) {
-                    try {
-                        YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(kv.getKey());
-                        PathArgument pathArgument = path.getLastPathArgument();
-                        NormalizedNode<?, ?> data = pathArgument instanceof AugmentationIdentifier
-                                // because an AugmentationIdentifier has no node type QName
-                                ? fromByteSequenceToNormalizedNode(kv.getValue())
-                                : fromByteSequenceToNormalizedNode(kv.getValue(), pathArgument.getNodeType());
-                        // TODO when to write and when to merge, that is the question ...
-                        dataTree.write(path, data);
-                    } catch (IllegalArgumentException e) {
-                        // LOG.error("readAllInto write failed: {} ➠ {}", ByteSequences.asString(kv.getKey()),
-                        //        ByteSequences.asString(kv.getValue()), e);
-                        throw new EtcdException("readAllInto write failed: " + ByteSequences.asString(kv.getKey())
-                                + " ➠ " + ByteSequences.asString(kv.getValue()), e);
-                    }
+                    applyPut(dataTree, kv.getKey(), kv.getValue());
                 }
                 return completedFuture(null);
             }).toCompletableFuture().get();
