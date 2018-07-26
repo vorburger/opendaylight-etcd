@@ -1,10 +1,9 @@
 
-- [ ] make clustering tests, which start several etcd; write to one, read from another
-- [ ] figure out why EtcdWatcher never prints watch hits.. run as a separate main() process, any different?
 - [ ] make EtcdWatcher continuously read DataTree state... does it need a revision?
 - [ ] watch must filter out our own operations
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
+- [ ] Watcher's updates must be applied properly transactionally instead of each individually
 
 - [ ] update README to document architecture better
 - [ ] publicize etc.
