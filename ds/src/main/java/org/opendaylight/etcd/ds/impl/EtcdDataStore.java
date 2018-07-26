@@ -54,8 +54,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
         watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, watchEvent -> {
             // TODO actually update DataTree on watch notifications
-            LOG.info("{} Watch: eventType={}, KV={}", getIdentifier(), watchEvent.getEventType(),
-                    watchEvent.getKeyValue());
         });
     }
 

@@ -21,12 +21,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.function.Consumer;
+import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Watches Etcd and updates DataTree.
+ * Utility with background thread to continuously watch for changes from etcd.
  *
  * @author Michael Vorburger.ch
  */
@@ -40,10 +41,10 @@ class EtcdWatcher implements AutoCloseable {
     private final String name;
 
     EtcdWatcher(String name, Client client, byte prefix, long revision, Consumer<WatchEvent> consumer) {
+        this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
         this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
         this.theWatcher = watch(prefix, revision, consumer);
-        this.name = name;
     }
 
     @Override
@@ -59,10 +60,15 @@ class EtcdWatcher implements AutoCloseable {
         prefixBytes[0] = prefix;
         ByteSequence prefixByteSequence = ByteSequence.fromBytes(prefixBytes);
 
-        Watcher watcher = etcdWatch.watch(prefixByteSequence, WatchOption.newBuilder().withRevision(revision).build());
+        Watcher watcher = etcdWatch.watch(prefixByteSequence,
+                WatchOption.newBuilder().withPrefix(prefixByteSequence).withRevision(revision).build());
+                // TODO is .withRange(prefix + 1) needed?!
         Futures.addCallback(executor.submit(() -> {
             while (true) {
+                LOG.trace("{} watch: Now listening...", name);
                 for (WatchEvent event : watcher.listen().getEvents()) {
+                    LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
+                            KeyValues.toStringable(event.getKeyValue()));
                     consumer.accept(event);
                 }
             }
@@ -79,6 +85,7 @@ class EtcdWatcher implements AutoCloseable {
 
             @Override
             public void onSuccess(Void nothing) {
+                LOG.info("{} watch: FYI executor.submit() exited while(true) loop", name);
                 // ignore
             }
         }, MoreExecutors.directExecutor());
