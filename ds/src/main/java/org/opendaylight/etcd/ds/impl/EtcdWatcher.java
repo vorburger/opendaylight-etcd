@@ -65,7 +65,7 @@ class EtcdWatcher implements AutoCloseable {
                 // TODO is .withRange(prefix + 1) needed?!
         Futures.addCallback(executor.submit(() -> {
             while (true) {
-                LOG.trace("{} watch: Now listening...", name);
+                LOG.trace("{} watch: Now (again) listening...", name);
                 for (WatchEvent event : watcher.listen().getEvents()) {
                     LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
                             KeyValues.toStringable(event.getKeyValue()));
@@ -85,8 +85,7 @@ class EtcdWatcher implements AutoCloseable {
 
             @Override
             public void onSuccess(Void nothing) {
-                LOG.info("{} watch: FYI executor.submit() exited while(true) loop", name);
-                // ignore
+                LOG.error("{} watch: FYI executor.submit() exited while(true) loop - this should never happen!", name);
             }
         }, MoreExecutors.directExecutor());
         return watcher;
