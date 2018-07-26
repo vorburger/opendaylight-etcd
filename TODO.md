@@ -1,6 +1,7 @@
 
-- [ ] make EtcdWatcher continuously read DataTree state... does it need a revision?
+- [X] make EtcdWatcher continuously read DataTree state... does it need a revision?
 - [ ] watch must filter out our own operations
+- [ ] remove initialLoad() ?
 
 - [ ] study jetcd Txn and make class Etcd put() etc. transactional
 - [ ] Watcher's updates must be applied properly transactionally instead of each individually

@@ -20,9 +20,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import java.util.function.Consumer;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
+import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,8 @@ class EtcdWatcher implements AutoCloseable {
     private final Watcher theWatcher;
     private final String name;
 
-    EtcdWatcher(String name, Client client, byte prefix, long revision, Consumer<WatchEvent> consumer) {
+    EtcdWatcher(String name, Client client, byte prefix, long revision,
+            CheckedConsumer<WatchEvent, EtcdException> consumer) {
         this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
         this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
@@ -55,7 +56,7 @@ class EtcdWatcher implements AutoCloseable {
         LOG.info("{} closed.", name);
     }
 
-    private Watcher watch(byte prefix, long revision, Consumer<WatchEvent> consumer) {
+    private Watcher watch(byte prefix, long revision, CheckedConsumer<WatchEvent, EtcdException> consumer) {
         byte[] prefixBytes = new byte[1];
         prefixBytes[0] = prefix;
         ByteSequence prefixByteSequence = ByteSequence.fromBytes(prefixBytes);

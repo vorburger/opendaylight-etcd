@@ -10,6 +10,7 @@ package org.opendaylight.etcd.ds.impl;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.coreos.jetcd.Client;
+import com.coreos.jetcd.data.KeyValue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +20,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.etcd.utils.KeyValues;
+import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
@@ -54,6 +57,24 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
         watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, watchEvent -> {
             // TODO actually update DataTree on watch notifications
+            switch (watchEvent.getEventType()) {
+                case PUT:
+                    KeyValue keyValue = watchEvent.getKeyValue();
+                    apply(mod -> kv.applyPut(mod, keyValue.getKey(), keyValue.getValue()));
+                    break;
+
+                case DELETE:
+                    apply(mod -> kv.applyDelete(mod, watchEvent.getKeyValue().getKey()));
+                    break;
+
+                case UNRECOGNIZED:
+                    LOG.warn("{} UNRECOGNIZED watch event: {}", getIdentifier(),
+                            KeyValues.toStringable(watchEvent.getKeyValue()));
+                    break;
+
+                default:
+                    break;
+            }
         });
     }
 
@@ -78,9 +99,13 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     // TODO make private; this is only temporarily public, for EtcdConcurrentDataBrokerTestCustomizer
     // The idea is to make this private again later, and have it called automatically whenever we're behind etcd
     public void initialLoad() throws EtcdException {
+        apply(mod -> kv.readAllInto(mod));
+    }
+
+    private void apply(CheckedConsumer<DataTreeModification, EtcdException> function) throws EtcdException {
         // TODO requires https://git.opendaylight.org/gerrit/#/c/73482/ which makes dataTree protected instead of private
         DataTreeModification mod = dataTree.takeSnapshot().newModification();
-        kv.readAllInto(mod);
+        function.accept(mod);
         mod.ready();
 
         try {
@@ -95,7 +120,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         // also requires https://git.opendaylight.org/gerrit/#/c/73482/ which adds a protected notifyListeners to InMemoryDOMDataStore
         notifyListeners(candidate);
 
-        LOG.info("{} initialLoad: DataTreeModification={}, DataTreeCandidate={}", getIdentifier(), mod, candidate);
+        LOG.info("{} applied DataTreeModification={}, DataTreeCandidate={}", getIdentifier(), mod, candidate);
     }
 
     @Override
