@@ -23,6 +23,15 @@ public final class KeyValues {
         sb.append(ByteSequences.asString(kv.getKey()));
         sb.append(" ➙ ");
         sb.append(ByteSequences.asString(kv.getValue()));
+        sb.append(" (modRev=");
+        sb.append(kv.getModRevision());
+/*
+        sb.append(", createRev=");
+        sb.append(kv.getCreateRevision());
+        sb.append(", ver=");
+        sb.append(kv.getVersion());
+*/
+        sb.append(')');
     }
 
     public static Object toStringable(KeyValue kv) {
