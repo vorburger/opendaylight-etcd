@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
@@ -43,7 +44,7 @@ class EtcdWatcher implements AutoCloseable {
     private final AtomicBoolean isOpen = new AtomicBoolean(true);
 
     EtcdWatcher(String name, Client client, byte prefix, long revision,
-            CheckedConsumer<WatchEvent, EtcdException> consumer) {
+            CheckedConsumer<List<WatchEvent>, EtcdException> consumer) {
         this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
         this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher-" + name, LOG);
@@ -59,7 +60,7 @@ class EtcdWatcher implements AutoCloseable {
         LOG.info("{} closed.", name);
     }
 
-    private Watcher watch(byte prefix, long revision, CheckedConsumer<WatchEvent, EtcdException> consumer) {
+    private Watcher watch(byte prefix, long revision, CheckedConsumer<List<WatchEvent>, EtcdException> consumer) {
         byte[] prefixBytes = new byte[1];
         prefixBytes[0] = prefix;
         ByteSequence prefixByteSequence = ByteSequence.fromBytes(prefixBytes);
@@ -69,12 +70,12 @@ class EtcdWatcher implements AutoCloseable {
                 // TODO is .withRange(prefix + 1) needed?!
         Futures.addCallback(executor.submit(() -> {
             while (isOpen.get()) {
-                LOG.trace("{} watch: Now (again) listening...", name);
-                for (WatchEvent event : watcher.listen().getEvents()) {
+                List<WatchEvent> events = watcher.listen().getEvents();
+                for (WatchEvent event : events) {
                     LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
                             KeyValues.toStringable(event.getKeyValue()));
-                    consumer.accept(event);
                 }
+                consumer.accept(events);
             }
             return null;
         }), new FutureCallback<Void>() {

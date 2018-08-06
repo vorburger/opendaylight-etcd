@@ -1,10 +1,13 @@
 
 - [X] make EtcdWatcher continuously read DataTree state... does it need a revision?
-- [ ] watch must filter out our own operations
-- [ ] remove initialLoad() ?
+- [X] shall watch filter out our own operations, or do we **not apply and only watch**?
+- [ ] remove initialLoad(), or just make private and call from constructor?
 
-- [ ] study jetcd Txn and make class Etcd put() etc. transactional
-- [ ] Watcher's updates must be applied properly transactionally instead of each individually
+- [X] study jetcd Txn and make class Etcd put() etc. transactional
+- [X] Watcher's updates must be applied properly transactionally instead of each individually
+- [ ] fix still failing tests... it must await the latest revision?
+- [ ] fix InterruptedException and reactivate LogCaptureRule
+- [ ] add txn.if(...) in EtcdKV.EtcdTxn
 
 - [ ] update README to document architecture better
 - [ ] publicize etc.
@@ -37,8 +40,16 @@
 
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
 
+- [ ] compaction could cause e.g. WatchOption.Builder.withRevision(long) to return ErrCompacted.. must handle?
+
 - [ ] safe keys in a much more compact form; basically do compression, by keeping a dictionary (persisted in etcd) of all PathArgument
 
 - [ ] compare performance of this VS CDS? But *DO* realize that real app performance issues are NOT because of slow datastore anyway..
 
+- [ ] remote RPCs?  Still Akka.
+
 - [ ] properly performance profile the code
+
+- [ ] etcd new feature to keep certain sub-tress purely in-memory instead of persisted on disk (for operational VS configuration datastore); how does K8S do this?
+
+
