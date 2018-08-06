@@ -196,18 +196,21 @@ public class LoggingKV implements KV {
         }
 
         @Override
+        @SuppressFBWarnings("NM_METHOD_NAMING_CONVENTION")
         public Txn If(Cmp... cmps) {
             this.allCmps.addAll(Arrays.asList(cmps));
             return new LoggingTxn(id, delegateTxn.If(cmps), this.allCmps, this.allThenOps, this.allElseOps);
         }
 
         @Override
+        @SuppressFBWarnings("NM_METHOD_NAMING_CONVENTION")
         public Txn Then(Op... thenOps) {
             this.allThenOps.addAll(Arrays.asList(thenOps));
             return new LoggingTxn(id, delegateTxn.Then(thenOps), this.allCmps, this.allThenOps, this.allElseOps);
         }
 
         @Override
+        @SuppressFBWarnings("NM_METHOD_NAMING_CONVENTION")
         public Txn Else(Op... elseOps) {
             this.allElseOps.addAll(Arrays.asList(elseOps));
             return new LoggingTxn(id, delegateTxn.Else(elseOps), this.allCmps, this.allThenOps, this.allElseOps);
