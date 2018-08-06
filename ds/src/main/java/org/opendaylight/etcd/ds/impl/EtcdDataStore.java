@@ -11,6 +11,7 @@ import com.coreos.jetcd.Client;
 import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.watch.WatchEvent;
 import java.util.concurrent.ExecutorService;
+import javax.annotation.PostConstruct;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.etcd.ds.impl.EtcdKV.EtcdTxn;
@@ -23,6 +24,7 @@ import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidateNod
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataValidationFailedException;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.ModificationType;
+import org.opendaylight.yangtools.yang.model.api.SchemaContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,9 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     private final EtcdKV kv;
     private final EtcdWatcher watcher;
+
+    private boolean hasSchemaContext = false;
+    private boolean isInitialized = false;
 
     @SuppressWarnings("checkstyle:MissingSwitchDefault") // conflicts with http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
     public EtcdDataStore(String name, LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
@@ -75,6 +80,26 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         });
     }
 
+    @PostConstruct
+    public void init() throws Exception {
+        if (!hasSchemaContext) {
+            throw new IllegalStateException("onGlobalContextUpdated() not yet called");
+        }
+        this.isInitialized = true;
+        try {
+            initialLoad();
+        } catch (EtcdException e) {
+            this.isInitialized = false;
+            throw e;
+        }
+    }
+
+    @Override
+    public synchronized void onGlobalContextUpdated(SchemaContext ctx) {
+        super.onGlobalContextUpdated(ctx);
+        this.hasSchemaContext = true;
+    }
+
     private static char prefixChar(LogicalDatastoreType type) {
         return (char) prefix(type);
     }
@@ -93,12 +118,12 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
      * On start-up, read back current persistent state from etcd as initial DataTree content.
      * @throws EtcdException if loading failed
      */
-    // TODO make private and call from constructor; only temporarily public, for EtcdConcurrentDataBrokerTestCustomizer
-    public void initialLoad() throws EtcdException {
+    private void initialLoad() throws EtcdException {
         apply(mod -> kv.readAllInto(mod));
     }
 
     private void apply(CheckedConsumer<DataTreeModification, EtcdException> function) throws EtcdException {
+        isInitialized();
         // TODO requires https://git.opendaylight.org/gerrit/#/c/73482/ which makes dataTree protected instead of private
         DataTreeModification mod = dataTree.takeSnapshot().newModification();
         function.accept(mod);
@@ -121,6 +146,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     @Override
     // requires https://git.opendaylight.org/gerrit/#/c/73208/ :-( or figure out if we can hook into InMemoryDOMDataStore via a commit cohort?!
     protected synchronized void commit(DataTreeCandidate candidate) {
+        isInitialized();
         if (!candidate.getRootPath().equals(YangInstanceIdentifier.EMPTY)) {
             LOG.error("DataTreeCandidate: YangInstanceIdentifier path={}", candidate.getRootPath());
             throw new IllegalArgumentException("I've not learnt how to deal with DataTreeCandidate where "
@@ -205,6 +231,12 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         } catch (IllegalStateException e) {
             // just debugging code; not intended for production
             return "-ROOT-";
+        }
+    }
+
+    private void isInitialized() {
+        if (!isInitialized) {
+            throw new IllegalStateException("@PostConstruct init() not yet called");
         }
     }
 }

@@ -1,7 +1,7 @@
 
 - [X] make EtcdWatcher continuously read DataTree state... does it need a revision?
 - [X] shall watch filter out our own operations, or do we **not apply and only watch**?
-- [ ] remove initialLoad(), or just make private and call from constructor?
+- [X] remove initialLoad(), or just make private and call from constructor?
 
 - [X] study jetcd Txn and make class Etcd put() etc. transactional
 - [X] Watcher's updates must be applied properly transactionally instead of each individually
