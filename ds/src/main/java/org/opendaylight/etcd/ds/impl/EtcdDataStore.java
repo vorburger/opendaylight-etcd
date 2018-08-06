@@ -80,6 +80,12 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         });
     }
 
+    @Override
+    public synchronized void onGlobalContextUpdated(SchemaContext ctx) {
+        super.onGlobalContextUpdated(ctx);
+        this.hasSchemaContext = true;
+    }
+
     @PostConstruct
     public void init() throws Exception {
         if (!hasSchemaContext) {
@@ -95,9 +101,9 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     }
 
     @Override
-    public synchronized void onGlobalContextUpdated(SchemaContext ctx) {
-        super.onGlobalContextUpdated(ctx);
-        this.hasSchemaContext = true;
+    public void close() {
+        watcher.close();
+        kv.close();
     }
 
     private static char prefixChar(LogicalDatastoreType type) {
@@ -106,12 +112,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     private static byte prefix(LogicalDatastoreType type) {
         return type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
-    }
-
-    @Override
-    public void close() {
-        watcher.close();
-        kv.close();
     }
 
     /**
