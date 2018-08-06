@@ -16,12 +16,18 @@ import com.coreos.jetcd.kv.CompactResponse;
 import com.coreos.jetcd.kv.DeleteResponse;
 import com.coreos.jetcd.kv.GetResponse;
 import com.coreos.jetcd.kv.PutResponse;
+import com.coreos.jetcd.kv.TxnResponse;
+import com.coreos.jetcd.op.Cmp;
+import com.coreos.jetcd.op.Op;
 import com.coreos.jetcd.options.CompactOption;
 import com.coreos.jetcd.options.DeleteOption;
 import com.coreos.jetcd.options.GetOption;
 import com.coreos.jetcd.options.PutOption;
 import com.google.common.base.MoreObjects;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
@@ -164,8 +170,59 @@ public class LoggingKV implements KV {
 
     @Override
     public Txn txn() {
-        // TODO add logging, like for other methods
-        return delegate.txn();
+        long id = counter.incrementAndGet();
+        LOG.info("{}#{} txn...", prefix, id);
+        return new LoggingTxn(id, delegate.txn());
+    }
+
+    private class LoggingTxn implements Txn {
+
+        private final long id;
+        private final Txn delegateTxn;
+        private final List<Cmp> allCmps;
+        private final List<Op> allThenOps;
+        private final List<Op> allElseOps;
+
+        LoggingTxn(long id, Txn txn) {
+            this(id, txn, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        }
+
+        LoggingTxn(long id, Txn txn, List<Cmp> cmps, List<Op> thenOps, List<Op> elseOps) {
+            this.id = id;
+            this.delegateTxn = txn;
+            this.allCmps = cmps;
+            this.allThenOps = thenOps;
+            this.allElseOps = elseOps;
+        }
+
+        @Override
+        public Txn If(Cmp... cmps) {
+            this.allCmps.addAll(Arrays.asList(cmps));
+            return new LoggingTxn(id, delegateTxn.If(cmps), this.allCmps, this.allThenOps, this.allElseOps);
+        }
+
+        @Override
+        public Txn Then(Op... thenOps) {
+            this.allThenOps.addAll(Arrays.asList(thenOps));
+            return new LoggingTxn(id, delegateTxn.Then(thenOps), this.allCmps, this.allThenOps, this.allElseOps);
+        }
+
+        @Override
+        public Txn Else(Op... elseOps) {
+            this.allElseOps.addAll(Arrays.asList(elseOps));
+            return new LoggingTxn(id, delegateTxn.Else(elseOps), this.allCmps, this.allThenOps, this.allElseOps);
+        }
+
+        @Override
+        public CompletableFuture<TxnResponse> commit() {
+            // TODO add missing getters to Cmp & Op so that we can do this (and remove logging in EtcdKV EtcdTxn):
+/*
+            for (Cmp cmp : allCmps) {
+                LOG.info("{}#{} txn IF {}", prefix, id, cmp...);
+            }
+*/
+            return delegateTxn.commit().whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id));
+        }
     }
 
     @SuppressFBWarnings({ "SLF4J_FORMAT_SHOULD_BE_CONST", "SLF4J_SIGN_ONLY_FORMAT" })
