@@ -9,14 +9,18 @@ package org.opendaylight.etcd.ds.impl;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.opendaylight.etcd.utils.ByteSequences.toStringable;
 
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
+import com.coreos.jetcd.Txn;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.kv.DeleteResponse;
-import com.coreos.jetcd.kv.PutResponse;
+import com.coreos.jetcd.kv.TxnResponse;
+import com.coreos.jetcd.op.Op;
+import com.coreos.jetcd.options.DeleteOption;
 import com.coreos.jetcd.options.GetOption;
+import com.coreos.jetcd.options.PutOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
@@ -25,6 +29,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -44,15 +49,19 @@ import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.Augmentat
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.PathArgument;
 import org.opendaylight.yangtools.yang.data.api.schema.NormalizedNode;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Thingie that really writes to and reads from etcd.
+ * Writes to and reads from etcd.
  *
  * @author Michael Vorburger.ch
  */
 @ThreadSafe
 // intentionally just .impl package-local, for now
 class EtcdKV implements AutoCloseable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdKV.class);
 
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
@@ -62,9 +71,11 @@ class EtcdKV implements AutoCloseable {
     private final KV etcd;
     private final byte prefix;
     private final ByteSequence prefixByteSequence;
+    private final String name;
 
     EtcdKV(String name, Client client, byte prefix) {
         // TODO make the LoggingKV a configuration option (for performance)
+        this.name = name;
         this.etcd = new LoggingKV(name + " ", requireNonNull(client, "client").getKVClient());
         this.prefix = prefix;
         this.prefixByteSequence = ByteSequence.fromBytes(bytes(prefix));
@@ -79,6 +90,10 @@ class EtcdKV implements AutoCloseable {
         etcd.close();
     }
 
+    public EtcdTxn newTransaction() {
+        return new EtcdTxn();
+    }
+/*
     public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(path);
@@ -91,7 +106,6 @@ class EtcdKV implements AutoCloseable {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
 
-/*
     public CheckedFuture<Optional<NormalizedNode<?, ?>>, ReadFailedException> read(YangInstanceIdentifier path) {
         return Futures.makeChecked(
             CompletionStages.toListenableFuture(
@@ -107,7 +121,6 @@ class EtcdKV implements AutoCloseable {
                 })), e -> new ReadFailedException("Failed to read from etcd: " + path, e));
     }
 */
-
     public void applyDelete(DataTreeModification dataTree, ByteSequence key) throws EtcdException {
         YangInstanceIdentifier path = fromByteSequenceToYangInstanceIdentifier(key);
         dataTree.delete(path);
@@ -233,4 +246,35 @@ class EtcdKV implements AutoCloseable {
         }
     }
 
+    public class EtcdTxn {
+
+        private final Txn txn;
+        private final List<Op> opsList;
+
+        EtcdTxn() {
+            txn = etcd.txn();
+            // TODO txn.if(...)
+            opsList = new ArrayList<>();
+        }
+
+        public void put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) throws EtcdException {
+            ByteSequence key = toByteSequence(path);
+            ByteSequence value = toByteSequence(data);
+            opsList.add(Op.put(key, value, PutOption.DEFAULT));
+            // TODO remove logging here once LoggingKV can correctly support txn() [missing getters]
+            LOG.info("{} put: {} ➠ {}", name, toStringable(key), toStringable(value));
+        }
+
+        public void delete(YangInstanceIdentifier path) throws EtcdException {
+            ByteSequence key = toByteSequence(path);
+            opsList.add(Op.delete(key, DeleteOption.DEFAULT));
+            // TODO remove logging here once LoggingKV can correctly support txn() [missing getters]
+            LOG.info("{} delete: {}", name, toStringable(key));
+        }
+
+        public CompletionStage<TxnResponse> commit() {
+            txn.Then(opsList.toArray(new Op[opsList.size()]));
+            return txn.commit();
+        }
+    }
 }

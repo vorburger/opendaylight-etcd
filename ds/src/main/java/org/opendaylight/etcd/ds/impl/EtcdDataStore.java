@@ -7,19 +7,13 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.data.KeyValue;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
+import com.coreos.jetcd.watch.WatchEvent;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.etcd.ds.impl.EtcdKV.EtcdTxn;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStore;
@@ -56,25 +50,28 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
         kv = new EtcdKV(getIdentifier(), client, prefix(type));
 
-        watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, watchEvent -> {
-            // TODO actually update DataTree on watch notifications
-            switch (watchEvent.getEventType()) {
-                case PUT:
-                    KeyValue keyValue = watchEvent.getKeyValue();
-                    apply(mod -> kv.applyPut(mod, keyValue.getKey(), keyValue.getValue()));
-                    break;
+        watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, events -> {
+            apply(mod -> {
+                for (WatchEvent watchEvent : events) {
+                    switch (watchEvent.getEventType()) {
+                        case PUT:
+                            KeyValue keyValue = watchEvent.getKeyValue();
+                            kv.applyPut(mod, keyValue.getKey(), keyValue.getValue());
+                            break;
 
-                case DELETE:
-                    apply(mod -> kv.applyDelete(mod, watchEvent.getKeyValue().getKey()));
-                    break;
+                        case DELETE:
+                            kv.applyDelete(mod, watchEvent.getKeyValue().getKey());
+                            break;
 
-                case UNRECOGNIZED:
-                    LOG.warn("{} UNRECOGNIZED watch event: {}", getIdentifier(),
-                            KeyValues.toStringable(watchEvent.getKeyValue()));
-                    break;
+                        case UNRECOGNIZED:
+                            LOG.warn("{} UNRECOGNIZED watch event: {}", getIdentifier(),
+                                    KeyValues.toStringable(watchEvent.getKeyValue()));
+                            break;
 
-                // no default, as error-prone has error checking for non-exhaustive switches
-            }
+                        // no default, as error-prone has error checking for non-exhaustive switches
+                    }
+                }
+            });
         });
     }
 
@@ -96,8 +93,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
      * On start-up, read back current persistent state from etcd as initial DataTree content.
      * @throws EtcdException if loading failed
      */
-    // TODO make private; this is only temporarily public, for EtcdConcurrentDataBrokerTestCustomizer
-    // The idea is to make this private again later, and have it called automatically whenever we're behind etcd
+    // TODO make private and call from constructor; only temporarily public, for EtcdConcurrentDataBrokerTestCustomizer
     public void initialLoad() throws EtcdException {
         apply(mod -> kv.readAllInto(mod));
     }
@@ -111,8 +107,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         try {
             dataTree.validate(mod);
         } catch (DataValidationFailedException e) {
-            throw new EtcdException("Initial load from etcd into (supposedly) empty data store caused "
-                    + "unexpected DataValidationFailedException", e);
+            throw new EtcdException("Applying changes watched from etcd to DS caused DataValidationFailedException", e);
         }
         DataTreeCandidate candidate = dataTree.prepare(mod);
         dataTree.commit(candidate);
@@ -144,30 +139,36 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 //        });
         // but for now let's throw the entire nice async-ity over board and just do:
         try {
-            sendToEtcd(candidate, candidate.getRootPath(), candidate.getRootNode()).toCompletableFuture().get(1,
-                    SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            // TODO This is ugly, wrong, and just temporary.. but how to correctly return problems from here?!
+            EtcdTxn kvTx = kv.newTransaction();
+            sendToEtcd(kvTx, candidate, candidate.getRootPath(), candidate.getRootNode());
+            kvTx.commit();
+        } catch (EtcdException | IllegalArgumentException e) {
+            // TODO This is ugly, wrong, and just temporary.. but see above, how to better return problems here?
             throw new RuntimeException(e);
         }
-        super.commit(candidate);
+
+        // We do *NOT* super.commit(candidate), because we don't want to immediately/directly apply changes,
+        // because we let the watcher listener do this - for ourselves here where we initiated the change, as well as
+        // on all other remote nodes which listen to changes.  It seems tempting to optimize and for our own
+        // node just apply ourselves, instead of going through the listener, but this causes
+        // IllegalStateException: "Store tree ... and candidate base ... differ.", because we would apply
+        // everything twice, because the watcher sends us back our own operations;
+        // see also https://github.com/coreos/jetcd/issues/343.
     }
 
-    private CompletionStage<Void> sendToEtcd(DataTreeCandidate candidate, YangInstanceIdentifier base,
-            DataTreeCandidateNode node) {
-        List<CompletableFuture<Void>> futures = new ArrayList<>(1 + node.getChildNodes().size());
-
+    private void sendToEtcd(EtcdTxn kvTx, DataTreeCandidate candidate, YangInstanceIdentifier base,
+            DataTreeCandidateNode node) throws IllegalArgumentException, EtcdException {
         YangInstanceIdentifier newBase = candidate.getRootNode().equals(node) ? base : base.node(node.getIdentifier());
 
         ModificationType modificationType = node.getModificationType();
         switch (modificationType) {
             case WRITE:
-                add(futures, kv.put(newBase,
-                        node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node))));
+                kvTx.put(newBase,
+                        node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node)));
                 break;
 
             case DELETE:
-                add(futures, kv.delete(newBase));
+                kvTx.delete(newBase);
                 break;
 
             case UNMODIFIED:
@@ -183,14 +184,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         }
 
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
-            add(futures, sendToEtcd(candidate, newBase, childNode));
+            sendToEtcd(kvTx, candidate, newBase, childNode);
         }
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-    }
-
-    private void add(List<CompletableFuture<Void>> futures, CompletionStage<?> future) {
-        futures.add(future.thenApply(whatever -> (Void)null).toCompletableFuture());
     }
 
     private void print(String indent, DataTreeCandidateNode node) {
