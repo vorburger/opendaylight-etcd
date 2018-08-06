@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
@@ -39,18 +40,20 @@ class EtcdWatcher implements AutoCloseable {
     private final ListeningExecutorService executor;
     private final Watcher theWatcher;
     private final String name;
+    private final AtomicBoolean isOpen = new AtomicBoolean(true);
 
     EtcdWatcher(String name, Client client, byte prefix, long revision,
             CheckedConsumer<WatchEvent, EtcdException> consumer) {
         this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
-        this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher", LOG);
+        this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher-" + name, LOG);
         this.theWatcher = watch(prefix, revision, consumer);
     }
 
     @Override
     public void close() {
         // do not etcdWatch.close(); as that will happen when the Client gets closed
+        isOpen.set(false);
         executor.shutdownNow(); // intentionally NOT Executors.shutdownAndAwaitTermination(executor);
         theWatcher.close();
         LOG.info("{} closed.", name);
@@ -65,7 +68,7 @@ class EtcdWatcher implements AutoCloseable {
                 WatchOption.newBuilder().withPrefix(prefixByteSequence).withRevision(revision).build());
                 // TODO is .withRange(prefix + 1) needed?!
         Futures.addCallback(executor.submit(() -> {
-            while (true) {
+            while (isOpen.get()) {
                 LOG.trace("{} watch: Now (again) listening...", name);
                 for (WatchEvent event : watcher.listen().getEvents()) {
                     LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
@@ -73,6 +76,7 @@ class EtcdWatcher implements AutoCloseable {
                     consumer.accept(event);
                 }
             }
+            return null;
         }), new FutureCallback<Void>() {
 
             @Override
@@ -86,7 +90,7 @@ class EtcdWatcher implements AutoCloseable {
 
             @Override
             public void onSuccess(Void nothing) {
-                LOG.error("{} watch: FYI executor.submit() exited while(true) loop - this should never happen!", name);
+                // This will happen when isOpen becomes false on close()
             }
         }, MoreExecutors.directExecutor());
         return watcher;

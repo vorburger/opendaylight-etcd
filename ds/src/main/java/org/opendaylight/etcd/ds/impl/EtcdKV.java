@@ -57,7 +57,7 @@ class EtcdKV implements AutoCloseable {
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
     // this isn't a problem at this early stage, but as that is added for *EVERY*
-    // key and value, we could (eventually) remove it
+    // key *AND* value, we could (eventually) remove it
 
     private final KV etcd;
     private final byte prefix;
