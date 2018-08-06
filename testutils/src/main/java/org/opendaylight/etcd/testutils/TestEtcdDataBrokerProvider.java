@@ -32,10 +32,8 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
         dataBroker = testCustomizer.createDataBroker();
         domDataBroker = testCustomizer.createDOMDataBroker();
         testCustomizer.updateSchema(getSchemaContext());
-
-        // TODO remove this again once EtcdDataStore automatically (re)loads from etcd
-        testCustomizer.getConfigurationDataStore().initialLoad();
-        testCustomizer.getOperationalDataStore().initialLoad();
+        testCustomizer.getConfigurationDataStore().init();
+        testCustomizer.getOperationalDataStore().init();
     }
 
     @Override
