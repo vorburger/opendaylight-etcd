@@ -235,7 +235,7 @@ public class EtcdDBTest {
         initialTx.commit().get();
     }
 
-    private boolean isTopInDataStore(LogicalDatastoreType type, DataBroker dataBroker) throws Exception {
+    private static boolean isTopInDataStore(LogicalDatastoreType type, DataBroker dataBroker) throws Exception {
         try (ReadTransaction readTx = dataBroker.newReadOnlyTransaction()) {
             Optional<Top> optTop = readTx.read(type, TOP_PATH).get();
             boolean present = optTop.isPresent();
@@ -256,7 +256,7 @@ public class EtcdDBTest {
         }
     }
 
-    private boolean isTopInDataStore(DataBroker dataBroker) throws Exception {
+    private static boolean isTopInDataStore(DataBroker dataBroker) throws Exception {
         return isTopInDataStore(OPERATIONAL, dataBroker);
     }
 

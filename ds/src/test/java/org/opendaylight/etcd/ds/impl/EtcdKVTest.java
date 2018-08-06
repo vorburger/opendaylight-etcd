@@ -29,7 +29,7 @@ public class EtcdKVTest {
     @Test
     public void testYangInstanceIdentifierToAndFromByteSequence() throws EtcdException {
         @SuppressWarnings("resource") // because Client is just mocked anyway
-        EtcdKV etcdKV = new EtcdKV(Mockito.mock(Client.class), (byte)'t');
+        EtcdKV etcdKV = new EtcdKV("Test", Mockito.mock(Client.class), (byte)'t');
         YangInstanceIdentifier path = YangInstanceIdentifier.EMPTY.node(new NodeIdentifier(HelloWorldContainer.QNAME));
         ByteSequence byteSequence = etcdKV.toByteSequence(path);
         YangInstanceIdentifier path2 = etcdKV.fromByteSequenceToYangInstanceIdentifier(byteSequence);

@@ -48,6 +48,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     private final EtcdKV kv;
     private final EtcdWatcher watcher;
 
+    @SuppressWarnings("checkstyle:MissingSwitchDefault") // conflicts with http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
     public EtcdDataStore(String name, LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
             int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
         super(name + "-" + prefixChar(type), dataChangeListenerExecutor, maxDataChangeListenerQueueSize,
@@ -72,8 +73,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
                             KeyValues.toStringable(watchEvent.getKeyValue()));
                     break;
 
-                default:
-                    break;
+                // no default, as error-prone has error checking for non-exhaustive switches
             }
         });
     }
@@ -117,7 +117,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         DataTreeCandidate candidate = dataTree.prepare(mod);
         dataTree.commit(candidate);
 
-        // also requires https://git.opendaylight.org/gerrit/#/c/73482/ which adds a protected notifyListeners to InMemoryDOMDataStore
+        // also requires https://git.opendaylight.org/gerrit/#/c/73217/ which adds a protected notifyListeners to InMemoryDOMDataStore
         notifyListeners(candidate);
 
         LOG.info("{} applied DataTreeModification={}, DataTreeCandidate={}", getIdentifier(), mod, candidate);
