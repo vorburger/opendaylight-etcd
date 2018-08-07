@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
+import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 
 /**
  * Consumer suitable for EtcdWatcher which "splits" watch events by prefix.
@@ -31,10 +31,10 @@ import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
 class EtcdWatcherSplittingConsumer implements CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> {
 
     private final Optional<RevAwaiter> revAwaiter;
-    private final ImmutableMap<ByteSequence, Consumer<List<WatchEvent>>> splitConsumers;
+    private final ImmutableMap<ByteSequence, CheckedConsumer<List<WatchEvent>, EtcdException>> splitConsumers;
 
     EtcdWatcherSplittingConsumer(Optional<RevAwaiter> revAwaiter,
-            Map<ByteSequence, Consumer<List<WatchEvent>>> splitConsumers) {
+            Map<ByteSequence, CheckedConsumer<List<WatchEvent>, EtcdException>> splitConsumers) {
         this.revAwaiter = revAwaiter;
         this.splitConsumers = ImmutableMap.copyOf(splitConsumers);
     }
@@ -56,7 +56,9 @@ class EtcdWatcherSplittingConsumer implements CheckedBiConsumer<Long, List<Watch
             }
         }
 
-        lists.forEach((prefix, list) -> splitConsumers.get(prefix).accept(list));
+        for (Map.Entry<ByteSequence, List<WatchEvent>> list: lists.entrySet()) {
+            splitConsumers.get(list.getKey()).accept(list.getValue());
+        }
 
         revAwaiter.ifPresent(revAwait -> revAwait.update(revision));
     }
