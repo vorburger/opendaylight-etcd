@@ -10,6 +10,7 @@ package org.opendaylight.etcd.ds.impl;
 import static com.google.common.truth.Truth.assertThat;
 import static org.opendaylight.etcd.ds.impl.EtcdDataStore.CONFIGURATION_PREFIX;
 import static org.opendaylight.etcd.ds.impl.EtcdDataStore.OPERATIONAL_PREFIX;
+import static org.opendaylight.etcd.utils.ByteSequences.append;
 import static org.opendaylight.etcd.utils.ByteSequences.fromBytes;
 
 import com.coreos.jetcd.data.ByteSequence;
@@ -36,7 +37,7 @@ public class EtcdWatcherSplittingConsumerTest {
     private final TestConsumer operConsumer = new TestConsumer();
 
     private final Map<ByteSequence, Consumer<List<WatchEvent>>> consumers = ImmutableMap
-            .of(fromBytes(CONFIGURATION_PREFIX), configConsumer, fromBytes(OPERATIONAL_PREFIX), operConsumer);
+            .of(CONFIGURATION_PREFIX, configConsumer, OPERATIONAL_PREFIX, operConsumer);
 
     @Test
     public void testEmpty() throws EtcdException {
@@ -49,7 +50,7 @@ public class EtcdWatcherSplittingConsumerTest {
     @Test
     public void testOnlyConfig() throws EtcdException {
         EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
-        splitter.accept(1L, Lists.newArrayList(newWatchEvent(fromBytes(CONFIGURATION_PREFIX, (byte)123))));
+        splitter.accept(1L, Lists.newArrayList(newWatchEvent(append(CONFIGURATION_PREFIX, (byte)123))));
         assertThat(configConsumer.counter.get()).isEqualTo(1L);
         assertThat(operConsumer.counter.get()).isEqualTo(0L);
     }
@@ -57,7 +58,7 @@ public class EtcdWatcherSplittingConsumerTest {
     @Test
     public void testOnlyOper() throws EtcdException {
         EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
-        splitter.accept(1L, Lists.newArrayList(newWatchEvent(fromBytes(OPERATIONAL_PREFIX, (byte)123))));
+        splitter.accept(1L, Lists.newArrayList(newWatchEvent(append(OPERATIONAL_PREFIX, (byte)123))));
         assertThat(configConsumer.counter.get()).isEqualTo(0L);
         assertThat(operConsumer.counter.get()).isEqualTo(1L);
     }
@@ -66,8 +67,8 @@ public class EtcdWatcherSplittingConsumerTest {
     public void testOnlyConfigAndOper() throws EtcdException {
         EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
         splitter.accept(1L, Lists.newArrayList(
-                newWatchEvent(fromBytes(CONFIGURATION_PREFIX, (byte) 123)),
-                newWatchEvent(fromBytes(OPERATIONAL_PREFIX, (byte) 123))));
+                newWatchEvent(append(CONFIGURATION_PREFIX, (byte) 123)),
+                newWatchEvent(append(OPERATIONAL_PREFIX, (byte) 123))));
         assertThat(configConsumer.counter.get()).isEqualTo(1L);
         assertThat(operConsumer.counter.get()).isEqualTo(1L);
     }
@@ -76,9 +77,9 @@ public class EtcdWatcherSplittingConsumerTest {
     public void testOnlyConfigAndOperAndAnotherOneToIgnore() throws EtcdException {
         EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
         splitter.accept(1L, Lists.newArrayList(
-                newWatchEvent(fromBytes(CONFIGURATION_PREFIX, (byte) 123)),
+                newWatchEvent(append(CONFIGURATION_PREFIX, (byte) 123)),
                 newWatchEvent(fromBytes((byte) 234, (byte) 123)),
-                newWatchEvent(fromBytes(OPERATIONAL_PREFIX, (byte) 123))));
+                newWatchEvent(append(OPERATIONAL_PREFIX, (byte) 123))));
         assertThat(configConsumer.counter.get()).isEqualTo(1L);
         assertThat(operConsumer.counter.get()).isEqualTo(1L);
     }

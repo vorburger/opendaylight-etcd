@@ -9,6 +9,7 @@ package org.opendaylight.etcd.utils;
 
 import ch.vorburger.dom2kv.bite.ByteSeq;
 import com.coreos.jetcd.data.ByteSequence;
+import java.util.Arrays;
 
 /**
  * Utilities for {@link ByteSequence}.
@@ -38,5 +39,11 @@ public final class ByteSequences {
 
     public static ByteSequence fromBytes(byte... bytes) {
         return ByteSequence.fromBytes(bytes);
+    }
+
+    public static ByteSequence append(ByteSequence base, byte... bytes) {
+        byte[] newBytes = Arrays.copyOf(base.getBytes(), base.getBytes().length + bytes.length);
+        System.arraycopy(bytes, 0, newBytes, base.getBytes().length, bytes.length);
+        return ByteSequence.fromBytes(newBytes);
     }
 }

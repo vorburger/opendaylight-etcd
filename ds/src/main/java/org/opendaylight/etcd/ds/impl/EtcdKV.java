@@ -76,20 +76,16 @@ class EtcdKV implements AutoCloseable {
     // key *AND* value, we could (eventually) remove it
 
     private final KV etcd;
-    private final byte prefix;
+    private final byte[] prefixByteArray;
     private final ByteSequence prefixByteSequence;
     private final String name;
 
-    EtcdKV(String name, Client client, byte prefix) {
+    EtcdKV(String name, Client client, ByteSequence prefix) {
         // TODO make the LoggingKV a configuration option (for performance)
         this.name = name;
         this.etcd = new LoggingKV(name + " ", requireNonNull(client, "client").getKVClient());
-        this.prefix = prefix;
-        this.prefixByteSequence = ByteSequence.fromBytes(bytes(prefix));
-    }
-
-    private static byte[] bytes(byte... bytes) {
-        return bytes;
+        this.prefixByteArray = prefix.getBytes();
+        this.prefixByteSequence = prefix;
     }
 
     @Override
@@ -217,10 +213,12 @@ class EtcdKV implements AutoCloseable {
     @VisibleForTesting
     YangInstanceIdentifier fromByteSequenceToYangInstanceIdentifier(ByteSequence byteSequence) throws EtcdException {
         ByteArrayDataInput dataInput = ByteStreams.newDataInput(byteSequence.getBytes());
-        byte readPrefix = dataInput.readByte();
-        if (readPrefix != prefix) {
-            throw new EtcdException(
-                    "The read prefix does not match the expected prefix: " + readPrefix + " -VS- " + prefix);
+        for (byte prefix : prefixByteArray) {
+            byte readPrefix = dataInput.readByte();
+            if (readPrefix != prefix) {
+                throw new EtcdException(
+                        "The read prefix does not match the expected prefix: " + readPrefix + " -VS- " + prefix);
+            }
         }
 
         try {
@@ -238,7 +236,7 @@ class EtcdKV implements AutoCloseable {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             try (DataOutputStream dataOutput = new DataOutputStream(baos)) {
                 if (writePrefix) {
-                    dataOutput.writeByte(prefix);
+                    dataOutput.write(prefixByteArray, 0, prefixByteArray.length);
                 }
                 try (NormalizedNodeDataOutput nodeDataOutput = new ShallowNormalizedNodeDataOutputWriter(dataOutput)) {
                     consumer.accept(nodeDataOutput);
