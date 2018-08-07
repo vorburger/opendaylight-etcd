@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import org.junit.Test;
+import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 
 /**
  * Unit Test for EtcdWatcherSplittingConsumer.
@@ -37,7 +37,7 @@ public class EtcdWatcherSplittingConsumerTest {
     private final TestConsumer configConsumer = new TestConsumer();
     private final TestConsumer operConsumer = new TestConsumer();
 
-    private final Map<ByteSequence, Consumer<List<WatchEvent>>> consumers = ImmutableMap
+    private final Map<ByteSequence, CheckedConsumer<List<WatchEvent>, EtcdException>> consumers = ImmutableMap
             .of(CONFIGURATION_PREFIX, configConsumer, OPERATIONAL_PREFIX, operConsumer);
 
     @Test
@@ -91,7 +91,7 @@ public class EtcdWatcherSplittingConsumerTest {
                 EventType.PUT);
     }
 
-    private static class TestConsumer implements Consumer<List<WatchEvent>> {
+    private static class TestConsumer implements CheckedConsumer<List<WatchEvent>, EtcdException> {
         AtomicLong counter = new AtomicLong();
 
         @Override
