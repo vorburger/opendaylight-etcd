@@ -38,7 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.etcd.ds.impl.EtcdDataStore;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
-import org.opendaylight.etcd.testutils.EtcdDOMDataBrokerWiring;
+import org.opendaylight.etcd.testutils.TestEtcdDataBrokerProvider;
 import org.opendaylight.infrautils.testutils.LogRule;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
@@ -76,11 +76,13 @@ public class EtcdDBTest {
     private static Client testsEtcdClient;
 
     private ClientBuilder clientBuilder;
-    private EtcdDOMDataBrokerWiring dbProviderA;
+    private TestEtcdDataBrokerProvider dbProviderA;
     private DataBroker dataBrokerA;
-    private EtcdDOMDataBrokerWiring dbProviderB;
+    private TestEtcdDataBrokerProvider dbProviderB;
     private DataBroker dataBrokerB;
 
+    // TODO figure out LoggingKV InterruptedException and uncomment LogCaptureRule
+    // public @Rule LogCaptureRule logCaptureRule = new LogCaptureRule();
     public @Rule LogRule logRule = new LogRule();
 
     // TODO Make an EtcdClassRule to replace the @BeforeClass
@@ -107,15 +109,20 @@ public class EtcdDBTest {
         if (dbProviderA != null) {
             dbProviderA.close();
         }
-        dbProviderA = new EtcdDOMDataBrokerWiring(clientBuilder, "a");
+        dbProviderA = new TestEtcdDataBrokerProvider(clientBuilder, "a");
         dataBrokerA = dbProviderA.getDataBroker();
-        dbProviderB = new EtcdDOMDataBrokerWiring(clientBuilder, "b");
+        dbProviderB = new TestEtcdDataBrokerProvider(clientBuilder, "b");
         dataBrokerB = dbProviderB.getDataBroker();
     }
 
     @After
     public void after() throws Exception {
-        dbProviderA.close();
+        if (dbProviderA != null) {
+            dbProviderA.close();
+        }
+        if (dbProviderB != null) {
+            dbProviderB.close();
+        }
         testsEtcdClient.close();
     }
 

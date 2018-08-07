@@ -12,8 +12,10 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
 import com.coreos.jetcd.ClientBuilder;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
+import org.opendaylight.etcd.ds.impl.EtcdDataBrokerWiring;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.dom.adapter.test.util.MockSchemaService;
 import org.opendaylight.mdsal.binding.generator.api.ClassLoadingStrategy;
@@ -75,13 +77,13 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     // have our own implementation here, very similar, just few lines of copy/paste:
 
     private static SchemaContext newSchemaContext() {
-        Iterable<YangModuleInfo> moduleInfos = loadModuleInfos();
+        ImmutableSet<YangModuleInfo> moduleInfos = loadModuleInfos();
         ModuleInfoBackedContext moduleContext = ModuleInfoBackedContext.create();
         moduleContext.addModuleInfos(moduleInfos);
         return moduleContext.tryToCreateSchemaContext().get();
     }
 
-    private static Iterable<YangModuleInfo> loadModuleInfos() {
+    private static ImmutableSet<YangModuleInfo> loadModuleInfos() {
         return BindingReflections.loadModuleInfos();
     }
 }

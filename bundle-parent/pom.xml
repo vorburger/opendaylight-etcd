@@ -37,7 +37,6 @@
          <failOnError>true</failOnError>
        </configuration>
      </plugin>
-     <!-- TODO errorprone POC -->
      <!-- TODO Eclipse JDT null analysis POC -->
     </plugins>
   </build>
