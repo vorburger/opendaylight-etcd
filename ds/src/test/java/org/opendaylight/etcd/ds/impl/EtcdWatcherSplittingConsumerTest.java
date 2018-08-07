@@ -8,6 +8,7 @@
 package org.opendaylight.etcd.ds.impl;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Optional.empty;
 import static org.opendaylight.etcd.ds.impl.EtcdDataStore.CONFIGURATION_PREFIX;
 import static org.opendaylight.etcd.ds.impl.EtcdDataStore.OPERATIONAL_PREFIX;
 import static org.opendaylight.etcd.utils.ByteSequences.append;
@@ -41,7 +42,7 @@ public class EtcdWatcherSplittingConsumerTest {
 
     @Test
     public void testEmpty() throws EtcdException {
-        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
+        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(empty(), consumers);
         splitter.accept(1L, Collections.emptyList());
         assertThat(configConsumer.counter.get()).isEqualTo(0L);
         assertThat(operConsumer.counter.get()).isEqualTo(0L);
@@ -49,7 +50,7 @@ public class EtcdWatcherSplittingConsumerTest {
 
     @Test
     public void testOnlyConfig() throws EtcdException {
-        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
+        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(empty(), consumers);
         splitter.accept(1L, Lists.newArrayList(newWatchEvent(append(CONFIGURATION_PREFIX, (byte)123))));
         assertThat(configConsumer.counter.get()).isEqualTo(1L);
         assertThat(operConsumer.counter.get()).isEqualTo(0L);
@@ -57,7 +58,7 @@ public class EtcdWatcherSplittingConsumerTest {
 
     @Test
     public void testOnlyOper() throws EtcdException {
-        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
+        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(empty(), consumers);
         splitter.accept(1L, Lists.newArrayList(newWatchEvent(append(OPERATIONAL_PREFIX, (byte)123))));
         assertThat(configConsumer.counter.get()).isEqualTo(0L);
         assertThat(operConsumer.counter.get()).isEqualTo(1L);
@@ -65,7 +66,7 @@ public class EtcdWatcherSplittingConsumerTest {
 
     @Test
     public void testOnlyConfigAndOper() throws EtcdException {
-        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
+        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(empty(), consumers);
         splitter.accept(1L, Lists.newArrayList(
                 newWatchEvent(append(CONFIGURATION_PREFIX, (byte) 123)),
                 newWatchEvent(append(OPERATIONAL_PREFIX, (byte) 123))));
@@ -75,7 +76,7 @@ public class EtcdWatcherSplittingConsumerTest {
 
     @Test
     public void testOnlyConfigAndOperAndAnotherOneToIgnore() throws EtcdException {
-        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(new RevAwaiter(), consumers);
+        EtcdWatcherSplittingConsumer splitter = new EtcdWatcherSplittingConsumer(empty(), consumers);
         splitter.accept(1L, Lists.newArrayList(
                 newWatchEvent(append(CONFIGURATION_PREFIX, (byte) 123)),
                 newWatchEvent(fromBytes((byte) 234, (byte) 123)),
