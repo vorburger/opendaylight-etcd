@@ -5,6 +5,7 @@
 
 - [X] study jetcd Txn and make class Etcd put() etc. transactional
 - [X] Watcher's updates must be applied properly transactionally instead of each individually
+- [ ] extend 1 byte O/C prefix to 2 bytes DO and DC ?  Or just watch the ENTIRE tree root?
 - [ ] fix still failing tests... it must await the latest revision?
 - [ ] fix InterruptedException and reactivate LogCaptureRule
 - [ ] add txn.if(...) in EtcdKV.EtcdTxn

@@ -32,4 +32,11 @@ public final class ByteSequences {
         return ByteSeq.asString(byteSequence.getBytes());
     }
 
+    public static boolean startsWith(ByteSequence baseByteSequence, ByteSequence prefix) {
+        return baseByteSequence.getByteString().startsWith(prefix.getByteString());
+    }
+
+    public static ByteSequence fromBytes(byte... bytes) {
+        return ByteSequence.fromBytes(bytes);
+    }
 }
