@@ -98,8 +98,8 @@ public class EtcdDBTest {
         clientBuilder = Client.builder().endpoints(etcdServer.getEndpointURL());
 
         testsEtcdClient = clientBuilder.build();
-        deleteEtcd(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
-        deleteEtcd(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
+        deleteEtcd(EtcdDataStore.OPERATIONAL_PREFIX);
+        deleteEtcd(EtcdDataStore.CONFIGURATION_PREFIX);
 
         recreateFreshDataBrokerClient();
     }
@@ -176,8 +176,8 @@ public class EtcdDBTest {
         assertThat(isTopInDataStore()).isFalse();
 
         // make sure etcd really is completely empty
-        assertThatEtcdIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.OPERATIONAL_PREFIX)));
-        assertThatEtcdIsEmpty(ByteSequence.fromBytes(bytes(EtcdDataStore.CONFIGURATION_PREFIX)));
+        assertThatEtcdIsEmpty(EtcdDataStore.OPERATIONAL_PREFIX);
+        assertThatEtcdIsEmpty(EtcdDataStore.CONFIGURATION_PREFIX);
     }
 
     private static void assertThatEtcdIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
@@ -273,10 +273,6 @@ public class EtcdDBTest {
 
     private boolean isTopInDataStore() throws Exception {
         return isTopInDataStore(OPERATIONAL);
-    }
-
-    private static byte[] bytes(byte... bytes) {
-        return bytes;
     }
 
     // TODO add more as in org.opendaylight.controller.md.sal.dom.broker.impl.DOMBrokerTest & Co.

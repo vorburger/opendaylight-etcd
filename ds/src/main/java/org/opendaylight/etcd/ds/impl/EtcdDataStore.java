@@ -8,6 +8,7 @@
 package org.opendaylight.etcd.ds.impl;
 
 import com.coreos.jetcd.Client;
+import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.data.Response.Header;
 import com.coreos.jetcd.watch.WatchEvent;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.etcd.ds.impl.EtcdKV.EtcdTxn;
+import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
@@ -44,8 +46,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdDataStore.class);
 
-    public static final byte CONFIGURATION_PREFIX = 67; // 'C'
-    public static final byte OPERATIONAL_PREFIX   = 79; // 'O'
+    public static final ByteSequence CONFIGURATION_PREFIX = ByteSequences.fromBytes((byte) 'C'); // 67
+    public static final ByteSequence OPERATIONAL_PREFIX   = ByteSequences.fromBytes((byte) 'O'); // 79
 
     // This flag could later be dynamic instead of fixed hard-coded, to optionally
     // support very fast reads with eventual instead of strong consistency.
@@ -165,10 +167,10 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     }
 
     private static char prefixChar(LogicalDatastoreType type) {
-        return (char) prefix(type);
+        return (char) prefix(type).getBytes()[0];
     }
 
-    private static byte prefix(LogicalDatastoreType type) {
+    private static ByteSequence prefix(LogicalDatastoreType type) {
         return type.equals(LogicalDatastoreType.CONFIGURATION) ? CONFIGURATION_PREFIX : OPERATIONAL_PREFIX;
     }
 

@@ -23,7 +23,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
@@ -45,7 +44,7 @@ class EtcdWatcher implements AutoCloseable {
     private final String name;
     private final AtomicBoolean isOpen = new AtomicBoolean(true);
 
-    EtcdWatcher(String name, Client client, byte prefix, long revision,
+    EtcdWatcher(String name, Client client, ByteSequence prefix, long revision,
             CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
         this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
@@ -62,12 +61,10 @@ class EtcdWatcher implements AutoCloseable {
         LOG.info("{} closed.", name);
     }
 
-    private Watcher watch(byte prefix, long revision,
+    private Watcher watch(ByteSequence prefix, long revision,
             CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
-        ByteSequence prefixByteSequence = ByteSequences.fromBytes(prefix);
-
-        Watcher watcher = etcdWatch.watch(prefixByteSequence,
-                WatchOption.newBuilder().withPrefix(prefixByteSequence).withRevision(revision).build());
+        Watcher watcher = etcdWatch.watch(prefix,
+                WatchOption.newBuilder().withPrefix(prefix).withRevision(revision).build());
                 // TODO is .withRange(prefix + 1) needed?!
         Futures.addCallback(executor.submit(() -> {
             while (isOpen.get()) {
