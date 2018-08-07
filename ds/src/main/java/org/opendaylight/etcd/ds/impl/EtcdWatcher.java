@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
@@ -63,9 +64,7 @@ class EtcdWatcher implements AutoCloseable {
 
     private Watcher watch(byte prefix, long revision,
             CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
-        byte[] prefixBytes = new byte[1];
-        prefixBytes[0] = prefix;
-        ByteSequence prefixByteSequence = ByteSequence.fromBytes(prefixBytes);
+        ByteSequence prefixByteSequence = ByteSequences.fromBytes(prefix);
 
         Watcher watcher = etcdWatch.watch(prefixByteSequence,
                 WatchOption.newBuilder().withPrefix(prefixByteSequence).withRevision(revision).build());
