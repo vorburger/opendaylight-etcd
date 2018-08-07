@@ -13,6 +13,7 @@
 - [ ] publicize etc.
 - [ ] ODL repo and carry on there
 
+- [ ] optimize RevAwaiter
 - [ ] EntityOwnershipService EOS ?
 
 - [ ] make etcd clustering tests (start several EtcdLauncher, not just clients)
@@ -32,7 +33,7 @@
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
 
-- [ ] EtcdDOMDataBrokerWiring needs to refactor and move from testutils/ into ds/ to become runtime *Wiring
+- [X] EtcdDOMDataBrokerWiring needs to refactor and move from testutils/ into ds/ to become runtime *Wiring
 
 - [ ] build a JUnitRule for EtcdLauncher, like https://github.com/vorburger/MariaDB4j/pull/139 did for MariaDB4j
 
