@@ -20,13 +20,15 @@
 - [ ] git filter out the (un-used) dom2kv/ sub-project into a separate repo
 
 - [ ] refactor code to make generic non-etcd specific kv layer, pluggable for other KV stores
-- [ ] Find that site doing perf. compares of data stores again.. is is worth adapting to:  Redis?  Couch DB?  Infinispan?
+- [ ] is is worth adapting to others, see https://jepsen.io/analyses, say.. Redis?  Couch DB?  Infinispan?
 
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, discuss an upstream artifact for what is shared
       "you should just need an InMemoryDataTree. Pattern after ShardDataTree instead."
       https://git.opendaylight.org/gerrit/#/c/73208/
 
-- [ ] MUCH clean-up and MANY TODOs ;)
+- [ ] instead org.opendaylight.etcd.ds.stream.copypaste, make it visible on ODL upstream
+- [ ] instead of org.opendaylight.etcd.utils, move to jetcd upstream
+- [ ] MUCH clean-up and other MANY TODOs ;)
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
 
@@ -36,9 +38,14 @@
 
 - [ ] add infrautils.metrics Meters & Timers to implementation
 
+- [ ] etcd alarms should be logged via slf4j errors in ODL (just for convenience, just in case etcd is not monitored correctly)
 - [ ] com.coreos.jetcd.Maintenance ?
 
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
+
+- [ ] jetcd Java client retry and failover, like Go client, see https://etcd.readthedocs.io/en/latest/client-architecture.html
+
+- [ ] jetcd could optimize and always send to leader, dynamically adapt, to prevents extra hop from ODL to etcd follower to leader, see https://etcd.readthedocs.io/en/latest/faq.html#do-clients-have-to-send-requests-to-the-etcd-leader
 
 - [ ] compaction could cause e.g. WatchOption.Builder.withRevision(long) to return ErrCompacted.. must handle?
 
@@ -52,4 +59,5 @@
 
 - [ ] etcd new feature to keep certain sub-tress purely in-memory instead of persisted on disk (for operational VS configuration datastore); how does K8S do this?
 
+- [ ] add to https://github.com/coreos/etcd/blob/master/Documentation/production-users.md ;) (AKA https://coreos.com/etcd/docs/latest/production-users.html)
 
