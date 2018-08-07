@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
@@ -29,10 +30,10 @@ import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
  */
 class EtcdWatcherSplittingConsumer implements CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> {
 
-    private final RevAwaiter revAwaiter;
+    private final Optional<RevAwaiter> revAwaiter;
     private final ImmutableMap<ByteSequence, Consumer<List<WatchEvent>>> splitConsumers;
 
-    EtcdWatcherSplittingConsumer(RevAwaiter revAwaiter,
+    EtcdWatcherSplittingConsumer(Optional<RevAwaiter> revAwaiter,
             Map<ByteSequence, Consumer<List<WatchEvent>>> splitConsumers) {
         this.revAwaiter = revAwaiter;
         this.splitConsumers = ImmutableMap.copyOf(splitConsumers);
@@ -57,7 +58,7 @@ class EtcdWatcherSplittingConsumer implements CheckedBiConsumer<Long, List<Watch
 
         lists.forEach((prefix, list) -> splitConsumers.get(prefix).accept(list));
 
-        revAwaiter.update(revision);
+        revAwaiter.ifPresent(revAwait -> revAwait.update(revision));
     }
 
 }
