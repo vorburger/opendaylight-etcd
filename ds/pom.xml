@@ -72,6 +72,12 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- Dependencies required (only) by EtcdDataBrokerWiring.. TODO move into new wiring/ artifact? -->
+    <dependency>
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>mdsal-binding-dom-adapter</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.opendaylight.etcd</groupId>
       <artifactId>test-model</artifactId>
