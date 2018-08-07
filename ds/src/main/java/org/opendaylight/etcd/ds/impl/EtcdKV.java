@@ -16,6 +16,7 @@ import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Txn;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
+import com.coreos.jetcd.data.Response.Header;
 import com.coreos.jetcd.kv.TxnResponse;
 import com.coreos.jetcd.op.Op;
 import com.coreos.jetcd.options.DeleteOption;
@@ -33,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
@@ -63,6 +66,10 @@ class EtcdKV implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdKV.class);
 
+    // Max. time (in milliseconds) we're willing to wait for replies from etcd server
+    // TODO In an ideal world, we'd like to be 101% async everywhere here, and never do a blocking get() ...
+    static final long TIMEOUT_MS = 300;
+
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte
     // this isn't a problem at this early stage, but as that is added for *EVERY*
@@ -88,6 +95,19 @@ class EtcdKV implements AutoCloseable {
     @Override
     public void close() {
         etcd.close();
+    }
+
+    public long getServerRevision() throws EtcdException {
+        return getServerHeader().getRevision();
+    }
+
+    public Header getServerHeader() throws EtcdException {
+        try {
+            return etcd.get(prefixByteSequence, GetOption.newBuilder().withKeysOnly(true).withLimit(1).build())
+                    .get(TIMEOUT_MS, TimeUnit.MILLISECONDS).getHeader();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new EtcdException("failed to connect (in time) to etcd server", e);
+        }
     }
 
     public EtcdTxn newTransaction() {
@@ -151,8 +171,8 @@ class EtcdKV implements AutoCloseable {
                     applyPut(dataTree, kv.getKey(), kv.getValue());
                 }
                 return completedFuture(null);
-            }).toCompletableFuture().get();
-        } catch (InterruptedException | ExecutionException e) {
+            }).toCompletableFuture().get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new EtcdException("readAllInto() failed", e);
         }
     }

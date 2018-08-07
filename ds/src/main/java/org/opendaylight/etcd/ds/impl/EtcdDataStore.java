@@ -9,14 +9,19 @@ package org.opendaylight.etcd.ds.impl;
 
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.data.KeyValue;
+import com.coreos.jetcd.data.Response.Header;
 import com.coreos.jetcd.watch.WatchEvent;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.etcd.ds.impl.EtcdKV.EtcdTxn;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
+import org.opendaylight.mdsal.dom.spi.store.DOMStoreReadTransaction;
+import org.opendaylight.mdsal.dom.spi.store.DOMStoreReadWriteTransaction;
 import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
@@ -41,8 +46,13 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     public static final byte CONFIGURATION_PREFIX = 67; // 'C'
     public static final byte OPERATIONAL_PREFIX   = 79; // 'O'
 
+    // This flag could later be dynamic instead of fixed hard-coded, to optionally
+    // support very fast reads with eventual instead of strong consistency.
+    private final boolean isStronglyConsistent = true;
+
     private final EtcdKV kv;
     private final EtcdWatcher watcher;
+    private final RevAwaiter revAwaiter = new RevAwaiter();
 
     private boolean hasSchemaContext = false;
     private boolean isInitialized = false;
@@ -50,12 +60,13 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
     @SuppressWarnings("checkstyle:MissingSwitchDefault") // conflicts with http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
     public EtcdDataStore(String name, LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
             int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
+        // TODO InMemoryDOMDataStore creates the DataTree with a hard-coded DataTreeConfiguration, instead of by type
         super(name + "-" + prefixChar(type), dataChangeListenerExecutor, maxDataChangeListenerQueueSize,
                 debugTransactions);
 
         kv = new EtcdKV(getIdentifier(), client, prefix(type));
 
-        watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, events -> {
+        watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, (rev, events) -> {
             apply(mod -> {
                 for (WatchEvent watchEvent : events) {
                     switch (watchEvent.getEventType()) {
@@ -77,7 +88,43 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
                     }
                 }
             });
+            if (isStronglyConsistent) {
+                revAwaiter.update(rev);
+                LOG.info("{} RevAwaiter update: {}", getIdentifier(), rev);
+            }
         });
+    }
+
+    @Override
+    public DOMStoreReadTransaction newReadOnlyTransaction() {
+        await();
+        return super.newReadOnlyTransaction();
+    }
+
+    @Override
+    public DOMStoreReadWriteTransaction newReadWriteTransaction() {
+        await();
+        return super.newReadWriteTransaction();
+    }
+
+    // NB: We do NOT have to await() for a newWriteOnlyTransaction().
+
+    private void await() {
+        if (isStronglyConsistent) {
+            long expectedRev;
+            try {
+                expectedRev = kv.getServerRevision();
+            } catch (EtcdException e) {
+                throw new EtcdRuntimeException(getIdentifier() + " await getServerRevision() failed", e);
+            }
+
+            try {
+                // TODO remove the *10 here again?  It was because of a doubt on early testing.
+                revAwaiter.await(expectedRev, Duration.ofMillis(EtcdKV.TIMEOUT_MS * 10));
+            } catch (TimeoutException e) {
+                throw new EtcdRuntimeException(getIdentifier() + " await revision failed: " + expectedRev, e);
+            }
+        }
     }
 
     @Override
@@ -93,7 +140,10 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         }
         this.isInitialized = true;
         try {
+            logEtcdServerDetails();
+
             initialLoad();
+
         } catch (EtcdException e) {
             this.isInitialized = false;
             throw e;
@@ -238,5 +288,13 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         if (!isInitialized) {
             throw new IllegalStateException("@PostConstruct init() not yet called");
         }
+    }
+
+    private void logEtcdServerDetails() throws EtcdException {
+        Header serverHeader = kv.getServerHeader();
+        LOG.debug("{} etcd server cluster ID: {}", getIdentifier(), serverHeader.getClusterId());
+        LOG.debug("{} etcd server member ID: {}", getIdentifier(), serverHeader.getMemberId());
+        LOG.debug("{} etcd server Raft term: {}", getIdentifier(), serverHeader.getRaftTerm());
+        LOG.info("{} etcd server current modRev={}", getIdentifier(), serverHeader.getRevision());
     }
 }

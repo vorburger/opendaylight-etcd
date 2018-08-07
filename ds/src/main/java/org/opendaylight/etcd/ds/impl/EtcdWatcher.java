@@ -16,6 +16,7 @@ import com.coreos.jetcd.common.exception.ClosedClientException;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.watch.WatchEvent;
+import com.coreos.jetcd.watch.WatchResponse;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
-import org.opendaylight.infrautils.utils.function.CheckedConsumer;
+import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ class EtcdWatcher implements AutoCloseable {
     private final AtomicBoolean isOpen = new AtomicBoolean(true);
 
     EtcdWatcher(String name, Client client, byte prefix, long revision,
-            CheckedConsumer<List<WatchEvent>, EtcdException> consumer) {
+            CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
         this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
         this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher-" + name, LOG);
@@ -60,7 +61,8 @@ class EtcdWatcher implements AutoCloseable {
         LOG.info("{} closed.", name);
     }
 
-    private Watcher watch(byte prefix, long revision, CheckedConsumer<List<WatchEvent>, EtcdException> consumer) {
+    private Watcher watch(byte prefix, long revision,
+            CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
         byte[] prefixBytes = new byte[1];
         prefixBytes[0] = prefix;
         ByteSequence prefixByteSequence = ByteSequence.fromBytes(prefixBytes);
@@ -70,12 +72,13 @@ class EtcdWatcher implements AutoCloseable {
                 // TODO is .withRange(prefix + 1) needed?!
         Futures.addCallback(executor.submit(() -> {
             while (isOpen.get()) {
-                List<WatchEvent> events = watcher.listen().getEvents();
+                WatchResponse response = watcher.listen();
+                List<WatchEvent> events = response.getEvents();
                 for (WatchEvent event : events) {
                     LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
                             KeyValues.toStringable(event.getKeyValue()));
                 }
-                consumer.accept(events);
+                consumer.accept(response.getHeader().getRevision(), events);
             }
             return null;
         }), new FutureCallback<Void>() {
