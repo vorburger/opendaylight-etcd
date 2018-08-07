@@ -16,12 +16,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
 import javax.annotation.concurrent.ThreadSafe;
-import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
 import org.opendaylight.etcd.ds.impl.EtcdKV.EtcdTxn;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
+import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.mdsal.dom.spi.store.DOMStoreReadTransaction;
 import org.opendaylight.mdsal.dom.spi.store.DOMStoreReadWriteTransaction;
+import org.opendaylight.mdsal.dom.spi.store.DOMStoreWriteTransaction;
 import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStore;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeCandidate;
@@ -97,17 +98,24 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     @Override
     public DOMStoreReadTransaction newReadOnlyTransaction() {
+        isInitialized();
         await();
         return super.newReadOnlyTransaction();
     }
 
     @Override
     public DOMStoreReadWriteTransaction newReadWriteTransaction() {
+        isInitialized();
         await();
         return super.newReadWriteTransaction();
     }
 
-    // NB: We do NOT have to await() for a newWriteOnlyTransaction().
+    @Override
+    public DOMStoreWriteTransaction newWriteOnlyTransaction() {
+        isInitialized();
+        // NB: We do NOT have to await() for a newWriteOnlyTransaction()
+        return super.newWriteOnlyTransaction();
+    }
 
     private void await() {
         if (isStronglyConsistent) {
