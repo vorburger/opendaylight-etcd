@@ -10,7 +10,7 @@
 - [ ] fix InterruptedException and reactivate LogCaptureRule
 - [ ] add txn.if(...) in EtcdKV.EtcdTxn
 
-- [ ] update README to document architecture better
+- [X] update README to document architecture better
 - [ ] publicize etc.
 - [ ] ODL repo and carry on there
 
