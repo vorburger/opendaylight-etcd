@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PreDestroy;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
@@ -48,11 +49,14 @@ class EtcdWatcher implements AutoCloseable {
             CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
         this.name = name;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
+
+        // TODO better to do this in a @PostConstruct start() instead?
         this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher-" + name, LOG);
         this.theWatcher = watch(prefix, revision, consumer);
     }
 
     @Override
+    @PreDestroy
     public void close() {
         // do not etcdWatch.close(); as that will happen when the Client gets closed
         isOpen.set(false);

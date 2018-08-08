@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.etcd.ds.impl.EtcdYangKV.EtcdTxn;
 import org.opendaylight.etcd.utils.ByteSequences;
@@ -162,6 +163,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     }
 
     @Override
+    @PreDestroy
     public void close() {
         kv.close();
     }

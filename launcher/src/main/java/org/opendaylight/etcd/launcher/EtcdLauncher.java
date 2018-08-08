@@ -17,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,11 +60,13 @@ public class EtcdLauncher implements AutoCloseable {
         return "http://localhost:2379";
     }
 
+    @PostConstruct
     public void start() throws ManagedProcessException {
         process.startAndWaitForConsoleMessageMaxMs("embed: ready to serve client requests", 5000);
     }
 
     @Override
+    @PreDestroy
     public void close() throws ManagedProcessException {
         if (process.isAlive()) {
             process.destroy();

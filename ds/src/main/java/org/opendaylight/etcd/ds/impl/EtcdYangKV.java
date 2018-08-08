@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataOutput;
@@ -88,6 +89,7 @@ class EtcdYangKV implements AutoCloseable {
     }
 
     @Override
+    @PreDestroy
     public void close() {
         etcd.close();
     }
