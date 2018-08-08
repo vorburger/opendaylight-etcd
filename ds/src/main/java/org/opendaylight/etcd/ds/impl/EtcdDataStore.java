@@ -119,7 +119,10 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     @Override
     public DOMStoreWriteTransaction newWriteOnlyTransaction() {
         isInitialized();
-        // NB: We do NOT have to await() for a newWriteOnlyTransaction()
+        // TODO discuss with others if this makes sense, or could indeed be optimized?
+        // It could be tempting to NOT await() for a newWriteOnlyTransaction(),
+        // but the data validation on commit needs up-to-date data, so we do.
+        await();
         return super.newWriteOnlyTransaction();
     }
 
