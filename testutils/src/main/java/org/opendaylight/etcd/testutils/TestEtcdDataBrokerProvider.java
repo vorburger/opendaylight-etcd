@@ -14,6 +14,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import com.coreos.jetcd.ClientBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import javax.annotation.PostConstruct;
 import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
 import org.opendaylight.etcd.ds.impl.EtcdDataBrokerWiring;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -56,6 +57,7 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     }
 
     @Override
+    @PostConstruct
     public void close() throws Exception {
         wiring.close();
     }
