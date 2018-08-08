@@ -7,6 +7,8 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static org.opendaylight.etcd.ds.impl.EtcdDataStore.CONFIGURATION_PREFIX;
+import static org.opendaylight.etcd.ds.impl.EtcdDataStore.OPERATIONAL_PREFIX;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
@@ -15,6 +17,7 @@ import com.coreos.jetcd.ClientBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import javassist.ClassPool;
 import javax.annotation.PostConstruct;
@@ -46,6 +49,8 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
     private final EtcdDataStore operDS;
     private final DOMDataBroker domDataBroker;
     private final DataBroker dataBroker;
+    private final EtcdWatcher watcher;
+    private final RevAwaiter revAwaiter;
 
     /**
      * Constructor.
@@ -62,12 +67,17 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         this.name = nodeName;
         this.etcdClient = etcdClientBuilder.build();
 
+        revAwaiter = new RevAwaiter();
+
         // copy/pasted from org.opendaylight.mdsal.binding.dom.adapter.test.AbstractDataBrokerTestCustomizer:
         configDS = createConfigurationDatastore(CONFIGURATION, dtclExecutor, schemaService);
         operDS = createConfigurationDatastore(OPERATIONAL, dtclExecutor, schemaService);
         Map<LogicalDatastoreType, DOMStore> datastores = ImmutableMap.of(CONFIGURATION, configDS, OPERATIONAL, operDS);
         // TODO use ConcurrentDOMDataBroker instead SerializedDOMDataBroker ?
         domDataBroker = new SerializedDOMDataBroker(datastores, commitCoordinatorExecutor);
+
+        watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, 0, new EtcdWatcherSplittingConsumer(
+                Optional.of(revAwaiter), ImmutableMap.of(CONFIGURATION_PREFIX, configDS, OPERATIONAL_PREFIX, operDS)));
 
         ClassPool pool = ClassPool.getDefault();
         DataObjectSerializerGenerator generator = StreamWriterGenerator.create(JavassistUtils.forClassPool(pool));
@@ -81,10 +91,16 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
     public void init() throws Exception {
         configDS.init();
         operDS.init();
+
+        long revNow = EtcdServerUtils.getServerRevision(etcdClient.getKVClient());
+        revAwaiter.update(revNow);
     }
 
     @Override
     public void close() throws Exception {
+        if (watcher != null) {
+            watcher.close();
+        }
         if (operDS != null) {
             operDS.close();
         }
@@ -115,7 +131,8 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
     private EtcdDataStore createConfigurationDatastore(LogicalDatastoreType type,
             ExecutorService dataTreeChangeListenerExecutor, DOMSchemaService schemaService) {
         EtcdDataStore store = new EtcdDataStore(name, type, dataTreeChangeListenerExecutor,
-                InMemoryDOMDataStoreConfigProperties.DEFAULT_MAX_DATA_CHANGE_LISTENER_QUEUE_SIZE, etcdClient, true);
+                InMemoryDOMDataStoreConfigProperties.DEFAULT_MAX_DATA_CHANGE_LISTENER_QUEUE_SIZE, etcdClient, true,
+                revAwaiter);
         schemaService.registerSchemaContextListener(store);
         return store;
     }
