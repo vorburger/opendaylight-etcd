@@ -8,11 +8,12 @@
 package org.opendaylight.etcd.ds.impl;
 
 import com.coreos.jetcd.Client;
+import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.data.Response.Header;
 import com.coreos.jetcd.watch.WatchEvent;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
@@ -42,58 +43,60 @@ import org.slf4j.LoggerFactory;
  * @author Michael Vorburger.ch
  */
 @ThreadSafe
-public class EtcdDataStore extends InMemoryDOMDataStore {
+public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsumer<List<WatchEvent>, EtcdException> {
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdDataStore.class);
 
-    public static final ByteSequence CONFIGURATION_PREFIX = ByteSequences.fromBytes((byte) 'C'); // 67
-    public static final ByteSequence OPERATIONAL_PREFIX   = ByteSequences.fromBytes((byte) 'O'); // 79
+    public static final ByteSequence BASE_PREFIX = ByteSequences.fromBytes(); // empty (currently; could change)
+    public static final ByteSequence CONFIGURATION_PREFIX = ByteSequences.append(BASE_PREFIX, (byte) 'C'); // 67
+    public static final ByteSequence OPERATIONAL_PREFIX   = ByteSequences.append(BASE_PREFIX, (byte) 'O'); // 79
 
     // This flag could later be dynamic instead of fixed hard-coded, to optionally
-    // support very fast reads with eventual instead of strong consistency.
+    // support very fast reads with eventual instead of strong consistency.  We could do this either
+    // globally and have different data stores (and, ultimately DataBroker), or per transaction.
     private final boolean isStronglyConsistent = true;
 
     private final EtcdKV kv;
-    private final EtcdWatcher watcher;
-    private final RevAwaiter revAwaiter = new RevAwaiter();
+    private final KV kvClient;
+    private final RevAwaiter revAwaiter;
 
     private boolean hasSchemaContext = false;
     private boolean isInitialized = false;
 
-    @SuppressWarnings("checkstyle:MissingSwitchDefault") // conflicts with http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
     public EtcdDataStore(String name, LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
-            int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions) {
+            int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions, RevAwaiter revAwaiter) {
         // TODO InMemoryDOMDataStore creates the DataTree with a hard-coded DataTreeConfiguration, instead of by type
         super(name + "-" + prefixChar(type), dataChangeListenerExecutor, maxDataChangeListenerQueueSize,
                 debugTransactions);
 
+        this.revAwaiter = revAwaiter;
+        this.kvClient = client.getKVClient();
+
         kv = new EtcdKV(getIdentifier(), client, prefix(type));
+    }
 
-        watcher = new EtcdWatcher(getIdentifier(), client, prefix(type), 0, (rev, events) -> {
-            apply(mod -> {
-                for (WatchEvent watchEvent : events) {
-                    switch (watchEvent.getEventType()) {
-                        case PUT:
-                            KeyValue keyValue = watchEvent.getKeyValue();
-                            kv.applyPut(mod, keyValue.getKey(), keyValue.getValue());
-                            break;
+    @Override
+    @SuppressWarnings("checkstyle:MissingSwitchDefault") // conflicts with http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
+    public void accept(List<WatchEvent> events) throws EtcdException {
+        apply(mod -> {
+            for (WatchEvent watchEvent : events) {
+                switch (watchEvent.getEventType()) {
+                    case PUT:
+                        KeyValue keyValue = watchEvent.getKeyValue();
+                        kv.applyPut(mod, keyValue.getKey(), keyValue.getValue());
+                        break;
 
-                        case DELETE:
-                            kv.applyDelete(mod, watchEvent.getKeyValue().getKey());
-                            break;
+                    case DELETE:
+                        kv.applyDelete(mod, watchEvent.getKeyValue().getKey());
+                        break;
 
-                        case UNRECOGNIZED:
-                            LOG.warn("{} UNRECOGNIZED watch event: {}", getIdentifier(),
-                                    KeyValues.toStringable(watchEvent.getKeyValue()));
-                            break;
+                    case UNRECOGNIZED:
+                        LOG.warn("{} UNRECOGNIZED watch event: {}", getIdentifier(),
+                                KeyValues.toStringable(watchEvent.getKeyValue()));
+                        break;
 
-                        // no default, as error-prone has error checking for non-exhaustive switches
-                    }
+                    // no default, as error-prone has error checking for non-exhaustive switches
                 }
-            });
-            if (isStronglyConsistent) {
-                revAwaiter.update(rev);
-                LOG.info("{} RevAwaiter update: {}", getIdentifier(), rev);
             }
         });
     }
@@ -123,7 +126,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         if (isStronglyConsistent) {
             long expectedRev;
             try {
-                expectedRev = kv.getServerRevision();
+                expectedRev = EtcdServerUtils.getServerRevision(kvClient);
             } catch (EtcdException e) {
                 throw new EtcdRuntimeException(getIdentifier() + " await getServerRevision() failed", e);
             }
@@ -150,8 +153,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         }
         this.isInitialized = true;
         try {
-            logEtcdServerDetails();
-
             initialLoad();
 
         } catch (EtcdException e) {
@@ -162,7 +163,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
 
     @Override
     public void close() {
-        watcher.close();
         kv.close();
     }
 
@@ -298,13 +298,5 @@ public class EtcdDataStore extends InMemoryDOMDataStore {
         if (!isInitialized) {
             throw new IllegalStateException("@PostConstruct init() not yet called");
         }
-    }
-
-    private void logEtcdServerDetails() throws EtcdException {
-        Header serverHeader = kv.getServerHeader();
-        LOG.debug("{} etcd server cluster ID: {}", getIdentifier(), serverHeader.getClusterId());
-        LOG.debug("{} etcd server member ID: {}", getIdentifier(), serverHeader.getMemberId());
-        LOG.debug("{} etcd server Raft term: {}", getIdentifier(), serverHeader.getRaftTerm());
-        LOG.info("{} etcd server current modRev={}", getIdentifier(), serverHeader.getRevision());
     }
 }
