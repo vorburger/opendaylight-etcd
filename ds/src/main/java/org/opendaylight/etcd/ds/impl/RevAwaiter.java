@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Concurrency utility to await availability of certain revisions.
@@ -24,12 +26,15 @@ import org.awaitility.core.ConditionTimeoutException;
 @ThreadSafe
 class RevAwaiter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RevAwaiter.class);
+
     // TODO This is a first implementation.  It certainly can, and must, be (much) optimized.
 
     private final AtomicLong currentRev = new AtomicLong();
 
     void update(long rev) {
         currentRev.set(rev);
+        LOG.info("update: {}", rev);
     }
 
     @SuppressWarnings("checkstyle:AvoidHidingCauseException")
