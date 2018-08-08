@@ -19,17 +19,17 @@ import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier;
 import org.opendaylight.yangtools.yang.data.api.YangInstanceIdentifier.NodeIdentifier;
 
 /**
- * Unit test for {@link EtcdKV}.
+ * Unit test for {@link EtcdYangKV}.
  *
  * @author Michael Vorburger.ch
  */
 @SuppressWarnings("javadoc")
-public class EtcdKVTest {
+public class EtcdYangKVTest {
 
     @Test
     public void testYangInstanceIdentifierToAndFromByteSequence() throws EtcdException {
         @SuppressWarnings("resource") // because Client is just mocked anyway
-        EtcdKV etcdKV = new EtcdKV("Test", Mockito.mock(Client.class), ByteSequences.fromBytes((byte)'t'));
+        EtcdYangKV etcdKV = new EtcdYangKV("Test", Mockito.mock(Client.class), ByteSequences.fromBytes((byte)'t'));
         YangInstanceIdentifier path = YangInstanceIdentifier.EMPTY.node(new NodeIdentifier(HelloWorldContainer.QNAME));
         ByteSequence byteSequence = etcdKV.toByteSequence(path);
         YangInstanceIdentifier path2 = etcdKV.fromByteSequenceToYangInstanceIdentifier(byteSequence);

@@ -35,7 +35,7 @@ final class EtcdServerUtils {
 
     public static Header getServerHeader(KV etcdKV) throws EtcdException {
         try {
-            return etcdKV.get(ANY_KEY, MINIMAL_GET_OPTION).get(EtcdKV.TIMEOUT_MS, MILLISECONDS).getHeader();
+            return etcdKV.get(ANY_KEY, MINIMAL_GET_OPTION).get(EtcdYangKV.TIMEOUT_MS, MILLISECONDS).getHeader();
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new EtcdException("failed to connect (in time) to etcd server", e);
         }
