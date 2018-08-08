@@ -41,18 +41,26 @@ class EtcdWatcher implements AutoCloseable {
 
     private final Watch etcdWatch;
     private final ListeningExecutorService executor;
-    private final Watcher theWatcher;
     private final String name;
     private final AtomicBoolean isOpen = new AtomicBoolean(true);
 
-    EtcdWatcher(String name, Client client, ByteSequence prefix, long revision,
+    private final ByteSequence prefix;
+    private final CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer;
+
+    private Watcher theWatcher;
+
+    EtcdWatcher(String name, Client client, ByteSequence prefix,
             CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
         this.name = name;
+        this.prefix = prefix;
+        this.consumer = consumer;
         this.etcdWatch = requireNonNull(client, "client").getWatchClient();
 
-        // TODO better to do this in a @PostConstruct start() instead?
         this.executor = Executors.newListeningSingleThreadExecutor("EtcdWatcher-" + name, LOG);
-        this.theWatcher = watch(prefix, revision, consumer);
+    }
+
+    public void start(long revision) {
+        this.theWatcher = watch(revision);
     }
 
     @Override
@@ -61,12 +69,13 @@ class EtcdWatcher implements AutoCloseable {
         // do not etcdWatch.close(); as that will happen when the Client gets closed
         isOpen.set(false);
         executor.shutdownNow(); // intentionally NOT Executors.shutdownAndAwaitTermination(executor);
-        theWatcher.close();
+        if (theWatcher != null) {
+            theWatcher.close();
+        }
         LOG.info("{} closed.", name);
     }
 
-    private Watcher watch(ByteSequence prefix, long revision,
-            CheckedBiConsumer<Long, List<WatchEvent>, EtcdException> consumer) {
+    private Watcher watch(long revision) {
         Watcher watcher = etcdWatch.watch(prefix,
                 WatchOption.newBuilder().withPrefix(prefix).withRevision(revision).build());
                 // TODO is .withRange(prefix + 1) needed?!

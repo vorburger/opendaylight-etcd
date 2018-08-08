@@ -76,7 +76,7 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         // TODO use ConcurrentDOMDataBroker instead SerializedDOMDataBroker ?
         domDataBroker = new SerializedDOMDataBroker(datastores, commitCoordinatorExecutor);
 
-        watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, 0, new EtcdWatcherSplittingConsumer(
+        watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, new EtcdWatcherSplittingConsumer(
                 Optional.of(revAwaiter), ImmutableMap.of(CONFIGURATION_PREFIX, configDS, OPERATIONAL_PREFIX, operDS)));
 
         ClassPool pool = ClassPool.getDefault();
@@ -93,6 +93,7 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         operDS.init();
 
         long revNow = EtcdServerUtils.getServerRevision(etcdClient.getKVClient());
+        watcher.start(revNow);
         revAwaiter.update(revNow);
     }
 
