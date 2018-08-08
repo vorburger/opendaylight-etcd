@@ -92,8 +92,8 @@ public class LoggingKV implements KV {
         long id = counter.incrementAndGet();
         LOG.info("{}#{} get: {}", prefix, id, toStringable(key));
         return delegate.get(key).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id,
-            getResponse -> MessageFormatter.arrayFormat("#{} get: {} ➞ {}",
-                new Object[] { id, ByteSequences.asString(key), asString(getResponse) }).getMessage()));
+            getResponse -> MessageFormatter.arrayFormat("#{} got: {}",
+                new Object[] { id, asString(getResponse) }).getMessage()));
     }
 
     @Override
@@ -101,8 +101,8 @@ public class LoggingKV implements KV {
         long id = counter.incrementAndGet();
         LOG.info("{}#{} get: {} ({})", prefix, id, toStringable(key), asString(option));
         return delegate.get(key, option).whenComplete(new LoggingCompletableFutureWhenCompleteConsumer<>(id,
-            getResponse -> MessageFormatter.arrayFormat("#{} get: {} ({}) ➞ {}",
-                new Object[] { id, ByteSequences.asString(key), asString(option), asString(getResponse) })
+            getResponse -> MessageFormatter.arrayFormat("#{} got: {}",
+                new Object[] { id, asString(getResponse) })
                 .getMessage()));
     }
 
