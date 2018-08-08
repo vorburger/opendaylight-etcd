@@ -19,8 +19,8 @@ and change the `jetcd-core` dependency in jetcd/pom.xml from 0.0.2 to 0.1.0-SNAP
 
 ## Architecture Design
 
-A cluster of Etcd servers appears as a single logical server to us.
-Details about its internal clustering, Raft implementation etc. are transparent to us.
+A cluster of Etcd servers appears as a single logical server to clients like this.
+Details about its internal clustering, Raft implementation etc. are transparent.
 
 The `EtcdDataStore` implements `DOMStore` and internally uses `DataTree`, just like the `sal-distributed-datastore` (CDS) does.
 
@@ -53,10 +53,35 @@ etcd instances would typically best be localhost co-located with the ODL nodes.
 
 ## FAQ
 
+### About this project
+
 * _What is the status of this project?_ As of late July 2018, it's Proof of Concept (POC) with the `EtcdDBTest` illustrating, successfully, that the ODL MD SAL DataBroker API can be implemented on top of the etcd data store.
 
-* _What's the point of this?_ The main goal is to have the option in ODL to completely avoid the home grown Raft/clustering code.  This will ease maintenance.  Increasing ODL performance (compared to CDS) is not a goal of this project.
+* _What's the point of this?_ The main goal is to have the option in ODL to completely avoid the home grown Raft/clustering code.  This will ease maintenance.
+
+* _Is this project going to automagically solve all sorts of performance issues you may face in ODL today?_ Nope. Increasing ODL performance (compared to CDS) is not a goal of this project.
+
+* _How will we upgrade the code from today's clustering solution to an etcd based datastore?_ The idea is that ultimately this will simply be a new alternative feature installation, and require absolutely no change to any existing application code.
+
+* _How will we migrate the data from today to tomorrow during customer upgrades?_ Replay based upgrades start with a fresh new empty datastore, so this is a non-issue.  (A non replay based upgrade procedures would have to export the datastore content using DAEXIM, and re-import a dump into an instance with an etcd datastore.)
 
 * _How can you try this out?_ The "packaging" work to make this available as a Karaf feature, and (more importantly) some re-factorings required in ODL to make it easy to install instead of CDS for real world testing is still to be done.
 
 * _How can you help?_ Please see the [TODO.md](TODO.md) and start contributing!
+
+
+### About etcd
+
+* _What is etcd?_ [etcd](https://coreos.com/etcd/) is a distributed [key value store](https://en.wikipedia.org/wiki/Key-value_database) that provides a reliable way to store data across a cluster of machines.  Communication between etcd machines is handled via the Raft consensus algorithm.
+
+* _Why etcd?_ Among many other users, etcd is the database used in Kubernetes (and its distributions such as OpenShift).  It makes sense to align ODL to this.  With the Core OS acquisition, Red Hat has etcd expertise.
+
+* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs; notably e.g. Redis et al.  Some of the code from this project likely is a good basis for you to write adapters to other KV DBs.  Have fun!
+
+* _I [read somewhere online](https://coreos.com/etcd/docs/latest/learning/api_guarantees.html) that "etcd clients may have issues with operations that time out (network disruption for example) and will not send an abort respond". How do we plan on dealing with this?_  This will cause a timeout at [the GRPC layer](https://grpc.io) internally, which will lead to a failure on the MD SAL (commit) operation, which will be propagated to the ODL application client - as it should; all good.
+
+* _I heard that "On network split (AKA split brain) read request may be served mistakenly by the minority split." How do we plan on dealing with this?_ [According to this documentation](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/failures.md), "there is no 'split-brain' in etcd".
+
+* _But, but, but..._ Please consult with the opensource etcd community, or obtain professional support, for further doubts about and issues with etcd - just like you would say in OpenStack if you had a problem with its MariaDB (mysql) database.  Relying on a well established and here-to-stay persistence engine, instead of building, debugging and maintaining a home grown one, is really the main point of this project! ;-)
+
+* _No, really.  I know better than etcd._  Perhaps you should contribute your superior expertise to etcd instead of continuing to build yet another database inside OpenDaylight?
