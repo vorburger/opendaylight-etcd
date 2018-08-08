@@ -16,7 +16,6 @@ import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Txn;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.data.Response.Header;
 import com.coreos.jetcd.kv.TxnResponse;
 import com.coreos.jetcd.op.Op;
 import com.coreos.jetcd.options.DeleteOption;
@@ -63,6 +62,7 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 // intentionally just .impl package-local, for now
 class EtcdKV implements AutoCloseable {
+    // TODO rename this class to something more like EtcdYangKV, to avoid confusion with com.coreos.jetcd.KV
 
     private static final Logger LOG = LoggerFactory.getLogger(EtcdKV.class);
 
@@ -91,19 +91,6 @@ class EtcdKV implements AutoCloseable {
     @Override
     public void close() {
         etcd.close();
-    }
-
-    public long getServerRevision() throws EtcdException {
-        return getServerHeader().getRevision();
-    }
-
-    public Header getServerHeader() throws EtcdException {
-        try {
-            return etcd.get(prefixByteSequence, GetOption.newBuilder().withKeysOnly(true).withLimit(1).build())
-                    .get(TIMEOUT_MS, TimeUnit.MILLISECONDS).getHeader();
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new EtcdException("failed to connect (in time) to etcd server", e);
-        }
     }
 
     public EtcdTxn newTransaction() {
