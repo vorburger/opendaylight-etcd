@@ -1,5 +1,5 @@
 This project started as a personal POC by Michael Vorburger.ch to
-evaluate the feasibility of using etcd as data store for OpenDaylight (ODL),
+evaluate the feasibility of using etcd as data store for YANG data in OpenDaylight (ODL),
 instead of its current "home made" CDS based on Akka.
 
 The plan is contribute this to opendaylight.org, if and when successful.
@@ -22,15 +22,18 @@ and change the `jetcd-core` dependency in jetcd/pom.xml from 0.0.2 to 0.1.0-SNAP
 A cluster of Etcd servers appears as a single logical server to clients like this.
 Details about its internal clustering, Raft implementation etc. are transparent.
 
-The `EtcdDataStore` implements `DOMStore` and internally uses `DataTree`, just like the `sal-distributed-datastore` (CDS) does.
+The `EtcdDataStore` implements `DOMStore` and internally uses a YANG `DataTree`, just like the `sal-distributed-datastore` (CDS) does.
 
 On `commit()`, the put/merge/delete writes from `DataTreeModification` / `DataTreeCandidate` are sent to etcd.
-Each `DataTreeCandidateNode`s is stored as an individual sub key/value - without their respective child nodes.
-The data is stored in a compact binary serialization format (not e.g. XML or JSON).
+Each `DataTreeCandidateNode` is stored as an individual sub key/value - without their respective child nodes.
+This allows for fine-grained future updates and deletes.
 Changes from `DataTreeCandidate` are sent atomically to etcd (using `TXN`, not `PUT`).
 
+The data is stored in a compact binary serialization format (not e.g. XML or JSON).
+The communication from the etcd client in ODL to the etcd server/s is similarly compact binary, not text-based over HTTP.
+
 We watch etcd, and update our internal `DataTree` as and when we receive change events.
-Changes from watch events to the `DataTree` are applied atomically.
+Changes from watch events are applied atomically to the `DataTree`.
 
 To guarantee strong consistency, we (remote) check the current revision on etcd, for a every new transaction,
 and await having received and processed watch events at least up to that current revision.  This is what blocks reads.
@@ -76,7 +79,7 @@ etcd instances would typically best be localhost co-located with the ODL nodes.
 
 * _Why etcd?_ Among many other users, etcd is the database used in Kubernetes (and its distributions such as OpenShift).  It makes sense to align ODL to this.  With the Core OS acquisition, Red Hat has etcd expertise.
 
-* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs; notably e.g. Redis et al.  Some of the code from this project likely is a good basis for you to write adapters to other KV DBs.  Have fun!
+* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs; notably e.g. Redis et al.  Some of the code from this project likely is a good basis for you to write adapters from YANG to other KV DBs.  Have fun!
 
 * _I [read somewhere online](https://coreos.com/etcd/docs/latest/learning/api_guarantees.html) that "etcd clients may have issues with operations that time out (network disruption for example) and will not send an abort respond". How do we plan on dealing with this?_  This will cause a timeout at [the GRPC layer](https://grpc.io) internally, which will lead to a failure on the MD SAL (commit) operation, which will be propagated to the ODL application client - as it should; all good.
 
