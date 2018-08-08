@@ -61,10 +61,9 @@ import org.slf4j.LoggerFactory;
  */
 @ThreadSafe
 // intentionally just .impl package-local, for now
-class EtcdKV implements AutoCloseable {
-    // TODO rename this class to something more like EtcdYangKV, to avoid confusion with com.coreos.jetcd.KV
+class EtcdYangKV implements AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EtcdKV.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdYangKV.class);
 
     // Max. time (in milliseconds) we're willing to wait for replies from etcd server
     // TODO In an ideal world, we'd like to be 101% async everywhere here, and never do a blocking get() ...
@@ -80,7 +79,7 @@ class EtcdKV implements AutoCloseable {
     private final ByteSequence prefixByteSequence;
     private final String name;
 
-    EtcdKV(String name, Client client, ByteSequence prefix) {
+    EtcdYangKV(String name, Client client, ByteSequence prefix) {
         // TODO make the LoggingKV a configuration option (for performance)
         this.name = name;
         this.etcd = new LoggingKV(name + " ", requireNonNull(client, "client").getKVClient());

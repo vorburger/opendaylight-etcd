@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.PostConstruct;
 import javax.annotation.concurrent.ThreadSafe;
-import org.opendaylight.etcd.ds.impl.EtcdKV.EtcdTxn;
+import org.opendaylight.etcd.ds.impl.EtcdYangKV.EtcdTxn;
 import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.etcd.utils.KeyValues;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
@@ -56,7 +56,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     // globally and have different data stores (and, ultimately DataBroker), or per transaction.
     private final boolean isStronglyConsistent = true;
 
-    private final EtcdKV kv;
+    private final EtcdYangKV kv;
     private final KV kvClient;
     private final RevAwaiter revAwaiter;
 
@@ -72,7 +72,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
         this.revAwaiter = revAwaiter;
         this.kvClient = client.getKVClient();
 
-        kv = new EtcdKV(getIdentifier(), client, prefix(type));
+        kv = new EtcdYangKV(getIdentifier(), client, prefix(type));
     }
 
     @Override
@@ -133,7 +133,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
 
             try {
                 // TODO remove the *10 here again?  It was because of a doubt on early testing.
-                revAwaiter.await(expectedRev, Duration.ofMillis(EtcdKV.TIMEOUT_MS * 10));
+                revAwaiter.await(expectedRev, Duration.ofMillis(EtcdYangKV.TIMEOUT_MS * 10));
             } catch (TimeoutException e) {
                 throw new EtcdRuntimeException(getIdentifier() + " await revision failed: " + expectedRev, e);
             }
