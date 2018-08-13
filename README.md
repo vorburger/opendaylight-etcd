@@ -68,7 +68,7 @@ etcd instances would typically best be localhost co-located with the ODL nodes.
 
 * _How will we migrate the data from today to tomorrow during customer upgrades?_ Replay based upgrades start with a fresh new empty datastore, so this is a non-issue.  (A non replay based upgrade procedures would have to export the datastore content using DAEXIM, and re-import a dump into an instance with an etcd datastore.)
 
-* _How can you try this out?_ The "packaging" work to make this available as a Karaf feature, and (more importantly) some re-factorings required in ODL to make it easy to install instead of CDS for real world testing is still to be done.
+* _How can you try this out?_ Much work still needs to be done! ;-) This e.g. includes, roughly in order: much more unit and integration tests, some re-factorings required in ODL to remove code copy/paste here during the POC, work to make it easy to install instead of the current implementation, packaging work to make this available as a Karaf feature, then much real world testing through CSITs, etc.
 
 * _How can you help?_ Please see the [TODO.md](TODO.md) and start contributing!
 

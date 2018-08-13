@@ -34,6 +34,7 @@
 - [ ] EntityOwnershipService EOS ?
 
 - [ ] MUCH clean-up and other MANY TODOs ;)
+- [ ] Charset https://github.com/etcd-io/jetcd/issues/342
 
 - [ ] add infrautils.metrics Meters & Timers to implementation
 - [ ] etcd alarms should be logged via slf4j errors in ODL (just for convenience, just in case etcd is not monitored correctly)
