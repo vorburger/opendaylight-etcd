@@ -11,16 +11,20 @@
 - [X] EtcdDOMDataBrokerWiring needs to refactor and move from testutils/ into ds/ to become runtime *Wiring
 - [X] update README to document architecture better
 - [ ] publicize etc.
-- [ ] jetcd PR engage
+- [X] jetcd PR engage
+- [X] etcd crashing https://github.com/coreos/etcd/issues/10012
+- [ ] demo
 
+- [ ] start up must block first write usage until initial content loaded, just like read
 - [ ] fix InterruptedException and reactivate LogCaptureRule
-- [ ] add txn.if(...) in EtcdKV.EtcdTxn
+- [ ] add txn.if(...) in EtcdKV.EtcdTxn https://github.com/coreos/etcd/issues/7062
 - [ ] optimize RevAwaiter
 - [ ] TEST if DataTree "collapses" several overlapping changes, because "Modifications to the same key multiple times in the same transaction are forbidden"
 - [ ] build a JUnitRule for EtcdLauncher, like https://github.com/vorburger/MariaDB4j/pull/139 did for MariaDB4j
 
 - [ ] ODL repo and carry on there
 - [ ] git filter out the (un-used) dom2kv/ sub-project into a separate repo
+- [ ] apply existing mdsal ds tests to this new impl (upstream refactoring?)
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, discuss an upstream artifact for what is shared
       "you should just need an InMemoryDataTree. Pattern after ShardDataTree instead."
       https://git.opendaylight.org/gerrit/#/c/73208/
@@ -31,7 +35,7 @@
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
 
 - [ ] remote RPCs?  Still Akka.
-- [ ] EntityOwnershipService EOS ?
+- [ ] EntityOwnershipService EOS ?  https://coreos.com/blog/transactional-memory-with-etcd3.html
 
 - [ ] MUCH clean-up and other MANY TODOs ;)
 - [ ] Charset https://github.com/etcd-io/jetcd/issues/342

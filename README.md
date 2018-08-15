@@ -54,6 +54,36 @@ Distributed Data Change Listeners also work as expected with this mechanism.
 etcd instances would typically best be localhost co-located with the ODL nodes.
 
 
+## Demo
+
+Make sure you have at least 1 etcd server running:
+
+    sudo dnf install etcd
+    systemctl start etcd
+    systemctl status etcd
+    etcdctl ls
+
+or even just start it directly, without systemd, in the foreground in another terminal tab:
+
+   cd /tmp
+   etcd
+
+   tree /tmp/default.etcd/
+   etcdctl ls
+
+_TODO Document how to best easily start cluster of 3 etcd servers..._
+
+Now run this project's demo:
+
+    java -jar demo/target/*.jar http://localhost:4001
+
+or if you started `etcd` directly without systemd then:
+
+    java -jar demo/target/*.jar http://localhost:2379
+
+and have a closer look at the logs this will print, to understand what happened.
+
+
 ## FAQ
 
 ### About this project
@@ -68,7 +98,9 @@ etcd instances would typically best be localhost co-located with the ODL nodes.
 
 * _How will we migrate the data from today to tomorrow during customer upgrades?_ Replay based upgrades start with a fresh new empty datastore, so this is a non-issue.  (A non replay based upgrade procedures would have to export the datastore content using DAEXIM, and re-import a dump into an instance with an etcd datastore.)
 
-* _How can you try this out?_ Much work still needs to be done! ;-) This e.g. includes, roughly in order: much more unit and integration tests, some re-factorings required in ODL to remove code copy/paste here during the POC, work to make it easy to install instead of the current implementation, packaging work to make this available as a Karaf feature, then much real world testing through CSITs, etc.
+* _How can I access the data in etcd?_ Through ODL APIs (or RESTCONF, etc.) via the code in this project - as always.  It is an explicit non-goal of this project to allow "direct" access to the YANG data in etcd.  It is stored in an internal binary format, which may change.  It requires the YANG model schema to really make sense.  Don't read it directly.  What you could do however is run [lightweight standalone "ODL"](https://github.com/vorburger/opendaylight-simple) process which uses this project.
+
+* _How can you try this out?_ Much work still needs to be done! ;-) This e.g. includes, roughly in order: much more unit and integration tests (notably around concurrency), some re-factorings required in ODL to remove code copy/paste here during the POC, work to make it easy to install instead of the current implementation, packaging work to make this available as a Karaf feature, then much real world testing through CSITs, etc.
 
 * _How can you help?_ Please see the [TODO.md](TODO.md) and start contributing!
 

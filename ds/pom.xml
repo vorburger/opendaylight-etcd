@@ -79,7 +79,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.opendaylight.etcd</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>test-model</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
