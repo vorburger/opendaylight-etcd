@@ -33,6 +33,7 @@
 - [ ] instead of org.opendaylight.etcd.utils, move to jetcd upstream
 
 - [ ] merge VS put
+- [ ] why does testRealConflict() fail when run standalone, but pass when run with other tests?
 - [ ] review ModificationType APPEARED/DISAPPEARED handling in EtcdDataStore.. is that right? For all cases, sub-lists etc. TDD.
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
