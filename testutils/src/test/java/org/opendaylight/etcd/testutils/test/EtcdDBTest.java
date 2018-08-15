@@ -228,6 +228,9 @@ public class EtcdDBTest {
         assertThat(isTopInDataStore()).isFalse();
     }
 
+    /**
+     * Test that commit with missing mandatory fails.
+     */
     @Test
     @Ignore // TODO Huh, this should fail, but it doesn't fail with the base test in-memory DB either?!
     public void testPutInvalidDueToMissingMandatory() throws Exception {
@@ -238,6 +241,9 @@ public class EtcdDBTest {
         assertThat(ex.getCause()).isInstanceOf(DataValidationFailedException.class);
     }
 
+    /**
+     * Test that commit of a put which modifies what was concurrently modified on the same node in another TX fails.
+     */
     @Test
     @Ignore // TODO must use an IF in TXN...
     public void testRealConflict() throws Exception {
@@ -257,6 +263,9 @@ public class EtcdDBTest {
         assertThat(ex.getCause()).isInstanceOf(OptimisticLockFailedException.class);
     }
 
+    /**
+     * Test that commit of a put which modifies what was concurrently modified on another cluster node fails.
+     */
     @Test
     @Ignore // TODO as above
     public void testRealConflictInCluster() throws Exception {
