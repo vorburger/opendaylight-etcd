@@ -14,6 +14,7 @@ import com.coreos.jetcd.data.KeyValue;
 import com.coreos.jetcd.watch.WatchEvent;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -229,8 +230,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
         try {
             EtcdTxn kvTx = kv.newTransaction();
             sendToEtcd(kvTx, candidate, candidate.getRootPath(), candidate.getRootNode());
-            kvTx.commit();
-        } catch (EtcdException | IllegalArgumentException e) {
+            kvTx.commit().toCompletableFuture().get();
+        } catch (EtcdException | IllegalArgumentException | InterruptedException | ExecutionException e) {
             // TODO This is ugly, wrong, and just temporary.. but see above, how to better return problems here?
             throw new RuntimeException(e);
         }

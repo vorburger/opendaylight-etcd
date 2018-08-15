@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import javax.annotation.CheckReturnValue;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.controller.cluster.datastore.node.utils.stream.NormalizedNodeDataInput;
@@ -98,7 +99,7 @@ class EtcdYangKV implements AutoCloseable {
         return new EtcdTxn();
     }
 /*
-    public CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
+    public @CheckReturnValue CompletionStage<PutResponse> put(YangInstanceIdentifier path, NormalizedNode<?, ?> data) {
         return handleException(() -> {
             ByteSequence key = toByteSequence(path);
             ByteSequence value = toByteSequence(data);
@@ -106,7 +107,7 @@ class EtcdYangKV implements AutoCloseable {
         });
     }
 
-    public CompletionStage<DeleteResponse> delete(YangInstanceIdentifier path) {
+    public @CheckReturnValue CompletionStage<DeleteResponse> delete(YangInstanceIdentifier path) {
         return handleException(() -> etcd.delete(toByteSequence(path)));
     }
 
@@ -162,13 +163,14 @@ class EtcdYangKV implements AutoCloseable {
         }
     }
 
-    private <T> CompletionStage<T> read(ByteSequence key, GetOption option,
+    private @CheckReturnValue <T> CompletionStage<T> read(ByteSequence key, GetOption option,
             CheckedFunction<List<KeyValue>, CompletionStage<T>, EtcdException> transformer) {
         return handleException(() -> etcd.get(key, option)
             .thenCompose(getResponse -> handleException(() -> transformer.apply(getResponse.getKvs()))));
     }
 
-    private static <T> CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
+    private static @CheckReturnValue <T>
+        CompletionStage<T> handleException(CheckedCallable<CompletionStage<T>, EtcdException> callable) {
         try {
             return callable.call();
         } catch (EtcdException e) {
@@ -269,17 +271,17 @@ class EtcdYangKV implements AutoCloseable {
             ByteSequence value = toByteSequence(data);
             opsList.add(Op.put(key, value, PutOption.DEFAULT));
             // TODO remove logging here once LoggingKV can correctly support txn() [missing getters]
-            LOG.info("{} put: {} ➠ {}", name, toStringable(key), toStringable(value));
+            LOG.info("{} TXN put: {} ➠ {}", name, toStringable(key), toStringable(value));
         }
 
         public void delete(YangInstanceIdentifier path) throws EtcdException {
             ByteSequence key = toByteSequence(path);
             opsList.add(Op.delete(key, DeleteOption.DEFAULT));
             // TODO remove logging here once LoggingKV can correctly support txn() [missing getters]
-            LOG.info("{} delete: {}", name, toStringable(key));
+            LOG.info("{} TXN delete: {}", name, toStringable(key));
         }
 
-        public CompletionStage<TxnResponse> commit() {
+        public @CheckReturnValue CompletionStage<TxnResponse> commit() {
             txn.Then(opsList.toArray(new Op[opsList.size()]));
             return txn.commit();
         }
