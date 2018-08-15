@@ -257,6 +257,24 @@ public class EtcdDBTest {
         assertThat(ex.getCause()).isInstanceOf(OptimisticLockFailedException.class);
     }
 
+    @Test
+    @Ignore // TODO as above
+    public void testRealConflictInCluster() throws Exception {
+        InstanceIdentifier<HelloWorldContainer> iid = InstanceIdentifier.create(HelloWorldContainer.class);
+        HelloWorldContainer helloWorldContainer = new HelloWorldContainerBuilder().setName("hello, world").build();
+
+        // NB:Contrary to above, we use dbProviderB for txB here (and therefore make it drop watch notifications)
+        dbProviderB.getTestTool().dropWatchNotifications(true);
+        WriteTransaction txA = dataBrokerA.newWriteOnlyTransaction();
+        WriteTransaction txB = dataBrokerB.newWriteOnlyTransaction();
+        txA.put(OPERATIONAL, iid, helloWorldContainer);
+        txB.put(OPERATIONAL, iid, helloWorldContainer);
+        txA.commit().get();
+
+        ExecutionException ex = assertThrows(ExecutionException.class, () -> txB.commit().get());
+        assertThat(ex.getCause()).isInstanceOf(OptimisticLockFailedException.class);
+    }
+
     private void deleteTop() throws Exception {
         LOG.info("deleteTop()");
         WriteTransaction deleteTx = dataBrokerA.newWriteOnlyTransaction();
