@@ -246,11 +246,13 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
         ModificationType modificationType = node.getModificationType();
         switch (modificationType) {
             case WRITE:
+            case APPEARED: // TODO is it right to treat APPEARED like WRITE here?
                 kvTx.put(newBase,
                         node.getDataAfter().orElseThrow(() -> new IllegalArgumentException("No dataAfter: " + node)));
                 break;
 
             case DELETE:
+            case DISAPPEARED: // TODO is it right to treat DISAPPEARED like DELETE here?
                 kvTx.delete(newBase);
                 break;
 
@@ -258,8 +260,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
             case SUBTREE_MODIFIED:
                 // ignore
                 break;
-
-            // TODO TDD and take remaining modificationType/s correctly into account...
 
             default:
                 // return completedExceptionally(new UnsupportedOperationException(modificationType.name()));
