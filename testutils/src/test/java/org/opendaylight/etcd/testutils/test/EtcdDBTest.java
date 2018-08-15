@@ -16,7 +16,6 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL
 
 import ch.vorburger.exec.ManagedProcessException;
 import com.coreos.jetcd.Client;
-import com.coreos.jetcd.ClientBuilder;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.data.ByteSequence;
 import com.coreos.jetcd.data.KeyValue;
@@ -73,9 +72,8 @@ public class EtcdDBTest {
     private static final InstanceIdentifier<Top> TOP_PATH = InstanceIdentifier.create(Top.class);
 
     private static EtcdLauncher etcdServer;
-    private static Client testsEtcdClient;
 
-    private ClientBuilder clientBuilder;
+    private Client client;
     private TestEtcdDataBrokerProvider dbProviderA;
     private DataBroker dataBrokerA;
     private TestEtcdDataBrokerProvider dbProviderB;
@@ -95,9 +93,8 @@ public class EtcdDBTest {
 
     @Before
     public void before() throws Exception {
-        clientBuilder = Client.builder().endpoints(etcdServer.getEndpointURL());
+        client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
 
-        testsEtcdClient = clientBuilder.build();
         deleteEtcd(EtcdDataStore.OPERATIONAL_PREFIX);
         deleteEtcd(EtcdDataStore.CONFIGURATION_PREFIX);
 
@@ -106,24 +103,26 @@ public class EtcdDBTest {
 
     private void recreateFreshDataBrokerClient() throws Exception {
         LOG.info("recreateFreshDataBrokerClient()");
-        if (dbProviderA != null) {
-            dbProviderA.close();
-        }
-        dbProviderA = new TestEtcdDataBrokerProvider(clientBuilder, "a");
+        closeProviders();
+        dbProviderA = new TestEtcdDataBrokerProvider(client, "a");
         dataBrokerA = dbProviderA.getDataBroker();
-        dbProviderB = new TestEtcdDataBrokerProvider(clientBuilder, "b");
+        dbProviderB = new TestEtcdDataBrokerProvider(client, "b");
         dataBrokerB = dbProviderB.getDataBroker();
     }
 
-    @After
-    public void after() throws Exception {
+    private void closeProviders() throws Exception {
         if (dbProviderA != null) {
             dbProviderA.close();
         }
         if (dbProviderB != null) {
             dbProviderB.close();
         }
-        testsEtcdClient.close();
+    }
+
+    @After
+    public void after() throws Exception {
+        closeProviders();
+        client.close();
     }
 
     @AfterClass
@@ -180,8 +179,8 @@ public class EtcdDBTest {
         assertThatEtcdIsEmpty(EtcdDataStore.CONFIGURATION_PREFIX);
     }
 
-    private static void assertThatEtcdIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
-        try (KV kvClient = testsEtcdClient.getKVClient()) {
+    private void assertThatEtcdIsEmpty(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
+        try (KV kvClient = client.getKVClient()) {
             CompletableFuture<GetResponse> getFuture = kvClient.get(keyPrefix,
                     GetOption.newBuilder().withPrefix(keyPrefix).build());
             GetResponse response = getFuture.get();
@@ -190,8 +189,8 @@ public class EtcdDBTest {
         }
     }
 
-    private static void deleteEtcd(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
-        try (KV kvClient = testsEtcdClient.getKVClient()) {
+    private void deleteEtcd(ByteSequence keyPrefix) throws InterruptedException, ExecutionException {
+        try (KV kvClient = client.getKVClient()) {
             kvClient.delete(keyPrefix, DeleteOption.newBuilder().withPrefix(keyPrefix).build()).get();
         }
     }

@@ -11,7 +11,7 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
-import com.coreos.jetcd.ClientBuilder;
+import com.coreos.jetcd.Client;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import javax.annotation.PostConstruct;
@@ -38,7 +38,8 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     private final DOMDataBroker domDataBroker;
     private final EtcdDataBrokerWiring wiring;
 
-    public TestEtcdDataBrokerProvider(ClientBuilder clientBuilder, String name) throws Exception {
+    // TODO pass Client instead of ClientBuilder
+    public TestEtcdDataBrokerProvider(Client client, String name) throws Exception {
         // from org.opendaylight.mdsal.binding.dom.adapter.test.ConcurrentDataBrokerTestCustomizer
         ListeningExecutorService dataTreeChangeListenerExecutorSingleton = listeningDecorator(newCachedThreadPool());
         ListeningExecutorService commitCoordinatorExecutor = listeningDecorator(newSingleThreadExecutor());
@@ -46,7 +47,7 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
         MockSchemaService schemaService = new MockSchemaService();
         ClassLoadingStrategy classLoading = GeneratedClassLoadingStrategy.getTCCLClassLoadingStrategy();
 
-        wiring = new EtcdDataBrokerWiring(clientBuilder, name, commitCoordinatorExecutor,
+        wiring = new EtcdDataBrokerWiring(client, name, commitCoordinatorExecutor,
                 dataTreeChangeListenerExecutorSingleton, schemaService, classLoading);
         dataBroker = wiring.getDataBroker();
         domDataBroker = wiring.getDOMDataBroker();
