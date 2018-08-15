@@ -57,7 +57,11 @@ class EtcdWatcherSplittingConsumer implements CheckedBiConsumer<Long, List<Watch
         }
 
         for (Map.Entry<ByteSequence, List<WatchEvent>> list: lists.entrySet()) {
-            splitConsumers.get(list.getKey()).accept(list.getValue());
+            List<WatchEvent> eventsList = list.getValue();
+            // Important optimization, because with separate Oper/Config, one or the other is typically empty
+            if (!eventsList.isEmpty()) {
+                splitConsumers.get(list.getKey()).accept(eventsList);
+            }
         }
 
         revAwaiter.ifPresent(revAwait -> revAwait.update(revision));
