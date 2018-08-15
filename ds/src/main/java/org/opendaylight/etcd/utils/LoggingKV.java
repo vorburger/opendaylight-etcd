@@ -171,7 +171,7 @@ public class LoggingKV implements KV {
     @Override
     public Txn txn() {
         long id = counter.incrementAndGet();
-        LOG.info("{}#{} txn...", prefix, id);
+        LOG.info("{}#{} TXN...", prefix, id);
         return new LoggingTxn(id, delegate.txn());
     }
 
