@@ -10,7 +10,6 @@ package org.opendaylight.etcd.demo;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
 import com.coreos.jetcd.Client;
-import com.coreos.jetcd.ClientBuilder;
 import java.util.concurrent.ExecutionException;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokerProvider;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -43,17 +42,19 @@ public final class DemoMain {
             System.err.println("USAGE: etcd server host:port (list of)\nEXAMPLE: localhost:2379");
             return;
         }
-        ClientBuilder client = Client.builder().endpoints(args);
-        try (TestEtcdDataBrokerProvider dbProvider = new TestEtcdDataBrokerProvider(client, "demo")) {
-            DataBroker dataBroker = dbProvider.getDataBroker();
+        try (Client client = Client.builder().endpoints(args).build()) {
+            try (TestEtcdDataBrokerProvider dbProvider = new TestEtcdDataBrokerProvider(client, "demo")) {
+                DataBroker dataBroker = dbProvider.getDataBroker();
 
-            write(dataBroker);
+                write(dataBroker);
 
-        } catch (Exception e) {
-            LOG.error("Demo failed", e);
-        } finally {
-            // TODO find out why non-daemon thread "pool-2-thread-1" causes hung exit without this hack..
-            System.exit(0);
+            } catch (Exception e) {
+                LOG.error("Demo failed", e);
+            } finally {
+                client.close();
+                // TODO find out why non-daemon thread "pool-2-thread-1" causes hung exit without this hack..
+                System.exit(0);
+            }
         }
     }
 

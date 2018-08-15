@@ -13,7 +13,6 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATI
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
 import com.coreos.jetcd.Client;
-import com.coreos.jetcd.ClientBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import java.util.Map;
@@ -55,17 +54,17 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
     /**
      * Constructor.
      *
-     * @param etcdClientBuilder connection parameters to (cluster of) etcd server/s
+     * @param etcdClient        connection to (cluster of) etcd server/s
      * @param nodeName          name used as prefix in logs; intended for in-process
      *                          clustering test cases, not production (where it can
      *                          be empty)
      */
-    public EtcdDataBrokerWiring(ClientBuilder etcdClientBuilder, String nodeName,
+    public EtcdDataBrokerWiring(Client etcdClient, String nodeName,
             ListeningExecutorService commitCoordinatorExecutor, ListeningExecutorService dtclExecutor,
             DOMSchemaService schemaService, ClassLoadingStrategy loading)
             throws Exception {
         this.name = nodeName;
-        this.etcdClient = etcdClientBuilder.build();
+        this.etcdClient = etcdClient;
 
         revAwaiter = new RevAwaiter();
 
@@ -107,9 +106,6 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         }
         if (configDS != null) {
             configDS.close();
-        }
-        if (etcdClient != null) {
-            etcdClient.close();
         }
     }
 
