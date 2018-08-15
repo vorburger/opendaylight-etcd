@@ -46,6 +46,7 @@ import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.mdsal.common.api.DataValidationFailedException;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
+import org.opendaylight.mdsal.common.api.OptimisticLockFailedException;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainerBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugment;
@@ -234,6 +235,22 @@ public class EtcdDBTest {
         tx.put(OPERATIONAL, iid, new HelloWorldContainerBuilder() /* .setName("hello, world") */.build());
         ExecutionException ex = assertThrows(ExecutionException.class, () -> tx.commit().get());
         assertThat(ex.getCause()).isInstanceOf(DataValidationFailedException.class);
+    }
+
+    @Test
+    // TODO this test fails when ran alone (in-IDE) but passes as one of many - why?! Timing? How?
+    public void testRealConflict() throws Exception {
+        InstanceIdentifier<HelloWorldContainer> iid = InstanceIdentifier.create(HelloWorldContainer.class);
+        HelloWorldContainer helloWorldContainer = new HelloWorldContainerBuilder().setName("hello, world").build();
+
+        WriteTransaction txA = dataBrokerA.newWriteOnlyTransaction();
+        WriteTransaction txB = dataBrokerA.newWriteOnlyTransaction();
+        txA.put(OPERATIONAL, iid, helloWorldContainer);
+        txB.put(OPERATIONAL, iid, helloWorldContainer);
+        txA.commit().get();
+
+        ExecutionException ex = assertThrows(ExecutionException.class, () -> txB.commit().get());
+        assertThat(ex.getCause()).isInstanceOf(OptimisticLockFailedException.class);
     }
 
     private void deleteTop() throws Exception {
