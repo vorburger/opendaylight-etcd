@@ -100,6 +100,8 @@ and have a closer look at the logs this will print, to understand what happened.
 
 * _How can I access the data in etcd?_ Through ODL APIs (or RESTCONF, etc.) via the code in this project - as always.  It is an explicit non-goal of this project to allow "direct" access to the YANG data in etcd.  It is stored in an internal binary format, which may change.  It requires the YANG model schema to really make sense.  Don't read it directly.  What you could do however is run [lightweight standalone "ODL"](https://github.com/vorburger/opendaylight-simple) process which uses this project.
 
+* _How can I "shard" with this?_ Supporting several "shards" and/or multiple etcd stores (for sharding, not clustering) is an explicit non-goal of v1 of this project.
+
 * _How can you try this out?_ Much work still needs to be done! ;-) This e.g. includes, roughly in order: much more unit and integration tests (notably around concurrency), some re-factorings required in ODL to remove code copy/paste here during the POC, work to make it easy to install instead of the current implementation, packaging work to make this available as a Karaf feature, then much real world testing through CSITs, etc.
 
 * _How can you help?_ Please see the [TODO.md](TODO.md) and start contributing!

@@ -78,6 +78,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     @Override
     @SuppressWarnings("checkstyle:MissingSwitchDefault") // conflicts with http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
     public void accept(List<WatchEvent> events) throws EtcdException {
+        isInitialized();
         apply(mod -> {
             for (WatchEvent watchEvent : events) {
                 switch (watchEvent.getEventType()) {
@@ -153,14 +154,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
         if (!hasSchemaContext) {
             throw new IllegalStateException("onGlobalContextUpdated() not yet called");
         }
+        initialLoad(rev);
         this.isInitialized = true;
-        try {
-            initialLoad(rev);
-
-        } catch (EtcdException e) {
-            this.isInitialized = false;
-            throw e;
-        }
     }
 
     @Override
@@ -186,7 +181,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     }
 
     private void apply(CheckedConsumer<DataTreeModification, EtcdException> function) throws EtcdException {
-        isInitialized();
         // TODO requires https://git.opendaylight.org/gerrit/#/c/73482/ which makes dataTree protected instead of private
         DataTreeModification mod = dataTree.takeSnapshot().newModification();
         function.accept(mod);
