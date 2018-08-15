@@ -88,12 +88,11 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
 
     @PostConstruct
     public void init() throws Exception {
-        configDS.init();
-        operDS.init();
-
         long revNow = EtcdServerUtils.getServerRevision(etcdClient.getKVClient());
-        watcher.start(revNow);
+        configDS.init(revNow);
+        operDS.init(revNow);
         revAwaiter.update(revNow);
+        watcher.start(revNow);
     }
 
     @Override

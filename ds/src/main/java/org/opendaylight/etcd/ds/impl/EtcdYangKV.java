@@ -148,9 +148,10 @@ class EtcdYangKV implements AutoCloseable {
         }
     }
 
-    public void readAllInto(DataTreeModification dataTree) throws EtcdException {
+    public void readAllInto(long rev, DataTreeModification dataTree) throws EtcdException {
         try {
-            read(prefixByteSequence, GetOption.newBuilder().withPrefix(prefixByteSequence).build(), kvs -> {
+            GetOption getOpt = GetOption.newBuilder().withRevision(rev).withPrefix(prefixByteSequence).build();
+            read(prefixByteSequence, getOpt, kvs -> {
                 for (KeyValue kv : kvs) {
                     applyPut(dataTree, kv.getKey(), kv.getValue());
                 }
