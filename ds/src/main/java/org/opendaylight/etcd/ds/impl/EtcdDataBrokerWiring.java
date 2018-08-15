@@ -66,7 +66,7 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         this.name = nodeName;
         this.etcdClient = etcdClient;
 
-        revAwaiter = new RevAwaiter();
+        revAwaiter = new RevAwaiter(nodeName);
 
         // copy/pasted from org.opendaylight.mdsal.binding.dom.adapter.test.AbstractDataBrokerTestCustomizer:
         configDS = createConfigurationDatastore(CONFIGURATION, dtclExecutor, schemaService);
@@ -92,7 +92,8 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         configDS.init(revNow);
         operDS.init(revNow);
         revAwaiter.update(revNow);
-        watcher.start(revNow);
+        // start watching for changes one revision AFTER what we got
+        watcher.start(revNow + 1);
     }
 
     @Override
