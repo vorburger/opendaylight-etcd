@@ -272,13 +272,15 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     }
 
     private void print(String indent, DataTreeCandidateNode node) {
-        LOG.info("{}{} DataTreeCandidateNode: modificationType={}, PathArgument identifier={}",
-                indent, getIdentifier(), node.getModificationType(), getIdentifierAsString(node));
-        // LOG.info("{}  dataBefore= {}", indent, node.getDataBefore());
-        LOG.info("{}{}   dataAfter = {}", indent, getIdentifier(), node.getDataAfter());
+        if (LOG.isInfoEnabled()) {
+            LOG.info("{}{} DataTreeCandidateNode: modificationType={}, PathArgument identifier={}",
+                    indent, getIdentifier(), node.getModificationType(), getIdentifierAsString(node));
+            // LOG.info("{}  dataBefore= {}", indent, node.getDataBefore());
+            LOG.info("{}{}   dataAfter = {}", indent, getIdentifier(), node.getDataAfter());
 
-        for (DataTreeCandidateNode childNode : node.getChildNodes()) {
-            print(indent + "    ", childNode);
+            for (DataTreeCandidateNode childNode : node.getChildNodes()) {
+                print(indent + "    ", childNode);
+            }
         }
     }
 
