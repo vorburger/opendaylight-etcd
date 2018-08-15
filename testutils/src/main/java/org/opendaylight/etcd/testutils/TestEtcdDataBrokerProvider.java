@@ -17,6 +17,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import javax.annotation.PostConstruct;
 import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
 import org.opendaylight.etcd.ds.impl.EtcdDataBrokerWiring;
+import org.opendaylight.etcd.ds.impl.TestTool;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.dom.adapter.test.util.MockSchemaService;
 import org.opendaylight.mdsal.binding.generator.api.ClassLoadingStrategy;
@@ -34,8 +35,6 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContext;
  */
 public class TestEtcdDataBrokerProvider implements AutoCloseable {
 
-    private final DataBroker dataBroker;
-    private final DOMDataBroker domDataBroker;
     private final EtcdDataBrokerWiring wiring;
 
     // TODO pass Client instead of ClientBuilder
@@ -49,8 +48,6 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
 
         wiring = new EtcdDataBrokerWiring(client, name, commitCoordinatorExecutor,
                 dataTreeChangeListenerExecutorSingleton, schemaService, classLoading);
-        dataBroker = wiring.getDataBroker();
-        domDataBroker = wiring.getDOMDataBroker();
 
         SchemaContext schemaContext = SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
         schemaService.changeSchema(schemaContext);
@@ -64,11 +61,15 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     }
 
     public DOMDataBroker getDOMDataBroker() {
-        return domDataBroker;
+        return wiring.getDOMDataBroker();
     }
 
     public DataBroker getDataBroker() {
-        return dataBroker;
+        return wiring.getDataBroker();
+    }
+
+    public TestTool getTestTool() {
+        return wiring.getTestTool();
     }
 
     // the following is inspired by
