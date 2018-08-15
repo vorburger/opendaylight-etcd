@@ -95,6 +95,9 @@ public class EtcdDBTest {
     public void before() throws Exception {
         client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
 
+        // STOP any DB Watcher that is possibly still running from previous test
+        closeProviders();
+
         deleteEtcd(EtcdDataStore.OPERATIONAL_PREFIX);
         deleteEtcd(EtcdDataStore.CONFIGURATION_PREFIX);
 

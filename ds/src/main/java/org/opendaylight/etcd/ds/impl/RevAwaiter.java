@@ -30,11 +30,28 @@ class RevAwaiter {
 
     // TODO This is a first implementation.  It certainly can, and must, be (much) optimized.
 
+    // TODO This must take possible long overflow of the long revision into account...
+
     private final AtomicLong currentRev = new AtomicLong();
+    private final String nodeName;
+
+    RevAwaiter(String nodeName) {
+        this.nodeName = nodeName;
+    }
 
     void update(long rev) {
-        currentRev.set(rev);
-        LOG.info("update: {}", rev);
+        // Testing here is for debugging problems during development.
+        // This IllegalStateException is not expected to ever happen in production,
+        // if there are no logical design errors made in the code using this.
+        currentRev.getAndUpdate(previous -> {
+            if (rev <= previous) {
+                throw new IllegalStateException(
+                        nodeName + " update must be greater than current value: " + rev + " / " + previous);
+            } else {
+                return rev;
+            }
+        });
+        LOG.info("{} update: {}", nodeName, rev);
     }
 
     @SuppressWarnings("checkstyle:AvoidHidingCauseException")
