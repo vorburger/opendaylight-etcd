@@ -48,6 +48,8 @@ import org.opendaylight.mdsal.common.api.DataValidationFailedException;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.mdsal.common.api.OptimisticLockFailedException;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer2;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer2Builder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainerBuilder;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugment;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.controller.md.sal.test.augment.rev140709.TreeComplexUsesAugmentBuilder;
@@ -242,7 +244,7 @@ public class EtcdDBTest {
     }
 
     /**
-     * Test that commit of a put which modifies what was concurrently modified on the same node in another TX fails.
+     * Test that a put which modifies what was concurrently modified on the same node in another TX fails.
      */
     @Test
     @Ignore // TODO must use an IF in TXN...
@@ -264,7 +266,7 @@ public class EtcdDBTest {
     }
 
     /**
-     * Test that commit of a put which modifies what was concurrently modified on another cluster node fails.
+     * Test that a put which modifies what was concurrently modified on another cluster node fails.
      */
     @Test
     @Ignore // TODO as above
@@ -282,6 +284,26 @@ public class EtcdDBTest {
 
         ExecutionException ex = assertThrows(ExecutionException.class, () -> txB.commit().get());
         assertThat(ex.getCause()).isInstanceOf(OptimisticLockFailedException.class);
+    }
+
+    /**
+     * Test that two concurrent puts on separate cluster nodes on separate non-overlapping non-conflicting paths work.
+     */
+    @Test
+    public void testNoConflictInCluster() throws Exception {
+        InstanceIdentifier<HelloWorldContainer> iidA = InstanceIdentifier.create(HelloWorldContainer.class);
+        HelloWorldContainer helloWorldContainerA = new HelloWorldContainerBuilder().setName("hello, world").build();
+
+        InstanceIdentifier<HelloWorldContainer2> iidB = InstanceIdentifier.create(HelloWorldContainer2.class);
+        HelloWorldContainer2 helloWorldContainerB = new HelloWorldContainer2Builder().setName("hello, world").build();
+
+        dbProviderB.getTestTool().dropWatchNotifications(true);
+        WriteTransaction txA = dataBrokerA.newWriteOnlyTransaction();
+        WriteTransaction txB = dataBrokerB.newWriteOnlyTransaction();
+        txA.put(OPERATIONAL, iidA, helloWorldContainerA);
+        txB.put(OPERATIONAL, iidB, helloWorldContainerB);
+        txA.commit().get();
+        txB.commit().get();
     }
 
     private void deleteTop() throws Exception {

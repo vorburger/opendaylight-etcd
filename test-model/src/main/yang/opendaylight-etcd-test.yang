@@ -13,4 +13,11 @@ module opendaylight-etcd-test {
             type string;
         }
     }
+
+    container HelloWorldContainer2 {
+        leaf name {
+            mandatory true;
+            type string;
+        }
+    }
 }
