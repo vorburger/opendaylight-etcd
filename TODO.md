@@ -15,7 +15,7 @@
 - [X] etcd crashing https://github.com/coreos/etcd/issues/10012
 - [ ] demo
 
-- [ ] start up must block first write usage until initial content loaded, just like read
+- [X] start up must block first write usage until initial content loaded, just like read
 - [ ] fix InterruptedException and reactivate LogCaptureRule
 - [ ] add txn.if(...) in EtcdKV.EtcdTxn https://github.com/coreos/etcd/issues/7062
 - [ ] optimize RevAwaiter
