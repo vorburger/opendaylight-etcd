@@ -141,6 +141,7 @@ public class EtcdDBTest {
     @Test
     public void testDataBrokerIsNotNull() {
         assertThat(dataBrokerA).isNotNull();
+        assertThat(dataBrokerB).isNotNull();
     }
 
     @Test
@@ -238,11 +239,14 @@ public class EtcdDBTest {
     }
 
     @Test
-    // TODO this test fails when ran alone (in-IDE) but passes as one of many - why?! Timing? How?
+    @Ignore // TODO must use an IF in TXN...
     public void testRealConflict() throws Exception {
         InstanceIdentifier<HelloWorldContainer> iid = InstanceIdentifier.create(HelloWorldContainer.class);
         HelloWorldContainer helloWorldContainer = new HelloWorldContainerBuilder().setName("hello, world").build();
 
+        // Make sure that we get the OptimisticLockFailedException not because the Watcher
+        // meanwhile updated our DataTree.. we need to detect this while writing out to etcd.
+        dbProviderA.getTestTool().dropWatchNotifications(true);
         WriteTransaction txA = dataBrokerA.newWriteOnlyTransaction();
         WriteTransaction txB = dataBrokerA.newWriteOnlyTransaction();
         txA.put(OPERATIONAL, iid, helloWorldContainer);
