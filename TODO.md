@@ -16,6 +16,7 @@
 - [ ] demo
 
 - [X] start up must block first write usage until initial content loaded, just like read
+- [ ] testPutInvalidDueToMissingMandatory ?
 - [ ] fix InterruptedException and reactivate LogCaptureRule
 - [ ] add txn.if(...) in EtcdKV.EtcdTxn https://github.com/coreos/etcd/issues/7062
 - [ ] optimize RevAwaiter
@@ -30,6 +31,9 @@
       https://git.opendaylight.org/gerrit/#/c/73208/
 - [ ] instead org.opendaylight.etcd.ds.stream.copypaste, make it visible on ODL upstream
 - [ ] instead of org.opendaylight.etcd.utils, move to jetcd upstream
+
+- [ ] merge VS put
+- [ ] review ModificationType APPEARED/DISAPPEARED handling in EtcdDataStore.. is that right? For all cases, sub-lists etc. TDD.
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
 - [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
