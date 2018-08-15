@@ -15,4 +15,6 @@ public interface TestTool {
 
     void dropWatchNotifications(boolean isDropping);
 
+    // TODO add a sort of await(int n) here, for tests which rely on the watch have played, if any?
+
 }
