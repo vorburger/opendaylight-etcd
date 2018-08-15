@@ -16,8 +16,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.etcd.ds.impl.EtcdYangKV.EtcdTxn;
 import org.opendaylight.etcd.utils.ByteSequences;
@@ -150,14 +148,13 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
         this.hasSchemaContext = true;
     }
 
-    @PostConstruct
-    public void init() throws Exception {
+    public void init(long rev) throws Exception {
         if (!hasSchemaContext) {
             throw new IllegalStateException("onGlobalContextUpdated() not yet called");
         }
         this.isInitialized = true;
         try {
-            initialLoad();
+            initialLoad(rev);
 
         } catch (EtcdException e) {
             this.isInitialized = false;
@@ -166,7 +163,6 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     }
 
     @Override
-    @PreDestroy
     public void close() {
         kv.close();
     }
@@ -181,10 +177,11 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
 
     /**
      * On start-up, read back current persistent state from etcd as initial DataTree content.
+     * @param rev the etcd Revision number to load
      * @throws EtcdException if loading failed
      */
-    private void initialLoad() throws EtcdException {
-        apply(mod -> kv.readAllInto(mod));
+    private void initialLoad(long rev) throws EtcdException {
+        apply(mod -> kv.readAllInto(rev, mod));
     }
 
     private void apply(CheckedConsumer<DataTreeModification, EtcdException> function) throws EtcdException {
