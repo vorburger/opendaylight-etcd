@@ -50,6 +50,7 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
     private final DataBroker dataBroker;
     private final EtcdWatcher watcher;
     private final RevAwaiter revAwaiter;
+    private final EtcdWatcherBlockingConsumer etcdWatcherConsumer;
 
     /**
      * Constructor.
@@ -75,8 +76,10 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         // TODO use ConcurrentDOMDataBroker instead SerializedDOMDataBroker ?
         domDataBroker = new SerializedDOMDataBroker(datastores, commitCoordinatorExecutor);
 
-        watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, new EtcdWatcherSplittingConsumer(
-                Optional.of(revAwaiter), ImmutableMap.of(CONFIGURATION_PREFIX, configDS, OPERATIONAL_PREFIX, operDS)));
+        etcdWatcherConsumer = new EtcdWatcherBlockingConsumer(
+                new EtcdWatcherSplittingConsumer(Optional.of(revAwaiter),
+                        ImmutableMap.of(CONFIGURATION_PREFIX, configDS, OPERATIONAL_PREFIX, operDS)));
+        watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, etcdWatcherConsumer);
 
         ClassPool pool = ClassPool.getDefault();
         DataObjectSerializerGenerator generator = StreamWriterGenerator.create(JavassistUtils.forClassPool(pool));
@@ -115,6 +118,10 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
 
     public DataBroker getDataBroker() {
         return dataBroker;
+    }
+
+    public TestTool getTestTool() {
+        return etcdWatcherConsumer;
     }
 /*
     public EtcdDataStore getConfigurationDataStore() {
