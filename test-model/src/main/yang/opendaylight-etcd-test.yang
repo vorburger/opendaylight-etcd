@@ -9,6 +9,7 @@ module opendaylight-etcd-test {
 
     container HelloWorldContainer {
         leaf name {
+            mandatory true;
             type string;
         }
     }

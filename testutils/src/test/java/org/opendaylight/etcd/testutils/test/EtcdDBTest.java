@@ -11,6 +11,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.TOP_FOO_KEY;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.path;
 import static org.opendaylight.controller.md.sal.test.model.util.ListsBindingUtils.topLevelList;
+import static org.opendaylight.infrautils.testutils.Asserts.assertThrows;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
@@ -33,6 +34,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.etcd.ds.impl.EtcdDataStore;
@@ -42,6 +44,7 @@ import org.opendaylight.infrautils.testutils.LogRule;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
+import org.opendaylight.mdsal.common.api.DataValidationFailedException;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainerBuilder;
@@ -153,8 +156,6 @@ public class EtcdDBTest {
         }
     }
 
-    // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
-
     @Test
     public void testPutSomethingSlightlyMoreComplexIntoAReadItBackOnB() throws Exception {
         writeInitialState();
@@ -225,6 +226,16 @@ public class EtcdDBTest {
         assertThat(isTopInDataStore()).isFalse();
     }
 
+    @Test
+    @Ignore // TODO Huh, this should fail, but it doesn't fail with the base test in-memory DB either?!
+    public void testPutInvalidDueToMissingMandatory() throws Exception {
+        InstanceIdentifier<HelloWorldContainer> iid = InstanceIdentifier.create(HelloWorldContainer.class);
+        WriteTransaction tx = dataBrokerA.newWriteOnlyTransaction();
+        tx.put(OPERATIONAL, iid, new HelloWorldContainerBuilder() /* .setName("hello, world") */.build());
+        ExecutionException ex = assertThrows(ExecutionException.class, () -> tx.commit().get());
+        assertThat(ex.getCause()).isInstanceOf(DataValidationFailedException.class);
+    }
+
     private void deleteTop() throws Exception {
         LOG.info("deleteTop()");
         WriteTransaction deleteTx = dataBrokerA.newWriteOnlyTransaction();
@@ -232,6 +243,7 @@ public class EtcdDBTest {
         deleteTx.commit().get();
     }
 
+    // as in org.opendaylight.controller.md.sal.binding.test.tests.AbstractDataBrokerTestTest
     private void writeInitialState() throws Exception {
         LOG.info("writeInitialState: put Top & TopLevelList with augmentation");
         WriteTransaction initialTx = dataBrokerA.newWriteOnlyTransaction();
