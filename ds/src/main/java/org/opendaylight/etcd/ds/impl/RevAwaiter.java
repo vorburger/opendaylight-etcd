@@ -69,6 +69,7 @@ class RevAwaiter {
         }
     }
 
-
+//    private static class MyLong implements Comparable<MyLong> {
+//    }
 
 }

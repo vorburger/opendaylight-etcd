@@ -262,7 +262,7 @@ class EtcdYangKV implements AutoCloseable {
 
         EtcdTxn() {
             txn = etcd.txn();
-            // TODO txn.if(...)
+            // TODO txn.If();
             opsList = new ArrayList<>();
         }
 

@@ -56,6 +56,8 @@ etcd instances would typically best be localhost co-located with the ODL nodes.
 
 ## Demo
 
+Here is how to run [the asciinema POC v0.1](https://asciinema.org/a/DShFpWOXFmaQV3AD5n8nHeHX6):
+
 Make sure you have at least 1 etcd server running:
 
     sudo dnf install etcd
