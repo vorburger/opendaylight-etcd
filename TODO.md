@@ -51,7 +51,7 @@
 
 - [ ] add infrautils.metrics Meters & Timers to implementation
 - [ ] etcd alarms should be logged via slf4j errors in ODL (just for convenience, just in case etcd is not monitored correctly)
-- [ ] com.coreos.jetcd.Maintenance ?
+- [ ] io.etcd.jetcd.Maintenance ?
 
 - [ ] make etcd clustering tests (start several EtcdLauncher, not just clients)
 - [ ] write a PortForwarder util, and use it to write tests simulating network disconnects

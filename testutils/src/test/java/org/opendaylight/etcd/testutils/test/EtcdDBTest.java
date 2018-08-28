@@ -16,13 +16,13 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATI
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
 import ch.vorburger.exec.ManagedProcessException;
-import com.coreos.jetcd.Client;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.kv.GetResponse;
-import com.coreos.jetcd.options.DeleteOption;
-import com.coreos.jetcd.options.GetOption;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.kv.GetResponse;
+import io.etcd.jetcd.options.DeleteOption;
+import io.etcd.jetcd.options.GetOption;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;

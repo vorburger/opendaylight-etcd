@@ -7,11 +7,11 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
-import com.coreos.jetcd.Client;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.watch.WatchEvent;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.watch.WatchEvent;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutionException;

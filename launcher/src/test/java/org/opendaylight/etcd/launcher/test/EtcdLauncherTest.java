@@ -7,14 +7,15 @@
  */
 package org.opendaylight.etcd.launcher.test;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 
 import ch.vorburger.exec.ManagedProcessException;
-import com.coreos.jetcd.Client;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.kv.GetResponse;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.kv.GetResponse;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
@@ -49,8 +50,8 @@ public class EtcdLauncherTest {
             try (Client client = Client.builder().endpoints(etcd.getEndpointURL()).build()) {
                 try (KV kvClient = client.getKVClient()) {
 
-                    ByteSequence key = ByteSequence.fromString("test_key");
-                    ByteSequence value = ByteSequence.fromString("test_value");
+                    ByteSequence key = ByteSequence.from("test_key", UTF_8);
+                    ByteSequence value = ByteSequence.from("test_value", UTF_8);
                     kvClient.put(key, value).get();
 
                     CompletableFuture<GetResponse> getFuture = kvClient.get(key);

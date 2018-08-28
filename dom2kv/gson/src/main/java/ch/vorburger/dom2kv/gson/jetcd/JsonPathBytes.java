@@ -9,9 +9,9 @@ package ch.vorburger.dom2kv.gson.jetcd;
 
 import ch.vorburger.dom2kv.Sequence;
 import ch.vorburger.dom2kv.impl.SequenceListImpl;
-import com.coreos.jetcd.data.ByteSequence;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import io.etcd.jetcd.data.ByteSequence;
 import java.util.function.Function;
 
 /**
@@ -20,17 +20,18 @@ import java.util.function.Function;
  */
 public final class JsonPathBytes {
 
+    static final java.nio.charset.Charset CHARSET = java.nio.charset.Charset.forName("UTF-8");
+
     private JsonPathBytes() { }
 
     // https://en.wikipedia.org/wiki/C0_and_C1_control_codes
     private static final char UNIT_SEPARATOR_CHAR = 31;
 
     public static final Function<Sequence<String>, ByteSequence> STRING_SEQ_TO_BYTES
-        = ids -> ByteSequence.fromString(Joiner.on(UNIT_SEPARATOR_CHAR).join(ids));
+        = ids -> ByteSequence.from(Joiner.on(UNIT_SEPARATOR_CHAR).join(ids), CHARSET);
 
     public static final Function<ByteSequence, Sequence<String>> BYTES_TO_STRING_SEQ
-        = key -> new SequenceListImpl<>(Splitter.on(UNIT_SEPARATOR_CHAR).split(new String(key.getBytes(),
-                java.nio.charset.Charset.defaultCharset()))); // see below & https://github.com/coreos/jetcd/issues/342
+        = key -> new SequenceListImpl<>(Splitter.on(UNIT_SEPARATOR_CHAR).split(new String(key.getBytes(), CHARSET)));
 
 /*
     TODO above works, but is platform specific, so you couldn't copy data to a system with another encoding.

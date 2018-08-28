@@ -7,7 +7,7 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
-import com.coreos.jetcd.watch.WatchEvent;
+import io.etcd.jetcd.watch.WatchEvent;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;

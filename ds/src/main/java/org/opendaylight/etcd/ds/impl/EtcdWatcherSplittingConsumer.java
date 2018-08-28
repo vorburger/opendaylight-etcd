@@ -9,11 +9,11 @@ package org.opendaylight.etcd.ds.impl;
 
 import static com.google.common.collect.ImmutableMap.builderWithExpectedSize;
 
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.watch.WatchEvent;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.watch.WatchEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

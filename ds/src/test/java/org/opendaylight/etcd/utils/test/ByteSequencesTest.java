@@ -7,11 +7,11 @@
  */
 package org.opendaylight.etcd.utils.test;
 
-import static com.coreos.jetcd.data.ByteSequence.fromBytes;
 import static com.google.common.truth.Truth.assertThat;
+import static io.etcd.jetcd.data.ByteSequence.from;
 import static org.opendaylight.etcd.utils.ByteSequences.toStringable;
 
-import com.coreos.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.ByteSequence;
 import org.junit.Test;
 
 /**
@@ -34,7 +34,7 @@ public class ByteSequencesTest {
     }
 
     private static void assertBytesToString(String expectedText, int... givenBytes) {
-        assertThat(toStringable(fromBytes(bytes(givenBytes))).toString()).isEqualTo(expectedText);
+        assertThat(toStringable(from(bytes(givenBytes))).toString()).isEqualTo(expectedText);
     }
 
     private static byte[] bytes(int... bytes) {

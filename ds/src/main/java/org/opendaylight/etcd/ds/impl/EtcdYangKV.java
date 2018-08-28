@@ -11,19 +11,19 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.opendaylight.etcd.utils.ByteSequences.toStringable;
 
-import com.coreos.jetcd.Client;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.Txn;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.data.KeyValue;
-import com.coreos.jetcd.kv.TxnResponse;
-import com.coreos.jetcd.op.Op;
-import com.coreos.jetcd.options.DeleteOption;
-import com.coreos.jetcd.options.GetOption;
-import com.coreos.jetcd.options.PutOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.Txn;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.kv.TxnResponse;
+import io.etcd.jetcd.op.Op;
+import io.etcd.jetcd.options.DeleteOption;
+import io.etcd.jetcd.options.GetOption;
+import io.etcd.jetcd.options.PutOption;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -232,7 +232,7 @@ class EtcdYangKV implements AutoCloseable {
                 try (NormalizedNodeDataOutput nodeDataOutput = new ShallowNormalizedNodeDataOutputWriter(dataOutput)) {
                     consumer.accept(nodeDataOutput);
                     dataOutput.flush();
-                    return ByteSequence.fromBytes(baos.toByteArray());
+                    return ByteSequence.from(baos.toByteArray());
                 }
             }
         }

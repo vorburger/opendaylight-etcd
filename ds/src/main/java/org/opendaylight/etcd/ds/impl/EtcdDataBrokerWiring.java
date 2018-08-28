@@ -12,9 +12,9 @@ import static org.opendaylight.etcd.ds.impl.EtcdDataStore.OPERATIONAL_PREFIX;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
-import com.coreos.jetcd.Client;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import io.etcd.jetcd.Client;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;

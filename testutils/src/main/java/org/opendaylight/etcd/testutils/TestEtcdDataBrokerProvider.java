@@ -11,9 +11,9 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
-import com.coreos.jetcd.Client;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import io.etcd.jetcd.Client;
 import javax.annotation.PostConstruct;
 import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
 import org.opendaylight.etcd.ds.impl.EtcdDataBrokerWiring;

@@ -9,18 +9,18 @@ package org.opendaylight.etcd.ds.impl;
 
 import static java.util.Objects.requireNonNull;
 
-import com.coreos.jetcd.Client;
-import com.coreos.jetcd.Watch;
-import com.coreos.jetcd.Watch.Watcher;
-import com.coreos.jetcd.common.exception.ClosedClientException;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.options.WatchOption;
-import com.coreos.jetcd.watch.WatchEvent;
-import com.coreos.jetcd.watch.WatchResponse;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import io.etcd.jetcd.Client;
+import io.etcd.jetcd.Watch;
+import io.etcd.jetcd.Watch.Watcher;
+import io.etcd.jetcd.common.exception.ClosedClientException;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.options.WatchOption;
+import io.etcd.jetcd.watch.WatchEvent;
+import io.etcd.jetcd.watch.WatchResponse;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;

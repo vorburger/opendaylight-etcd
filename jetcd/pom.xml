@@ -17,18 +17,16 @@
   </parent>
 
   <artifactId>jetcd</artifactId>
+  <packaging>bundle</packaging>
 
   <dependencies>
     <dependency>
-      <groupId>com.coreos</groupId>
+<!--
+      <groupId>io.etcd</groupId>
       <artifactId>jetcd-core</artifactId>
-      <version>0.0.2</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.code.findbugs</groupId>
-          <artifactId>jsr305</artifactId>
-        </exclusion>
-      </exclusions>
+ -->
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-all</artifactId>
     </dependency>
   </dependencies>
 
