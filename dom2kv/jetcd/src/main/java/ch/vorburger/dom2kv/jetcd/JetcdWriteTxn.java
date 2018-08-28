@@ -8,12 +8,12 @@
 package ch.vorburger.dom2kv.jetcd;
 
 import ch.vorburger.dom2kv.Transformer;
-import com.coreos.jetcd.KV;
-import com.coreos.jetcd.Txn;
-import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.kv.TxnResponse;
-import com.coreos.jetcd.op.Op;
-import com.coreos.jetcd.options.PutOption;
+import io.etcd.jetcd.KV;
+import io.etcd.jetcd.Txn;
+import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.kv.TxnResponse;
+import io.etcd.jetcd.op.Op;
+import io.etcd.jetcd.options.PutOption;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -26,7 +26,7 @@ import java.util.function.BiConsumer;
  */
 public class JetcdWriteTxn implements BiConsumer<ByteSequence, Optional<ByteSequence>> {
 
-    private static final ByteSequence EMPTY = new ByteSequence(new byte[0]);
+    private static final ByteSequence EMPTY = ByteSequence.from(new byte[0]);
 
     private final Txn etcdTXn;
 

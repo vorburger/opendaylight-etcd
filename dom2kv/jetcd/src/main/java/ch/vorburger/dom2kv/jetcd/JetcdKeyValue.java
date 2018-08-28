@@ -8,19 +8,19 @@
 package ch.vorburger.dom2kv.jetcd;
 
 import ch.vorburger.dom2kv.KeyValue;
-import com.coreos.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.ByteSequence;
 import java.util.Optional;
 
 /**
- * Adapter from jetcd {@link com.coreos.jetcd.data.KeyValue} to dom2kv {@link KeyValue}.
+ * Adapter from jetcd {@link io.etcd.jetcd.data.KeyValue} to dom2kv {@link KeyValue}.
  *
  * @author Michael Vorburger.ch
  */
 public class JetcdKeyValue implements KeyValue<ByteSequence, ByteSequence> {
 
-    private final com.coreos.jetcd.data.KeyValue etcdKeyValue;
+    private final io.etcd.jetcd.data.KeyValue etcdKeyValue;
 
-    public JetcdKeyValue(com.coreos.jetcd.data.KeyValue etcdKeyValue) {
+    public JetcdKeyValue(io.etcd.jetcd.data.KeyValue etcdKeyValue) {
         this.etcdKeyValue = etcdKeyValue;
     }
 

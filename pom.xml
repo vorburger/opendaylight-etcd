@@ -23,6 +23,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>bom</module>
     <module>bundle-parent</module>
     <module>dom2kv</module>
     <module>launcher</module>
@@ -31,6 +32,11 @@
     <module>test-model</module>
     <module>testutils</module>
     <module>demo</module>
+<!--
+    <module>features/odl-etcd-datastore</module>
+    <module>features/features-etcd</module>
+    <module>karaf</module>
+  -->
   </modules>
 
 </project>

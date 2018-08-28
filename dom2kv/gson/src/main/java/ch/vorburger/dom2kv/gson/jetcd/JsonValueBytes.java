@@ -7,7 +7,7 @@
  */
 package ch.vorburger.dom2kv.gson.jetcd;
 
-import com.coreos.jetcd.data.ByteSequence;
+import io.etcd.jetcd.data.ByteSequence;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.function.Function;
@@ -19,6 +19,9 @@ import java.util.function.Function;
  */
 public final class JsonValueBytes {
 
+    private static final ByteSequence BS_8 = ByteSequence.from(new byte[] { 8 });
+    private static final ByteSequence BS_9 = ByteSequence.from(new byte[] { 9 });
+
     // TODO write a unit test covering this
 
     private JsonValueBytes() { }
@@ -27,16 +30,16 @@ public final class JsonValueBytes {
         if (value instanceof String) {
             // see JsonPathBytes re. String byte[] encoding
             // TODO UTF-8 instead of platform specific when https://github.com/coreos/jetcd/issues/342 is available
-            return prefix(2, ByteSequence.fromString((String) value));
+            return prefix(2, ByteSequence.from((String) value, JsonPathBytes.CHARSET));
         } else if (value instanceof Double) {
             byte[] bytes = new byte[8];
             ByteBuffer.wrap(bytes).putDouble((Double) value);
-            return prefix(1, new ByteSequence(bytes));
+            return prefix(1, ByteSequence.from(bytes));
         } else if (value instanceof Boolean) {
             if ((Boolean) value) {
-                return new ByteSequence(new byte[] { 9 });
+                return BS_9;
             } else {
-                return new ByteSequence(new byte[] { 8 });
+                return BS_8;
             }
         } else {
             throw new IllegalArgumentException("Unknown type: " + value);
@@ -74,7 +77,7 @@ public final class JsonValueBytes {
         byte[] withType = new byte[bytes.length + 1];
         System.arraycopy(bytes, 0, withType, 1, bytes.length);
         withType[0] = (byte) type;
-        return new ByteSequence(withType);
+        return ByteSequence.from(withType);
     }
 
     private static byte[] dropPrefix(byte[] bytes) {

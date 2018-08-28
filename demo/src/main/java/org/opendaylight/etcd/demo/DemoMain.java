@@ -9,7 +9,7 @@ package org.opendaylight.etcd.demo;
 
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
-import com.coreos.jetcd.Client;
+import io.etcd.jetcd.Client;
 import java.util.concurrent.ExecutionException;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokerProvider;
 import org.opendaylight.mdsal.binding.api.DataBroker;
