@@ -239,6 +239,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
         // see also https://github.com/coreos/jetcd/issues/343.
     }
 
+    @SuppressWarnings("checkstyle:MissingSwitchDefault") // http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
     private void sendToEtcd(EtcdTxn kvTx, DataTreeCandidate candidate, YangInstanceIdentifier base,
             DataTreeCandidateNode node) throws IllegalArgumentException, EtcdException {
         YangInstanceIdentifier newBase = candidate.getRootNode().equals(node) ? base : base.node(node.getIdentifier());
@@ -261,9 +262,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
                 // ignore
                 break;
 
-            default:
-                // return completedExceptionally(new UnsupportedOperationException(modificationType.name()));
-                throw new UnsupportedOperationException(modificationType.name());
+            // no default, as error-prone protects us, see http://errorprone.info/bugpattern/UnnecessaryDefaultInEnumSwitch
         }
 
         for (DataTreeCandidateNode childNode : node.getChildNodes()) {
