@@ -17,6 +17,7 @@
   </parent>
 
   <artifactId>ds</artifactId>
+  <packaging>bundle</packaging>
 
   <dependencies>
     <dependency>
