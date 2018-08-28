@@ -13,7 +13,7 @@
 - [ ] publicize etc.
 - [X] jetcd PR engage
 - [X] etcd crashing https://github.com/coreos/etcd/issues/10012
-- [ ] demo
+- [X] demo https://asciinema.org/a/DShFpWOXFmaQV3AD5n8nHeHX6
 
 - [X] start up must block first write usage until initial content loaded, just like read
 - [ ] testPutInvalidDueToMissingMandatory ?
@@ -37,7 +37,11 @@
 - [ ] review ModificationType APPEARED/DISAPPEARED handling in EtcdDataStore.. is that right? For all cases, sub-lists etc. TDD.
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
-- [ ] Karaf feature, using https://github.com/coreos/jetcd/pull/269 - or only support opendaylight-simple? :)
+- [ ] Karaf feature odl-etcd-datastore, using https://github.com/coreos/jetcd/pull/269 (do not only support opendaylight-simple)
+- [ ] odl-daexim-onetcd
+- [ ] typical KV size?  Back up ODL scale lab, DAEXIM export CDS, odl-daexim-onetcd re-import
+- [ ] CDS TX rate how to?  grep metric-capture-enabled, CommonConfig / MeteringBehavior in sal-clustering-commons.  Measure DAEXIM bulk-import through-put.
+- [ ] jetcd TXs/sec Test https://github.com/etcd-io/jetcd/issues/367.  Compare CDS & etcd.
 
 - [ ] remote RPCs?  Still Akka.
 - [ ] EntityOwnershipService EOS ?  https://coreos.com/blog/transactional-memory-with-etcd3.html
@@ -62,7 +66,7 @@
 
 - [ ] compare performance of this VS CDS? But *DO* realize that real app performance issues are NOT because of slow datastore anyway..
 
-- [ ] properly performance profile the code
+- [ ] properly performance profile the code, using e.g. https://wiki.opendaylight.org/view/HowToProfilePerformance
 
 - [ ] etcd new feature to keep certain sub-tress purely in-memory instead of persisted on disk (for operational VS configuration datastore); how does K8S do this?
 

@@ -39,7 +39,7 @@ To guarantee strong consistency, we (remote) check the current revision on etcd,
 and await having received and processed watch events at least up to that current revision.  This is what blocks reads.
 
 If `DataBroker` offered an eventual consistency read API to applications, then it would be trivial to
-offer (optionally) blazing fast reads (directly from the local `DataTree`, without any remoting.
+offer (optionally) blazing fast reads (directly from the local `DataTree`), without any remoting.
 
 We never do any `GET` on etcd to read data, but always serve directly from the `DataTree`.
 There is no ser/der and tree-reconstruction overhead for reads (but there is when processing watch events).
@@ -90,7 +90,7 @@ and have a closer look at the logs this will print, to understand what happened.
 
 ### About this project
 
-* _What is the status of this project?_ As of late July 2018, it's Proof of Concept (POC) with the `EtcdDBTest` illustrating, successfully, that the ODL MD SAL DataBroker API can be implemented on top of the etcd data store.
+* _What is the status of this project?_ As of late July 2018, it's a Proof of Concept (POC) with the `EtcdDBTest` illustrating, successfully, that the ODL MD SAL DataBroker API can be implemented on top of the etcd data store.
 
 * _What's the point of this?_ The main goal is to have the option in ODL to completely avoid the home grown Raft/clustering code.  This will ease maintenance.
 
