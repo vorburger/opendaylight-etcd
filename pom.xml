@@ -32,8 +32,8 @@
     <module>test-model</module>
     <module>testutils</module>
     <module>demo</module>
-<!--
     <module>features/odl-etcd-datastore</module>
+<!--
     <module>features/features-etcd</module>
     <module>karaf</module>
   -->
