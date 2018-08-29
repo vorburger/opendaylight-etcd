@@ -7,14 +7,13 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
+import com.google.errorprone.annotations.Var;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Duration;
+import java.util.PriorityQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,20 +25,31 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 class RevAwaiter {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RevAwaiter.class);
-
-    // TODO This is a first implementation.  It certainly can, and must, be (much) optimized.
-
     // TODO This must take possible long overflow of the long revision into account...
 
+    // TODO is it better to use java.util.concurrent.locks.Condition instead of Object.wait() - why?
+
+    private static final Logger LOG = LoggerFactory.getLogger(RevAwaiter.class);
+
+    private static class AwaitableRev {
+        final long rev;
+
+        AwaitableRev(long rev) {
+            this.rev = rev;
+        }
+    }
+
+    // TODO this could just be a long now, and doesn't have to be an AtomicLong anymore?
     private final AtomicLong currentRev = new AtomicLong();
+    private final PriorityQueue<AwaitableRev> pq = new PriorityQueue<>((o1, o2) -> Long.compare(o1.rev, o2.rev));
     private final String nodeName;
 
     RevAwaiter(String nodeName) {
         this.nodeName = nodeName;
     }
 
-    void update(long rev) {
+    @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
+    synchronized void update(long rev) {
         // Testing here is for debugging problems during development.
         // This IllegalStateException is not expected to ever happen in production,
         // if there are no logical design errors made in the code using this.
@@ -51,25 +61,38 @@ class RevAwaiter {
                 return rev;
             }
         });
+
+        for (AwaitableRev awaitable : pq) {
+            if (rev >= awaitable.rev) {
+                awaitable.notify();
+            } else {
+                break;
+            }
+        }
+
         LOG.info("{} update: {}", nodeName, rev);
     }
 
     @SuppressWarnings("checkstyle:AvoidHidingCauseException")
-    void await(long rev, Duration maxWaitTime) throws TimeoutException {
-        try {
-            Awaitility.await("RevAwaiter")
-                .atMost(maxWaitTime.toMillis(), MILLISECONDS)
-                .pollInterval(100, MILLISECONDS) // ?
-                .pollDelay(org.awaitility.Duration.ZERO)
-                // .until(() -> currentRev.get() >= rev);
-                // .until(() -> currentRev, org.hamcrest.Matchers.equalTo(rev));
-                .until(currentRev::get, org.hamcrest.Matchers.greaterThanOrEqualTo(rev));
-        } catch (ConditionTimeoutException cte) {
-            throw new TimeoutException(currentRev.get() + "__" + cte.getMessage());
+    synchronized void await(long rev, Duration maxWaitTime) throws TimeoutException, InterruptedException {
+        if (currentRev.get() >= rev) {
+            return;
+        }
+        AwaitableRev awaitable = new AwaitableRev(rev);
+        pq.add(awaitable);
+        synchronized (awaitable) {
+            // account for possible spurious wake up
+            @Var long now = System.nanoTime();
+            long deadline = now + maxWaitTime.toNanos();
+            while (currentRev.get() < rev && now < deadline) {
+                // http://errorprone.info/bugpattern/WaitNotInLoop
+                awaitable.wait((deadline - now) / 1000000);
+                now = System.nanoTime();
+            }
+            if (now >= deadline) {
+                throw new TimeoutException();
+            }
+            // else it's a real awaitable.notify(), not spurious nor timeout, and we return to caller.
         }
     }
-
-//    private static class MyLong implements Comparable<MyLong> {
-//    }
-
 }

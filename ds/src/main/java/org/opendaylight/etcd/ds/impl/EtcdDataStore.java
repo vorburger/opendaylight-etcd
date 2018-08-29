@@ -138,7 +138,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
             try {
                 // TODO remove the *10 here again?  It was because of a doubt on early testing.
                 revAwaiter.await(expectedRev, Duration.ofMillis(EtcdYangKV.TIMEOUT_MS * 10));
-            } catch (TimeoutException e) {
+            } catch (TimeoutException | InterruptedException e) {
                 throw new EtcdRuntimeException(getIdentifier() + " await revision failed: " + expectedRev, e);
             }
         }
