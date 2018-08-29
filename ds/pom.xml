@@ -39,38 +39,23 @@
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-core-spi</artifactId>
     </dependency>
+<!--
     <dependency>
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>mdsal-dom-inmemory-datastore</artifactId>
     </dependency>
+ -->
+    <!-- TODO Remove this CDS dependency by refactoring upstream;
+         This is only here so we can use the NormalizedNodeOutputStreamWriter (which isn't even public; I locally hacked it)
+         and the NormalizedNodeInputStreamReader. -->
     <dependency>
       <groupId>org.opendaylight.controller</groupId>
-      <!-- TODO Remove this CDS dependency by refactoring upstream;
-           This is only here so we can use the NormalizedNodeOutputStreamWriter (which isn't even public; I locally hacked it)
-           and the NormalizedNodeInputStreamReader. -->
       <artifactId>sal-clustering-commons</artifactId>
     </dependency>
     <dependency>
       <groupId>ch.vorburger.dom2kv</groupId>
       <artifactId>dom2kv</artifactId>
       <version>1.0.0-SNAPSHOT</version>
-    </dependency>
-
-    <!-- TODO remove awaitility & hamcrest-core when RevAwaiter is rewritten -->
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>compile</scope>
     </dependency>
 
     <!-- Dependencies required (only) by EtcdDataBrokerWiring.. TODO move into new wiring/ artifact? -->

@@ -19,7 +19,7 @@
 - [ ] testPutInvalidDueToMissingMandatory ?
 - [ ] fix InterruptedException and reactivate LogCaptureRule
 - [ ] add txn.if(...) in EtcdKV.EtcdTxn https://github.com/coreos/etcd/issues/7062
-- [ ] optimize RevAwaiter
+- [X] optimize RevAwaiter
 - [ ] TEST if DataTree "collapses" several overlapping changes, because "Modifications to the same key multiple times in the same transaction are forbidden"
 - [ ] build a JUnitRule for EtcdLauncher, like https://github.com/vorburger/MariaDB4j/pull/139 did for MariaDB4j
 
