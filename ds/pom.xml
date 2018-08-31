@@ -45,13 +45,6 @@
       <artifactId>mdsal-dom-inmemory-datastore</artifactId>
     </dependency>
  -->
-    <!-- TODO Remove this CDS dependency by refactoring upstream;
-         This is only here so we can use the NormalizedNodeOutputStreamWriter (which isn't even public; I locally hacked it)
-         and the NormalizedNodeInputStreamReader. -->
-    <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>sal-clustering-commons</artifactId>
-    </dependency>
     <dependency>
       <groupId>ch.vorburger.dom2kv</groupId>
       <artifactId>dom2kv</artifactId>
