@@ -37,7 +37,7 @@
 - [ ] review ModificationType APPEARED/DISAPPEARED handling in EtcdDataStore.. is that right? For all cases, sub-lists etc. TDD.
 
 - [ ] get rid of jetcd/ artifact (as jetcd already ships an OSGi bundle and Karaf feature, now; just not released...)
-- [ ] Karaf feature odl-etcd-datastore, using https://github.com/coreos/jetcd/pull/269 (do not only support opendaylight-simple)
+- [ ] Karaf feature odl-etcd-datastore, NOT using https://github.com/coreos/jetcd/pull/269 (do not only support opendaylight-simple)
 - [ ] odl-daexim-onetcd
 - [ ] typical KV size?  Back up ODL scale lab, DAEXIM export CDS, odl-daexim-onetcd re-import
 - [ ] CDS TX rate how to?  grep metric-capture-enabled, CommonConfig / MeteringBehavior in sal-clustering-commons.  Measure DAEXIM bulk-import through-put.
