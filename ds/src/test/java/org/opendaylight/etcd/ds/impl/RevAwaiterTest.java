@@ -7,13 +7,20 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.opendaylight.infrautils.testutils.Asserts.assertThrows;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.infrautils.testutils.LogCaptureRule;
+import org.opendaylight.infrautils.utils.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Unit test for RevAwaiter.
@@ -21,6 +28,8 @@ import org.opendaylight.infrautils.testutils.LogCaptureRule;
  * @author Michael Vorburger.ch
  */
 public class RevAwaiterTest {
+
+    private static final Logger LOG = LoggerFactory.getLogger(RevAwaiterTest.class);
 
     public @Rule LogCaptureRule logCaptureRule = new LogCaptureRule();
     // public @Rule LogRule logRule = new LogRule();
@@ -43,6 +52,16 @@ public class RevAwaiterTest {
         awaiter.await(1, MS_100);
     }
 
-    // TODO multi-threaded tests
+    @Test public void testAwaitThenNotify() throws TimeoutException, InterruptedException, ExecutionException {
+        ListeningExecutorService executor = Executors.newListeningSingleThreadExecutor("await", LOG);
+        ListenableFuture<Void> future = executor.submit(() -> {
+            awaiter.await(1, MS_100);
+            return null;
+        });
+        awaiter.update(1);
+        future.get(200, MILLISECONDS);
+        executor.shutdown();
+        executor.awaitTermination(5, MILLISECONDS);
+    }
 
 }
