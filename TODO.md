@@ -43,6 +43,7 @@
 - [ ] CDS TX rate how to?  grep metric-capture-enabled, CommonConfig / MeteringBehavior in sal-clustering-commons.  Measure DAEXIM bulk-import through-put.
 - [ ] jetcd TXs/sec Test https://github.com/etcd-io/jetcd/issues/367.  Compare CDS & etcd.
 
+- [ ] test the semantics of DTCL vs ClusteredDTCL
 - [ ] remote RPCs?  Still Akka.
 - [ ] EntityOwnershipService EOS ?  https://coreos.com/blog/transactional-memory-with-etcd3.html
 

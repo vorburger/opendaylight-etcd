@@ -11,6 +11,7 @@ import com.google.errorprone.annotations.Var;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Duration;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,25 +32,32 @@ class RevAwaiter {
 
     private static final Logger LOG = LoggerFactory.getLogger(RevAwaiter.class);
 
+    private static final AwaitableRev[] EMPTY_ARRAY = new AwaitableRev[0];
+
     private static class AwaitableRev {
         final long rev;
 
         AwaitableRev(long rev) {
             this.rev = rev;
         }
+
+        @Override
+        public String toString() {
+            return "AwaitableRev-" + rev;
+        }
     }
 
-    // TODO this could just be a long now, and doesn't have to be an AtomicLong anymore?
     private final AtomicLong currentRev = new AtomicLong();
-    private final PriorityQueue<AwaitableRev> pq = new PriorityQueue<>((o1, o2) -> Long.compare(o1.rev, o2.rev));
+    private final Queue<AwaitableRev> pq = new PriorityQueue<>((o1, o2) -> Long.compare(o1.rev, o2.rev));
     private final String nodeName;
 
     RevAwaiter(String nodeName) {
         this.nodeName = nodeName;
     }
 
-    @SuppressFBWarnings("NO_NOTIFY_NOT_NOTIFYALL")
-    synchronized void update(long rev) {
+    // shut up FindBugs, I'm a grown up knowing what I'm doing here - I hope! ;-)
+    @SuppressFBWarnings({ "NO_NOTIFY_NOT_NOTIFYALL", "NN_NAKED_NOTIFY" })
+    void update(long rev) {
         // Testing here is for debugging problems during development.
         // This IllegalStateException is not expected to ever happen in production,
         // if there are no logical design errors made in the code using this.
@@ -62,9 +70,15 @@ class RevAwaiter {
             }
         });
 
-        for (AwaitableRev awaitable : pq) {
+        AwaitableRev[] pqCopy;
+        synchronized (pq) {
+            pqCopy = pq.toArray(EMPTY_ARRAY);
+        }
+        for (AwaitableRev awaitable : pqCopy) {
             if (rev >= awaitable.rev) {
-                awaitable.notify();
+                synchronized (awaitable) {
+                    awaitable.notify();
+                }
             } else {
                 break;
             }
@@ -73,13 +87,14 @@ class RevAwaiter {
         LOG.info("{} update: {}", nodeName, rev);
     }
 
-    @SuppressWarnings("checkstyle:AvoidHidingCauseException")
-    synchronized void await(long rev, Duration maxWaitTime) throws TimeoutException, InterruptedException {
+    void await(long rev, Duration maxWaitTime) throws TimeoutException, InterruptedException {
         if (currentRev.get() >= rev) {
             return;
         }
         AwaitableRev awaitable = new AwaitableRev(rev);
-        pq.add(awaitable);
+        synchronized (pq) {
+            pq.add(awaitable);
+        }
         synchronized (awaitable) {
             // account for possible spurious wake up
             @Var long now = System.nanoTime();
@@ -94,5 +109,10 @@ class RevAwaiter {
             }
             // else it's a real awaitable.notify(), not spurious nor timeout, and we return to caller.
         }
+    }
+
+    @Override
+    public String toString() {
+        return "RevAwaiter: currentRev=" + currentRev;
     }
 }

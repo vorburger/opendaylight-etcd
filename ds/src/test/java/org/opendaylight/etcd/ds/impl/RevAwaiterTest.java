@@ -64,4 +64,23 @@ public class RevAwaiterTest {
         executor.awaitTermination(5, MILLISECONDS);
     }
 
+    @Test public void testUnblockingSecondAwait() throws TimeoutException, InterruptedException, ExecutionException {
+        ListeningExecutorService executor = Executors.newListeningCachedThreadPool("await", LOG);
+        ListenableFuture<Void> future2;
+        future2 = executor.submit(() -> {
+            awaiter.await(2, MS_100);
+            return null;
+        });
+        ListenableFuture<Void> future1 = executor.submit(() -> {
+            awaiter.await(1, MS_100);
+            return null;
+        });
+        awaiter.update(1);
+        future1.get(200, MILLISECONDS);
+        awaiter.update(2);
+        future2.get(200, MILLISECONDS);
+        executor.shutdown();
+        executor.awaitTermination(5, MILLISECONDS);
+    }
+
 }
