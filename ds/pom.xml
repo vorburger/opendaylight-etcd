@@ -35,11 +35,6 @@
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>yang-binding</artifactId>
     </dependency>
-    <dependency>
-      <groupId>ch.vorburger.dom2kv</groupId>
-      <artifactId>dom2kv</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-    </dependency>
 
     <!-- Dependencies required (only) by EtcdDataBrokerWiring.. TODO move into new wiring/ artifact? -->
     <dependency>
