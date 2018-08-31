@@ -44,10 +44,16 @@
       <type>xml</type>
     </dependency>
     <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>odl-controller-mdsal-common</artifactId>
-      <classifier>features</classifier>
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>odl-mdsal-common</artifactId>
       <type>xml</type>
+      <classifier>features</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.mdsal</groupId>
+      <artifactId>odl-mdsal-binding-runtime</artifactId>
+      <type>xml</type>
+      <classifier>features</classifier>
     </dependency>
   </dependencies>
 </project>
