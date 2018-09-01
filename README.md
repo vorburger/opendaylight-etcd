@@ -54,7 +54,13 @@ Distributed Data Change Listeners also work as expected with this mechanism.
 etcd instances would typically best be localhost co-located with the ODL nodes.
 
 
-## Demo
+## Demos
+
+### RESTCONF
+
+_TODO document (and make recording of) odl-etcd-demo-restconf Karaf feature..._
+
+### Standalone
 
 Here is how to run [the asciinema POC v0.1](https://asciinema.org/a/DShFpWOXFmaQV3AD5n8nHeHX6):
 
