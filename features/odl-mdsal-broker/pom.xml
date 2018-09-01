@@ -18,6 +18,18 @@
   <version>1.9.0-SNAPSHOT</version>
   <packaging>feature</packaging>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>bom</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -27,11 +39,37 @@
       <type>xml</type>
     </dependency>
 
-    <!-- The following dependencies are not needed by us, but were provided by the original odl-mdsal-broker (from controller),
-         so in order to be able to be a valid drop-in replacement, we must offer them as well.  -->
+    <!-- Compatibility with old controller APIs -->
+    <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>odl-controller-mdsal-common</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>odl-mdsal-broker-local</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency>
+
+    <!-- The following dependencies are not needed by etcd, but were provided by the original odl-mdsal-broker (from controller),
+         so in order for this feature to be able to be a valid drop-in replacement, we must offer them as well so users don't break.
+         TODO Find better solution instead of this, of course, hack for a situation that is already a mess.  -->
+    <dependency>
+        <groupId>org.opendaylight.controller</groupId>
+        <artifactId>odl-config-netty</artifactId>
+        <version>0.10.0-SNAPSHOT</version>
+        <type>xml</type>
+        <classifier>features</classifier>
+    </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.stax-utils</groupId>
+      <artifactId>stax-utils</artifactId>
     </dependency>
   </dependencies>
 </project>
