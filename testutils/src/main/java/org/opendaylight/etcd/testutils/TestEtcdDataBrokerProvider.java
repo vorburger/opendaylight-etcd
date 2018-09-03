@@ -58,7 +58,7 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
         BindingNormalizedNodeCodecRegistry codecs = new BindingNormalizedNodeCodecRegistry(generator);
         BindingToNormalizedNodeCodec bindingToNormalized = new BindingToNormalizedNodeCodec(classLoading, codecs);
         schemaService.registerSchemaContextListener(bindingToNormalized);
-        dataBroker = new BindingDOMDataBrokerAdapter(getDOMDataBroker(), bindingToNormalized);
+        dataBroker = new BindingDOMDataBrokerAdapter(wiring.getDOMDataBroker(), bindingToNormalized);
     }
 
     @Override
