@@ -7,22 +7,24 @@
  */
 package org.opendaylight.etcd.testutils;
 
-import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static java.util.concurrent.Executors.newCachedThreadPool;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import io.etcd.jetcd.Client;
+import javassist.ClassPool;
 import javax.annotation.PostConstruct;
 import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
 import org.opendaylight.etcd.ds.impl.EtcdDataBrokerWiring;
 import org.opendaylight.etcd.ds.impl.TestTool;
 import org.opendaylight.mdsal.binding.api.DataBroker;
+import org.opendaylight.mdsal.binding.dom.adapter.BindingDOMDataBrokerAdapter;
+import org.opendaylight.mdsal.binding.dom.adapter.BindingToNormalizedNodeCodec;
 import org.opendaylight.mdsal.binding.dom.adapter.test.util.MockSchemaService;
+import org.opendaylight.mdsal.binding.dom.codec.gen.impl.DataObjectSerializerGenerator;
+import org.opendaylight.mdsal.binding.dom.codec.gen.impl.StreamWriterGenerator;
+import org.opendaylight.mdsal.binding.dom.codec.impl.BindingNormalizedNodeCodecRegistry;
 import org.opendaylight.mdsal.binding.generator.api.ClassLoadingStrategy;
 import org.opendaylight.mdsal.binding.generator.impl.GeneratedClassLoadingStrategy;
 import org.opendaylight.mdsal.binding.generator.impl.ModuleInfoBackedContext;
+import org.opendaylight.mdsal.binding.generator.util.JavassistUtils;
 import org.opendaylight.mdsal.binding.spec.reflect.BindingReflections;
 import org.opendaylight.mdsal.dom.api.DOMDataBroker;
 import org.opendaylight.yangtools.yang.binding.YangModuleInfo;
@@ -36,22 +38,27 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContext;
 public class TestEtcdDataBrokerProvider implements AutoCloseable {
 
     private final EtcdDataBrokerWiring wiring;
+    private final DataBroker dataBroker;
 
     // TODO pass Client instead of ClientBuilder
     public TestEtcdDataBrokerProvider(Client client, String name) throws Exception {
-        // from org.opendaylight.mdsal.binding.dom.adapter.test.ConcurrentDataBrokerTestCustomizer
-        ListeningExecutorService dataTreeChangeListenerExecutorSingleton = listeningDecorator(newCachedThreadPool());
-        ListeningExecutorService commitCoordinatorExecutor = listeningDecorator(newSingleThreadExecutor());
         // from org.opendaylight.mdsal.binding.dom.adapter.test.AbstractDataBrokerTestCustomizer
         MockSchemaService schemaService = new MockSchemaService();
-        ClassLoadingStrategy classLoading = GeneratedClassLoadingStrategy.getTCCLClassLoadingStrategy();
 
-        wiring = new EtcdDataBrokerWiring(client, name, commitCoordinatorExecutor,
-                dataTreeChangeListenerExecutorSingleton, schemaService, classLoading);
-
+        // create DOMDataBroker
+        wiring = new EtcdDataBrokerWiring(client, name, schemaService);
         SchemaContext schemaContext = SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
         schemaService.changeSchema(schemaContext);
         wiring.init();
+
+        // create DataBroker
+        ClassPool pool = ClassPool.getDefault();
+        ClassLoadingStrategy classLoading = GeneratedClassLoadingStrategy.getTCCLClassLoadingStrategy();
+        DataObjectSerializerGenerator generator = StreamWriterGenerator.create(JavassistUtils.forClassPool(pool));
+        BindingNormalizedNodeCodecRegistry codecs = new BindingNormalizedNodeCodecRegistry(generator);
+        BindingToNormalizedNodeCodec bindingToNormalized = new BindingToNormalizedNodeCodec(classLoading, codecs);
+        schemaService.registerSchemaContextListener(bindingToNormalized);
+        dataBroker = new BindingDOMDataBrokerAdapter(getDOMDataBroker(), bindingToNormalized);
     }
 
     @Override
@@ -65,7 +72,7 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     }
 
     public DataBroker getDataBroker() {
-        return wiring.getDataBroker();
+        return dataBroker;
     }
 
     public TestTool getTestTool() {
