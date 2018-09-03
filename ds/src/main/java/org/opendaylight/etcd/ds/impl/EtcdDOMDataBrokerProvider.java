@@ -56,7 +56,7 @@ public class EtcdDOMDataBrokerProvider implements Provider<DOMDataBroker>, AutoC
      * @param nodeName          name used as prefix in logs; intended for in-process
      *                          clustering test cases, not production (where it can
      *                          be empty)
-     * @param schemas            the DOMSchemaService
+     * @param schemas           the DOMSchemaService
      */
     public EtcdDOMDataBrokerProvider(Client etcdClient, String nodeName, DOMSchemaService schemas) throws Exception {
         // choice of suitable executors originally inspired from
