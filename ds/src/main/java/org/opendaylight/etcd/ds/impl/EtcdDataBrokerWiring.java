@@ -18,22 +18,17 @@ import io.etcd.jetcd.Client;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import javassist.ClassPool;
 import javax.annotation.PostConstruct;
+import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.dom.adapter.BindingDOMDataBrokerAdapter;
-import org.opendaylight.mdsal.binding.dom.adapter.BindingToNormalizedNodeCodec;
-import org.opendaylight.mdsal.binding.dom.codec.gen.impl.DataObjectSerializerGenerator;
-import org.opendaylight.mdsal.binding.dom.codec.gen.impl.StreamWriterGenerator;
-import org.opendaylight.mdsal.binding.dom.codec.impl.BindingNormalizedNodeCodecRegistry;
-import org.opendaylight.mdsal.binding.generator.api.ClassLoadingStrategy;
-import org.opendaylight.mdsal.binding.generator.util.JavassistUtils;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.mdsal.dom.api.DOMDataBroker;
 import org.opendaylight.mdsal.dom.api.DOMSchemaService;
 import org.opendaylight.mdsal.dom.broker.SerializedDOMDataBroker;
 import org.opendaylight.mdsal.dom.spi.store.DOMStore;
 import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStoreConfigProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides a {@link DataBroker} backed by etcd for use in production and tests.
@@ -42,12 +37,13 @@ import org.opendaylight.mdsal.dom.store.inmemory.InMemoryDOMDataStoreConfigPrope
  */
 public class EtcdDataBrokerWiring implements AutoCloseable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdDataBrokerWiring.class);
+
     private final String name;
     private final Client etcdClient;
     private final EtcdDataStore configDS;
     private final EtcdDataStore operDS;
     private final DOMDataBroker domDataBroker;
-    private final DataBroker dataBroker;
     private final EtcdWatcher watcher;
     private final RevAwaiter revAwaiter;
     private final EtcdWatcherBlockingConsumer etcdWatcherConsumer;
@@ -59,10 +55,18 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
      * @param nodeName          name used as prefix in logs; intended for in-process
      *                          clustering test cases, not production (where it can
      *                          be empty)
+     * @param schemaService     the DOMSchemaService
      */
-    public EtcdDataBrokerWiring(Client etcdClient, String nodeName,
-            ListeningExecutorService commitCoordinatorExecutor, ListeningExecutorService dtclExecutor,
-            DOMSchemaService schemaService, ClassLoadingStrategy loading)
+    public EtcdDataBrokerWiring(Client etcdClient, String nodeName, DOMSchemaService schemaService) throws Exception {
+        // choice of suitable executors originally inspired from
+        // org.opendaylight.mdsal.binding.dom.adapter.test.ConcurrentDataBrokerTestCustomizer
+        this(etcdClient, nodeName, schemaService,
+                Executors.newListeningSingleThreadExecutor("EtcdDB-commitCoordinator", LOG),
+                Executors.newListeningCachedThreadPool("EtcdDB-DTCLs", LOG));
+    }
+
+    public EtcdDataBrokerWiring(Client etcdClient, String nodeName, DOMSchemaService schemaService,
+            ListeningExecutorService commitCoordinatorExecutor, ListeningExecutorService dtclExecutor)
             throws Exception {
         this.name = nodeName;
         this.etcdClient = etcdClient;
@@ -80,13 +84,6 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
                 new EtcdWatcherSplittingConsumer(Optional.of(revAwaiter),
                         ImmutableMap.of(CONFIGURATION_PREFIX, configDS, OPERATIONAL_PREFIX, operDS)));
         watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, etcdWatcherConsumer);
-
-        ClassPool pool = ClassPool.getDefault();
-        DataObjectSerializerGenerator generator = StreamWriterGenerator.create(JavassistUtils.forClassPool(pool));
-        BindingNormalizedNodeCodecRegistry codecRegistry = new BindingNormalizedNodeCodecRegistry(generator);
-        BindingToNormalizedNodeCodec bindingToNormalized = new BindingToNormalizedNodeCodec(loading, codecRegistry);
-        schemaService.registerSchemaContextListener(bindingToNormalized);
-        dataBroker = new BindingDOMDataBrokerAdapter(domDataBroker, bindingToNormalized);
     }
 
     @PostConstruct
@@ -114,10 +111,6 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
 
     public DOMDataBroker getDOMDataBroker() {
         return domDataBroker;
-    }
-
-    public DataBroker getDataBroker() {
-        return dataBroker;
     }
 
     public TestTool getTestTool() {
