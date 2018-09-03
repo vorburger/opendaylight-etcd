@@ -12,7 +12,7 @@ import io.etcd.jetcd.Client;
 import javassist.ClassPool;
 import javax.annotation.PostConstruct;
 import org.opendaylight.controller.md.sal.binding.test.SchemaContextSingleton;
-import org.opendaylight.etcd.ds.impl.EtcdDataBrokerWiring;
+import org.opendaylight.etcd.ds.impl.EtcdDOMDataBrokerProvider;
 import org.opendaylight.etcd.ds.impl.TestTool;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.dom.adapter.BindingDOMDataBrokerAdapter;
@@ -37,7 +37,7 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContext;
  */
 public class TestEtcdDataBrokerProvider implements AutoCloseable {
 
-    private final EtcdDataBrokerWiring wiring;
+    private final EtcdDOMDataBrokerProvider wiring;
     private final DataBroker dataBroker;
 
     // TODO pass Client instead of ClientBuilder
@@ -46,7 +46,7 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
         MockSchemaService schemaService = new MockSchemaService();
 
         // create DOMDataBroker
-        wiring = new EtcdDataBrokerWiring(client, name, schemaService);
+        wiring = new EtcdDOMDataBrokerProvider(client, name, schemaService);
         SchemaContext schemaContext = SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
         schemaService.changeSchema(schemaContext);
         wiring.init();

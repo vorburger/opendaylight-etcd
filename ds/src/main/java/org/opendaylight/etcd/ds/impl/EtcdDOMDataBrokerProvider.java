@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
+import javax.inject.Provider;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
@@ -35,9 +36,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Michael Vorburger.ch
  */
-public class EtcdDataBrokerWiring implements AutoCloseable {
+public class EtcdDOMDataBrokerProvider implements Provider<DOMDataBroker>, AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EtcdDataBrokerWiring.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EtcdDOMDataBrokerProvider.class);
 
     private final String name;
     private final Client etcdClient;
@@ -55,17 +56,17 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
      * @param nodeName          name used as prefix in logs; intended for in-process
      *                          clustering test cases, not production (where it can
      *                          be empty)
-     * @param schemaService     the DOMSchemaService
+     * @param schemas            the DOMSchemaService
      */
-    public EtcdDataBrokerWiring(Client etcdClient, String nodeName, DOMSchemaService schemaService) throws Exception {
+    public EtcdDOMDataBrokerProvider(Client etcdClient, String nodeName, DOMSchemaService schemas) throws Exception {
         // choice of suitable executors originally inspired from
         // org.opendaylight.mdsal.binding.dom.adapter.test.ConcurrentDataBrokerTestCustomizer
-        this(etcdClient, nodeName, schemaService,
+        this(etcdClient, nodeName, schemas,
                 Executors.newListeningSingleThreadExecutor("EtcdDB-commitCoordinator", LOG),
                 Executors.newListeningCachedThreadPool("EtcdDB-DTCLs", LOG));
     }
 
-    public EtcdDataBrokerWiring(Client etcdClient, String nodeName, DOMSchemaService schemaService,
+    public EtcdDOMDataBrokerProvider(Client etcdClient, String nodeName, DOMSchemaService schemaService,
             ListeningExecutorService commitCoordinatorExecutor, ListeningExecutorService dtclExecutor)
             throws Exception {
         this.name = nodeName;
@@ -107,6 +108,11 @@ public class EtcdDataBrokerWiring implements AutoCloseable {
         if (configDS != null) {
             configDS.close();
         }
+    }
+
+    @Override
+    public DOMDataBroker get() {
+        return getDOMDataBroker();
     }
 
     public DOMDataBroker getDOMDataBroker() {
