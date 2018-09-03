@@ -36,11 +36,11 @@
       <artifactId>yang-binding</artifactId>
     </dependency>
 
-    <!-- Dependencies required (only) by EtcdDataBrokerWiring.. TODO move into new wiring/ artifact? -->
     <dependency>
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>mdsal-binding-dom-adapter</artifactId>
     </dependency>
+    <!-- pax-cdi-api required (only) by OsgiDOMDataBrokerService (also blueprint-maven-plugin, below) -->
     <dependency>
      <groupId>org.ops4j.pax.cdi</groupId>
      <artifactId>pax-cdi-api</artifactId>
@@ -76,6 +76,11 @@
           </instructions>
         </configuration>
       </plugin>
+      <plugin>
+       <!-- blueprint-maven-plugin required (only) by OsgiDOMDataBrokerService (also pax-cdi-api, above) -->
+       <groupId>org.apache.aries.blueprint</groupId>
+       <artifactId>blueprint-maven-plugin</artifactId>
+     </plugin>
     </plugins>
   </build>
 </project>

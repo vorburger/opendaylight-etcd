@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0"
+  name="odl-etcd-datastore">
+  <!--
+        The ClientService in io.etcd:jetcd-osgi, used (indirectly) by our OsgiDOMDataBrokerService,
+        uses @Component, and thus we require SCR, which we don't otherwise use in ODL (where we prefer
+        @Inject & Co. for Blueprint, which we can also use via Guice for component tests.  Without this:
+
+          Unable to resolve root: missing requirement [root] osgi.identity; osgi.identity=odl-etcd-datastore; type=karaf.feature;
+          version="[0.0.1.SNAPSHOT,0.0.1.SNAPSHOT]"; filter:="(&(osgi.identity=odl-etcd-datastore)(type=karaf.feature)(version>=0.0.1.SNAPSHOT)(version<=0.0.1.SNAPSHOT))"
+          [caused by: Unable to resolve odl-etcd-datastore/0.0.1.SNAPSHOT: missing requirement [odl-etcd-datastore/0.0.1.SNAPSHOT] osgi.identity;
+          osgi.identity=io.etcd.jetcd-osgi; type=osgi.bundle; version="[0.3.0.SNAPSHOT,0.3.0.SNAPSHOT]"; resolution:=mandatory
+          [caused by: Unable to resolve io.etcd.jetcd-osgi/0.3.0.SNAPSHOT: missing requirement [io.etcd.jetcd-osgi/0.3.0.SNAPSHOT]
+          osgi.extender; filter:="(&(osgi.extender=osgi.component)(version>=1.3.0)(!(version>=2.0.0)))"]]
+    -->
+  <feature name="scr" />
+</features>
