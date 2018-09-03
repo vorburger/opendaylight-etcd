@@ -21,13 +21,17 @@
   <version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <properties>
+    <jetcd.version>0.3.0-SNAPSHOT</jetcd.version>
+  </properties>
+
   <dependencyManagement>
     <!-- Bump all Netty dependencies from 4.1.8 from odlparent to 4.1.16 required by jetcd -->
     <dependencies>
       <dependency>
         <groupId>io.etcd</groupId>
         <artifactId>jetcd-core</artifactId>
-        <version>0.3.0-SNAPSHOT</version>
+        <version>${jetcd.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.code.findbugs</groupId>
@@ -38,7 +42,22 @@
       <dependency>
         <groupId>io.etcd</groupId>
         <artifactId>jetcd-all</artifactId>
-        <version>0.3.0-SNAPSHOT</version>
+        <version>${jetcd.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.etcd</groupId>
+        <artifactId>jetcd-osgi</artifactId>
+        <version>${jetcd.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.code.findbugs</groupId>
