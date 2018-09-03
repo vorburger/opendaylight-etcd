@@ -47,9 +47,6 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
 
         // create DOMDataBroker
         wiring = new EtcdDOMDataBrokerProvider(client, name, schemaService);
-        SchemaContext schemaContext = SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
-        schemaService.changeSchema(schemaContext);
-        wiring.init();
 
         // create DataBroker
         ClassPool pool = ClassPool.getDefault();
@@ -59,6 +56,12 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
         BindingToNormalizedNodeCodec bindingToNormalized = new BindingToNormalizedNodeCodec(classLoading, codecs);
         schemaService.registerSchemaContextListener(bindingToNormalized);
         dataBroker = new BindingDOMDataBrokerAdapter(wiring.getDOMDataBroker(), bindingToNormalized);
+
+        // Must happen AFTER above - else no BindingRuntimeContext set in
+        // BindingNormalizedNodeCodecRegistry's onBindingRuntimeContextUpdated()
+        SchemaContext schemaContext = SchemaContextSingleton.getSchemaContext(() -> newSchemaContext());
+        schemaService.changeSchema(schemaContext);
+        wiring.init();
     }
 
     @Override
