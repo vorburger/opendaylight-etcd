@@ -43,7 +43,6 @@
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-core-compat</artifactId>
     </dependency>
-    <!-- pax-cdi-api required (only) by OsgiDOMDataBrokerService (also blueprint-maven-plugin, below) -->
     <dependency>
      <groupId>org.ops4j.pax.cdi</groupId>
      <artifactId>pax-cdi-api</artifactId>
@@ -80,7 +79,6 @@
         </configuration>
       </plugin>
       <plugin>
-       <!-- blueprint-maven-plugin required (only) by OsgiDOMDataBrokerService (also pax-cdi-api, above) -->
        <groupId>org.apache.aries.blueprint</groupId>
        <artifactId>blueprint-maven-plugin</artifactId>
      </plugin>

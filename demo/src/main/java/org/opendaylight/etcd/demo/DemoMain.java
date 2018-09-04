@@ -39,7 +39,7 @@ public final class DemoMain {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.err.println("USAGE: etcd server host:port (list of)\nEXAMPLE: localhost:2379");
+            System.err.println("USAGE: etcd server host:port (list of)\nEXAMPLE: http://localhost:2379");
             return;
         }
         try (Client client = Client.builder().endpoints(args).build()) {

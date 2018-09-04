@@ -3,7 +3,7 @@
   xmlns:odl="http://opendaylight.org/xmlns/blueprint/v1.0.0"
   odl:restart-dependents-on-updates="false">
 
-  <!-- The bundle uses blueprint annotations but we still need a file here so the plugin puts the generated xml file under org/opendaylight/blueprint. -->
+  <!-- This bundle uses blueprint annotations, but we still need a file here so the plugin puts the generated xml file under org/opendaylight/blueprint. -->
 
   <service ref="etcdDOMDataBroker"
     interface="org.opendaylight.mdsal.dom.api.DOMDataBroker"
