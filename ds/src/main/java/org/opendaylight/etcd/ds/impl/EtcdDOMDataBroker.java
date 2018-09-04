@@ -23,12 +23,12 @@ import org.ops4j.pax.cdi.api.OsgiService;
  */
 @Singleton
 // do NOT @OsgiServiceProvider(classes = DOMDataBroker.class), because we need odl:type="default" so BP XML
-public class OsgiDOMDataBrokerService extends ForwardingDOMDataBroker {
+public class EtcdDOMDataBroker extends ForwardingDOMDataBroker {
 
     private final EtcdDOMDataBrokerProvider wiring;
 
     @Inject
-    public OsgiDOMDataBrokerService(@OsgiService DOMSchemaService schemaService) throws Exception {
+    public EtcdDOMDataBroker(@OsgiService DOMSchemaService schemaService) throws Exception {
         // TODO Remove this constructor with hard-coded etcd server endpoint by using @OsgiService Client (below)
         // For the moment this does not work, most probably because of the org/opendaylight/blueprint/ds-blueprint.xml
         // which we need so that we can look up other OSGi services which mdsal and controller registered; this should
@@ -37,7 +37,7 @@ public class OsgiDOMDataBrokerService extends ForwardingDOMDataBroker {
     }
 
     // the Client is set up in the OSGi Service registry by io.etcd:jetcd-osgi, based on etc/io.etcd.jetcd.cfg
-    public OsgiDOMDataBrokerService(@OsgiService DOMSchemaService schemaService, @OsgiService Client etcdClient)
+    public EtcdDOMDataBroker(@OsgiService DOMSchemaService schemaService, @OsgiService Client etcdClient)
             throws Exception {
         wiring = new EtcdDOMDataBrokerProvider(etcdClient, "", schemaService);
     }

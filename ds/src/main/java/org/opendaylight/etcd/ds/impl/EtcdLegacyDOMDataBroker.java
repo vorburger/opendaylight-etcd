@@ -27,7 +27,7 @@ public class EtcdLegacyDOMDataBroker extends LegacyDOMDataBrokerAdapter
         implements org.opendaylight.controller.md.sal.dom.api.DOMDataBroker {
 
     @Inject
-    public EtcdLegacyDOMDataBroker(OsgiDOMDataBrokerService delegate) {
+    public EtcdLegacyDOMDataBroker(EtcdDOMDataBroker delegate) {
         super(delegate);
     }
 

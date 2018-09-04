@@ -5,7 +5,7 @@
 
   <!-- The bundle uses blueprint annotations but we still need a file here so the plugin puts the generated xml file under org/opendaylight/blueprint. -->
 
-  <service ref="osgiDOMDataBrokerService"
+  <service ref="etcdDOMDataBroker"
     interface="org.opendaylight.mdsal.dom.api.DOMDataBroker"
     odl:type="default" />
 
