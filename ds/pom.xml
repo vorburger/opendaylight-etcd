@@ -35,10 +35,13 @@
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>yang-binding</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.opendaylight.mdsal</groupId>
       <artifactId>mdsal-binding-dom-adapter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>sal-core-compat</artifactId>
     </dependency>
     <!-- pax-cdi-api required (only) by OsgiDOMDataBrokerService (also blueprint-maven-plugin, below) -->
     <dependency>
