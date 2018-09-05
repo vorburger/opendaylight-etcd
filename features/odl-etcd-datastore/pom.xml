@@ -32,13 +32,18 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-osgi</artifactId>
+    </dependency>
+    <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>ds</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.etcd</groupId>
-      <artifactId>jetcd-osgi</artifactId>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>eos</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
