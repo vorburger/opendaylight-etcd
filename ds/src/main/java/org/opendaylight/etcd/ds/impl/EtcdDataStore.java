@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.ThreadSafe;
 import org.opendaylight.etcd.ds.impl.EtcdYangKV.EtcdTxn;
 import org.opendaylight.etcd.ds.inmemory.copypaste.InMemoryDOMDataStore;
@@ -61,7 +62,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     private final RevAwaiter revAwaiter;
 
     private boolean hasSchemaContext = false;
-    private boolean isInitialized = false;
+    private final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
     public EtcdDataStore(String name, LogicalDatastoreType type, ExecutorService dataChangeListenerExecutor,
             int maxDataChangeListenerQueueSize, Client client, boolean debugTransactions, RevAwaiter revAwaiter) {
@@ -155,7 +156,7 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
             throw new IllegalStateException("onGlobalContextUpdated() not yet called");
         }
         initialLoad(rev);
-        this.isInitialized = true;
+        this.isInitialized.set(true);
     }
 
     @Override
@@ -293,8 +294,8 @@ public class EtcdDataStore extends InMemoryDOMDataStore implements CheckedConsum
     }
 
     private void isInitialized() {
-        if (!isInitialized) {
-            throw new IllegalStateException("@PostConstruct init() not yet called");
+        if (!isInitialized.get()) {
+            throw new IllegalStateException("init() not yet called");
         }
     }
 }

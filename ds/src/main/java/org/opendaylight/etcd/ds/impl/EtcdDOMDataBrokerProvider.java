@@ -18,7 +18,6 @@ import io.etcd.jetcd.Client;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import javax.annotation.PostConstruct;
 import javax.inject.Provider;
 import org.opendaylight.infrautils.utils.concurrent.Executors;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -87,7 +86,6 @@ public class EtcdDOMDataBrokerProvider implements Provider<DOMDataBroker>, AutoC
         watcher = new EtcdWatcher(nodeName, etcdClient, EtcdDataStore.BASE_PREFIX, etcdWatcherConsumer);
     }
 
-    @PostConstruct
     public void init() throws Exception {
         long revNow = EtcdServerUtils.getServerRevision(etcdClient.getKVClient());
         configDS.init(revNow);
