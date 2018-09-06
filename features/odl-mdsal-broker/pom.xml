@@ -63,6 +63,15 @@
         <type>xml</type>
         <classifier>features</classifier>
     </dependency>
+<!-- TODO when odlparent 4.0.0 is released then use this, and remove commons-text
+    <dependency>
+      <groupId>org.opendaylight.odlparent</groupId>
+      <artifactId>odl-apache-commons-text</artifactId>
+      <version>4.0.0</version>
+      <type>xml</type>
+      <classifier>features</classifier>
+    </dependency>
+ -->
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
@@ -70,6 +79,10 @@
     <dependency>
       <groupId>net.java.dev.stax-utils</groupId>
       <artifactId>stax-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
     </dependency>
   </dependencies>
 </project>

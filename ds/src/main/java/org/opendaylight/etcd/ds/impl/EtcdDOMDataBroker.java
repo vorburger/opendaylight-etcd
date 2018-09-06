@@ -40,6 +40,7 @@ public class EtcdDOMDataBroker extends ForwardingDOMDataBroker {
     public EtcdDOMDataBroker(@OsgiService DOMSchemaService schemaService, @OsgiService Client etcdClient)
             throws Exception {
         wiring = new EtcdDOMDataBrokerProvider(etcdClient, "", schemaService);
+        wiring.init();
     }
 
     @PreDestroy

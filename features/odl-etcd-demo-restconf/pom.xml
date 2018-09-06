@@ -19,10 +19,18 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <!-- Beware, this is our (etcd) odl-mdsal-broker, not mdsal's! -->
       <artifactId>odl-mdsal-broker</artifactId>
       <version>1.9.0-SNAPSHOT</version>
       <classifier>features</classifier>
       <type>xml</type>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.aaa</groupId>
+      <artifactId>odl-aaa-shiro</artifactId>
+      <version>0.9.0-SNAPSHOT</version>
+      <type>xml</type>
+      <classifier>features</classifier>
     </dependency>
     <dependency>
       <groupId>org.opendaylight.netconf</groupId>
