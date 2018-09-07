@@ -7,7 +7,11 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
+import static com.google.common.base.Charsets.US_ASCII;
+
+import com.google.common.io.Files;
 import io.etcd.jetcd.Client;
+import java.io.File;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,7 +38,13 @@ public class EtcdDOMDataBroker extends ForwardingDOMDataBroker {
         // which we need so that we can look up other OSGi services which mdsal and controller registered; this should
         // get solved with odlparent 4.0.0 which does away with org/opendaylight/blueprint and the 2 (std VS odl) BPs.
         // we then also need to un-comment the jetcd-osgi in odl-etcd-datastore
-        this(schemaService, Client.builder().endpoints("http://localhost:2379").build());
+
+        // TODO this target file reading is just temporary, for SingleFeatureTest
+        this(schemaService,
+                Client.builder()
+                        .endpoints(Files.readFirstLine(
+                                new File("../../jetcd-launcher-maven-plugin/endpoint").getAbsoluteFile(), US_ASCII))
+                        .build());
     }
 
     // the Client is set up in the OSGi Service registry by io.etcd:jetcd-osgi, based on etc/io.etcd.jetcd.cfg
