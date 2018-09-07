@@ -10,6 +10,7 @@ package org.opendaylight.etcd.demo;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
 import io.etcd.jetcd.Client;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokerProvider;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -42,6 +43,7 @@ public final class DemoMain {
             System.err.println("USAGE: etcd server host:port (list of)\nEXAMPLE: http://localhost:2379");
             return;
         }
+        System.out.println("Connecting to etcd server/s on: " + Arrays.toString(args));
         try (Client client = Client.builder().endpoints(args).build()) {
             try (TestEtcdDataBrokerProvider dbProvider = new TestEtcdDataBrokerProvider(client, "demo")) {
                 DataBroker dataBroker = dbProvider.getDataBroker();
