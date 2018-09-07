@@ -69,7 +69,9 @@ class EtcdYangKV implements AutoCloseable {
 
     // Max. time (in milliseconds) we're willing to wait for replies from etcd server
     // TODO In an ideal world, we'd like to be 101% async everywhere here, and never do a blocking get() ...
-    static final long TIMEOUT_MS = 300;
+    // NB surprisingly 300ms is way too little and often fails; so let's use 3s
+    // TODO make this a configuration option (perhaps in upstream jetcd-osgi?)
+    static final long TIMEOUT_MS = 3000;
 
     // TODO remove (make optional) the use of the controller.cluster
     // NormalizedNodeDataOutput & Co. extra SIGNATURE_MARKER byte

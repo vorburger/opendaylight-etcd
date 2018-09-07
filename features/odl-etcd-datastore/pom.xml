@@ -31,10 +31,13 @@
   </dependencyManagement>
 
   <dependencies>
+<!-- TODO figure out what feature we need to add to ODL Karaf which a "normal" Karaf has but which we removed to fix this:
+  Unable to resolve io.etcd.jetcd-osgi/0.3.0.SNAPSHOT: missing requirement [io.etcd.jetcd-osgi/0.3.0.SNAPSHOT] osgi.extender; filter:="(&(osgi.extender=osgi.component)(&(version>=1.4.0)(!(version>=2.0.0)
     <dependency>
       <groupId>io.etcd</groupId>
       <artifactId>jetcd-osgi</artifactId>
     </dependency>
+ -->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>ds</artifactId>
