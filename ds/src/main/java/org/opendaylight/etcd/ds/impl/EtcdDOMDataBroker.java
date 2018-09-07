@@ -33,6 +33,7 @@ public class EtcdDOMDataBroker extends ForwardingDOMDataBroker {
         // For the moment this does not work, most probably because of the org/opendaylight/blueprint/ds-blueprint.xml
         // which we need so that we can look up other OSGi services which mdsal and controller registered; this should
         // get solved with odlparent 4.0.0 which does away with org/opendaylight/blueprint and the 2 (std VS odl) BPs.
+        // we then also need to un-comment the jetcd-osgi in odl-etcd-datastore
         this(schemaService, Client.builder().endpoints("http://localhost:2379").build());
     }
 
