@@ -70,15 +70,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <configuration>
-          <instructions>
-            <Import-Package>!io.etcd.jetcd.shaded.com.google.protobuf,*</Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-      <plugin>
        <groupId>org.apache.aries.blueprint</groupId>
        <artifactId>blueprint-maven-plugin</artifactId>
      </plugin>
