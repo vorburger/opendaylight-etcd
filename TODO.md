@@ -44,7 +44,7 @@
 - [ ] jetcd TXs/sec Test https://github.com/etcd-io/jetcd/issues/367.  Compare CDS & etcd.
 
 - [ ] test the semantics of DTCL vs ClusteredDTCL
-- [ ] remote RPCs?  Still Akka.
+- [ ] remote RPCs?  Still Akka.  https://pantheon.tech/opendaylight-rpcs-or-what-could-possibly-go-wrong-with-adding-this-one-cool-feature/
 - [ ] EntityOwnershipService EOS ?  https://coreos.com/blog/transactional-memory-with-etcd3.html
 
 - [ ] MUCH clean-up and other MANY TODOs ;)

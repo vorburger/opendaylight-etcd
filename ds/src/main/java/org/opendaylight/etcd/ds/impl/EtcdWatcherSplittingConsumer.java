@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.opendaylight.etcd.utils.ByteSequences;
 import org.opendaylight.infrautils.utils.function.CheckedBiConsumer;
 import org.opendaylight.infrautils.utils.function.CheckedConsumer;
 
@@ -50,7 +49,7 @@ class EtcdWatcherSplittingConsumer implements CheckedBiConsumer<Long, List<Watch
 
         for (WatchEvent watchEvent : allWatchEvents) {
             for (ByteSequence keyPrefix : prefixes) {
-                if (ByteSequences.startsWith(watchEvent.getKeyValue().getKey(), keyPrefix)) {
+                if (watchEvent.getKeyValue().getKey().startsWith(keyPrefix)) {
                     lists.get(keyPrefix).add(watchEvent);
                 }
             }

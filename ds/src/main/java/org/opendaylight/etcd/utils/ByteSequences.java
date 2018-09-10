@@ -57,10 +57,6 @@ public final class ByteSequences {
         return text.toString();
     }
 
-    public static boolean startsWith(ByteSequence baseByteSequence, ByteSequence prefix) {
-        return baseByteSequence.getByteString().startsWith(prefix.getByteString());
-    }
-
     public static ByteSequence fromBytes(byte... bytes) {
         return ByteSequence.from(bytes);
     }
