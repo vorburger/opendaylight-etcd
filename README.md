@@ -98,21 +98,32 @@ and have a closer look at the logs this will print, to understand what happened.
 
 * _What is the status of this project?_ As of late July 2018, it's a Proof of Concept (POC) with the `EtcdDBTest` illustrating, successfully, that the ODL MD SAL DataBroker API can be implemented on top of the etcd data store.
 
-* _What's the point of this?_ The main goal is to have the option in ODL to completely avoid the home grown Raft/clustering code.  This will ease maintenance.
+* _What's the point of this?_ The main goal is to have the option in ODL to completely avoid the home grown Raft/clustering code, and completely avoid Akka.  This will ease maintenance.
 
 * _Is this project going to automagically solve all sorts of performance issues you may face in ODL today?_ Nope. Increasing ODL performance (compared to CDS) is not a goal of this project.
 
-* _How will we upgrade the code from today's clustering solution to an etcd based datastore?_ The idea is that ultimately this will simply be a new alternative feature installation, and require absolutely no change to any existing application code.
-
-* _How will we migrate the data from today to tomorrow during customer upgrades?_ Replay based upgrades start with a fresh new empty datastore, so this is a non-issue.  (A non replay based upgrade procedures would have to export the datastore content using DAEXIM, and re-import a dump into an instance with an etcd datastore.)
-
-* _How can I access the data in etcd?_ Through ODL APIs (or RESTCONF, etc.) via the code in this project - as always.  It is an explicit non-goal of this project to allow "direct" access to the YANG data in etcd.  It is stored in an internal binary format, which may change.  It requires the YANG model schema to really make sense.  Don't read it directly.  What you could do however is run [lightweight standalone "ODL"](https://github.com/vorburger/opendaylight-simple) process which uses this project.
-
-* _How can I "shard" with this?_ Supporting several "shards" and/or multiple etcd stores (for sharding, not clustering) is an explicit non-goal of v1 of this project.
+* _How can I access the data in etcd?_ Through ODL APIs (or RESTCONF, etc.) via the code in this project - as always.  It is an explicit non-goal of this project to allow "direct" access to the YANG data in etcd.  It is stored in an internal binary format, which may change.  It requires the YANG model schema to really make sense.  Don't read it directly.  What you could do however is run a [lightweight standalone "ODL"](https://github.com/vorburger/opendaylight-simple) process which uses this project.
 
 * _How can you try this out?_ Much work still needs to be done! ;-) This e.g. includes, roughly in order: much more unit and integration tests (notably around concurrency), some re-factorings required in ODL to remove code copy/paste here during the POC, work to make it easy to install instead of the current implementation, packaging work to make this available as a Karaf feature, then much real world testing through CSITs, etc.
 
 * _How can you help?_ Please see the [TODO.md](TODO.md) and start contributing!
+
+
+### About some typical objections
+
+* _But how will we upgrade the code from today's clustering solution to an etcd based datastore?_ The idea is that ultimately this will simply be a new alternative feature installation, and require absolutely no change to any existing application code.
+
+* _But how will we migrate the data from today to tomorrow during customer upgrades?_ Replay based upgrades start with a fresh new empty datastore, so this is a non-issue.  (A non replay based upgrade procedures would have to export the datastore content using DAEXIM, and re-import a dump into an instance with an etcd datastore.)
+
+* _But how can we "shard" with this?_ Supporting several "shards" and/or multiple etcd stores (for sharding, not clustering) is an explicit non-goal of v1 of this project.
+
+* _But etcd doesn't seem to have a pure in-memory mode, so what about operational vs config?_  So in ODL the operational data store, contrary to the configuration, does not have to survive "restarts".  But perhaps it's OK if it does anyway.  If not, it would certainly be easily possible to explicitly wipe the content of the operational data store sub tree in etcd on the start of the ODL cluster (not of a single ODL node, and not of the etcd cluster; which is going to have a separate lifecycle).  Perhaps longer term, having an option to keep certain sub-tress only in-memory and not persisted to disk could be brought up with the etcd community as a possible feature request, purely as a performance optimization. For short and even medium term for ODL etcd adopters, this should not be a blocking issue.
+
+* _But what about the EntityOwnershipService, EOS?_ It should be possible to implement it on to of etcd's Lock API, but this is still TBD.  Help most welcome!
+
+* _But what about remote RPCs?_ Dunno.  Needs more thought and POC, discussions... TBD.
+
+* _But I love ODL’s current datastore! Its clustering works just great, for me._ Good for you. Then why are you here? ;) Jokes apart, we currently expect this project to be an alternative to and existing in parallel with the current CDS - likely for a long time.
 
 
 ### About etcd
@@ -121,7 +132,7 @@ and have a closer look at the logs this will print, to understand what happened.
 
 * _Why etcd?_ Among many other users, etcd is the database used in Kubernetes (and its distributions such as OpenShift).  It makes sense to align ODL to this.  With the Core OS acquisition, Red Hat has etcd expertise.
 
-* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs; notably e.g. Redis et al.  Some of the code from this project likely is a good basis for you to write adapters from YANG to other KV DBs.  Have fun!
+* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs.  Some of the code from this project likely is a good basis for you to write adapters from YANG to other KV DBs.  Have fun!
 
 * _I [read somewhere online](https://coreos.com/etcd/docs/latest/learning/api_guarantees.html) that "etcd clients may have issues with operations that time out (network disruption for example) and will not send an abort respond". How do we plan on dealing with this?_  This will cause a timeout at [the GRPC layer](https://grpc.io) internally, which will lead to a failure on the MD SAL (commit) operation, which will be propagated to the ODL application client - as it should; all good.
 
