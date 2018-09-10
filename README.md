@@ -123,7 +123,7 @@ and have a closer look at the logs this will print, to understand what happened.
 
 * _But what about remote RPCs?_ Dunno.  Needs more thought and POC, discussions... TBD.
 
-* _But I love ODL’s current datastore! Its clustering works just great, for me._ Good for you. Then why are you here? ;) Jokes apart, we currently expect this project to be an alternative to and existing in parallel with the current CDS - likely for a long time.
+* _But I love ODL’s current datastore!_ This project, if successful, will be an alternative to and existing in parallel with the current implementation likely for a long time.
 
 
 ### About etcd
