@@ -73,12 +73,9 @@ or even just start it directly, without systemd, in the foreground in another te
 
 _TODO Document how to best easily start test cluster of 3 etcd servers locally..._
 
-If you used etcd before you may [want to completely wipe it](https://github.com/etcd-io/etcd/issues/10101):
+If you used etcd before you may want to completely wipe it:
 
-    sudo systemctl stop etcd
-    sudo rm -rf /var/lib/etcd/default.etcd
-    sudo systemctl start etcd
-    etcdctl ls
+    ETCDCTL_API=3 etcdctl del "" --from-key=true
 
 Beware that `etcdctl ls -r` [does not seem to show unprintable keys](https://github.com/etcd-io/etcd/issues/10102), so better use our own:
 
