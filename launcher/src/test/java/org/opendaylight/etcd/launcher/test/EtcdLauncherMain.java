@@ -11,6 +11,7 @@ import ch.vorburger.exec.ManagedProcessException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import org.opendaylight.etcd.launcher.EtcdLauncher;
 
@@ -36,7 +37,7 @@ public final class EtcdLauncherMain {
         // NOTE: In Eclipse, System.console() is not available.. so: (@see
         // https://bugs.eclipse.org/bugs/show_bug.cgi?id=122429)
         System.out.println("\n\nHit Enter to quit...");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, Charset.defaultCharset()));
         reader.readLine();
     }
 }
