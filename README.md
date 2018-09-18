@@ -90,15 +90,20 @@ Configure the etcd connection URL (_TODO this is a hack which will change to be 
     mkdir karaf/target/assembly/../../jetcd-launcher-maven-plugin/
     echo http://localhost:2379 >karaf/target/assembly/../../jetcd-launcher-maven-plugin/endpoint
 
-Now start Karaf and make sure it's happy:
+Now start ODL and make sure it's happy:
 
     ./karaf/target/assembly/bin/karaf
     opendaylight-user@root>feature:list -i
     opendaylight-user@root>diag
 
-You can now use RESTCONF as usual - but it runs on etcd:
+Note how there is no `karaf/target/assembly/etc/org.opendaylight.controller.cluster.datastore.cfg` now, thus "proving" that we don't run the existing ODL datastore anymore.  You can now use RESTCONF as usual - but it runs on etcd! [Open apidoc/explorer](http://localhost:8181/apidoc/explorer/index.html) (admin/admin), and watch the logs (`tail -f karaf/target/assembly/data/log/karaf.log`) to understand what happens when you e.g. do:
 
-_TODO_.
+    http -a admin:admin GET http://localhost:8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
+    echo '<HelloWorldContainer xmlns="urn:opendaylight:etcd:test"><name>hello, world</name></HelloWorldContainer>' >put.xml
+    http -v -a admin:admin PUT :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer @put.xml
+    http -a admin:admin GET :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
+    http -a admin:admin DELETE :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
+    http -a admin:admin GET :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
 
 
 ### Standalone
