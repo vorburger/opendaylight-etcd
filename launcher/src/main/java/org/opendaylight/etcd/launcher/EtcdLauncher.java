@@ -13,6 +13,8 @@ import ch.vorburger.exec.ManagedProcessException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.ServerSocket;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -37,16 +39,29 @@ public class EtcdLauncher implements AutoCloseable {
     // TODO refactor this and introduce an EtcdLauncherBuilder, with a start() that returns an EtcdLauncher
 
     private final ManagedProcess process;
+    private final int clientPort;
+    private final int clusterPort;
 
     public EtcdLauncher(Path etcdWorkingDirectory, boolean wipe) throws ManagedProcessException, IOException {
+        this(etcdWorkingDirectory, wipe, findNextAvailablePort(), findNextAvailablePort());
+    }
+
+    public EtcdLauncher(Path etcdWorkingDirectory, boolean wipe, int clientPort, int clusterPort)
+            throws ManagedProcessException, IOException {
         if (wipe) {
             deleteDirectory(etcdWorkingDirectory);
         }
         mkdirs(etcdWorkingDirectory);
+        this.clientPort = clientPort;
+        this.clusterPort = clusterPort;
         process = new ManagedProcessBuilder("etcd")
                 // .addArgument("arg1");
                 .setWorkingDirectory(etcdWorkingDirectory.toFile())
-                // .getEnvironment().put("ENV_VAR", "...")
+                .addArgument("--advertise-client-urls").addArgument(getEndpointURL())
+                .addArgument("--listen-client-urls").addArgument(getEndpointURL())
+                .addArgument("--listen-peer-urls").addArgument(getClusterURI().toString())
+                .addArgument("--initial-cluster").addArgument("default=" + getClusterURI().toString())
+                .addArgument("--initial-advertise-peer-urls").addArgument(getClusterURI().toString())
                 .setDestroyOnShutdown(true)
                 .build();
     }
@@ -55,9 +70,12 @@ public class EtcdLauncher implements AutoCloseable {
      * Etcd server endpoint URL.
      * Typically used to pass as an argument to jetcd Client.builder().endpoints().
      */
-    public String getEndpointURL() {
-        // TODO later this will return a randomly chosen port
-        return "http://localhost:2379";
+    public final String getEndpointURL() {
+        return "http://localhost:" + clientPort;
+    }
+
+    public final URI getClusterURI() {
+        return URI.create("http://localhost:" + clusterPort);
     }
 
     @PostConstruct
@@ -97,6 +115,12 @@ public class EtcdLauncher implements AutoCloseable {
             LOG.info("Successfully deleted directory: {}", directory);
         } catch (UncheckedIOException e) {
             throw e.getCause();
+        }
+    }
+
+    private static int findNextAvailablePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
         }
     }
 }
