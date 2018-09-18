@@ -84,6 +84,8 @@ Beware that `ETCDCTL_API=3 etcdctl get --from-key ''` [outputs binary](https://g
 
 ### RESTCONF
 
+Here is how to run [the asciinema POC v0.2](https://asciinema.org/a/201859):
+
 Configure the etcd connection URL (_TODO this is a hack which will change to be a real configuration file later_):
 
     mkdir karaf/target/assembly/../../jetcd-launcher-maven-plugin/
