@@ -80,7 +80,9 @@ If you used etcd before you may [want to completely wipe it](https://github.com/
     sudo systemctl start etcd
     etcdctl ls
 
-Beware that `etcdctl ls -r` [does not seem to show unprintable keys](https://github.com/etcd-io/etcd/issues/10102).
+Beware that `etcdctl ls -r` [does not seem to show unprintable keys](https://github.com/etcd-io/etcd/issues/10102), so better use our own:
+
+    java -jar demo/target/*.jar read http://localhost:2379
 
 
 ### RESTCONF
@@ -102,6 +104,7 @@ Note how there is no `karaf/target/assembly/etc/org.opendaylight.controller.clus
     echo '<HelloWorldContainer xmlns="urn:opendaylight:etcd:test"><name>hello, world</name></HelloWorldContainer>' >put.xml
     http -v -a admin:admin PUT :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer @put.xml
     http -a admin:admin GET :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
+    java -jar demo/target/*.jar read http://localhost:2379
     http -a admin:admin DELETE :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
     http -a admin:admin GET :8181/restconf/config/opendaylight-etcd-test:HelloWorldContainer
 
@@ -112,13 +115,15 @@ Here is how to run [the asciinema POC v0.1](https://asciinema.org/a/DShFpWOXFmaQ
 
 Now run this project's demo:
 
-    java -jar demo/target/*.jar http://localhost:4001
+    java -jar demo/target/*.jar write http://localhost:4001
 
 or if you started `etcd` directly without systemd then:
 
-    java -jar demo/target/*.jar http://localhost:2379
+    java -jar demo/target/*.jar write http://localhost:2379
 
-and have a closer look at the logs this will print, to understand what happened.
+and have a closer look at the logs this will print to understand what happened, and read it via:
+
+    java -jar demo/target/*.jar read http://localhost:2379
 
 
 ## FAQ
