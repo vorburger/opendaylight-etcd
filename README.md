@@ -61,7 +61,7 @@ Make sure you have at least 1 etcd server running:
     sudo dnf install etcd
     sudo systemctl start etcd
     systemctl status etcd
-    etcdctl ls
+    ETCDCTL_API=3 etcdctl get --from-key ''
 
 or even just start it directly, without systemd, in the foreground in another terminal tab:
 
@@ -69,7 +69,7 @@ or even just start it directly, without systemd, in the foreground in another te
     etcd
 
     tree /tmp/default.etcd/
-    etcdctl ls
+    ETCDCTL_API=3 etcdctl get --from-key ''
 
 _TODO Document how to best easily start test cluster of 3 etcd servers locally..._
 
@@ -77,7 +77,7 @@ If you used etcd before you may want to completely wipe it:
 
     ETCDCTL_API=3 etcdctl del "" --from-key=true
 
-Beware that `etcdctl ls -r` [does not seem to show unprintable keys](https://github.com/etcd-io/etcd/issues/10102), so better use our own:
+Beware that `ETCDCTL_API=3 etcdctl get --from-key ''` [outputs binary](https://github.com/etcd-io/etcd/issues/10102), so better use our own:
 
     java -jar demo/target/*.jar read http://localhost:2379
 
