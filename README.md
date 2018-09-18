@@ -56,30 +56,54 @@ etcd instances would typically best be localhost co-located with the ODL nodes.
 
 ## Demos
 
-### RESTCONF
-
-_TODO document (and make recording of) odl-etcd-demo-restconf Karaf feature..._
-
-### Standalone
-
-Here is how to run [the asciinema POC v0.1](https://asciinema.org/a/DShFpWOXFmaQV3AD5n8nHeHX6):
-
 Make sure you have at least 1 etcd server running:
 
     sudo dnf install etcd
-    systemctl start etcd
+    sudo systemctl start etcd
     systemctl status etcd
     etcdctl ls
 
 or even just start it directly, without systemd, in the foreground in another terminal tab:
 
-   cd /tmp
-   etcd
+    cd /tmp
+    etcd
 
-   tree /tmp/default.etcd/
-   etcdctl ls
+    tree /tmp/default.etcd/
+    etcdctl ls
 
-_TODO Document how to best easily start cluster of 3 etcd servers..._
+_TODO Document how to best easily start test cluster of 3 etcd servers locally..._
+
+If you used etcd before you may [want to completely wipe it](https://github.com/etcd-io/etcd/issues/10101):
+
+    sudo systemctl stop etcd
+    sudo rm -rf /var/lib/etcd/default.etcd
+    sudo systemctl start etcd
+    etcdctl ls
+
+Beware that `etcdctl ls -r` [does not seem to show unprintable keys](https://github.com/etcd-io/etcd/issues/10102).
+
+
+### RESTCONF
+
+Configure the etcd connection URL (_TODO this is a hack which will change to be a real configuration file later_):
+
+    mkdir karaf/target/assembly/../../jetcd-launcher-maven-plugin/
+    echo http://localhost:2379 >karaf/target/assembly/../../jetcd-launcher-maven-plugin/endpoint
+
+Now start Karaf and make sure it's happy:
+
+    ./karaf/target/assembly/bin/karaf
+    opendaylight-user@root>feature:list -i
+    opendaylight-user@root>diag
+
+You can now use RESTCONF as usual - but it runs on etcd:
+
+_TODO_.
+
+
+### Standalone
+
+Here is how to run [the asciinema POC v0.1](https://asciinema.org/a/DShFpWOXFmaQV3AD5n8nHeHX6):
 
 Now run this project's demo:
 

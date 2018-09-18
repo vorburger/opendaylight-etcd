@@ -36,10 +36,9 @@
     <module>features/odl-etcd-datastore</module>
     <module>features/odl-mdsal-broker</module>
     <module>features/odl-etcd-demo-restconf</module>
-<!--
     <module>features/features-etcd</module>
     <module>karaf</module>
-  -->
+    <module>artifacts</module>
   </modules>
 
 </project>
