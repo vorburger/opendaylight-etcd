@@ -66,7 +66,7 @@
 - [ ] safe keys in a much more compact form; basically do compression, by keeping a dictionary (persisted in etcd) of all PathArgument
 
 - [ ] compare performance of this VS CDS? But *DO* realize that real app performance issues are NOT because of slow datastore anyway..
-
+- [ ] PerformanceMain: Disable logging, write separate keys
 - [ ] properly performance profile the code, using e.g. https://wiki.opendaylight.org/view/HowToProfilePerformance
 
 - [ ] etcd new feature to keep certain sub-tress purely in-memory instead of persisted on disk (for operational VS configuration datastore); how does K8S do this?
