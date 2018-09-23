@@ -63,7 +63,6 @@ public final class DemoMain {
                 try (TestEtcdDataBrokerProvider dbProvider = new TestEtcdDataBrokerProvider(client, "demo")) {
                     DataBroker dataBroker = dbProvider.getDataBroker();
                     write(dataBroker);
-                    // read(client);
                 } finally {
                     client.close();
                 }
