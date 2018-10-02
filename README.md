@@ -2,6 +2,8 @@ This project started as a personal POC by Michael Vorburger.ch to
 evaluate the feasibility of using etcd as data store for YANG data in OpenDaylight (ODL),
 instead of its current "home made" CDS based on Akka.
 
+See this [presentation given in 2018.09 at the ODL DDF during ONS Europe in Amsterdam](https://docs.google.com/presentation/d/160GrKDb9kR-M48FKale09A-VF2_HSu3po_s0M4UReyU) for some background.
+
 The plan is contribute this to opendaylight.org, if and when successful.
 
 
