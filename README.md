@@ -161,15 +161,18 @@ and have a closer look at the logs this will print to understand what happened, 
 * _But I love ODL’s current datastore!_ This project, if successful, will be an alternative to and existing in parallel with the current implementation likely for a long time.
 
 
+### About alternatives
+
+* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs.  Some of the code from this project likely is a good basis for you to write adapters from YANG to other KV DBs.  Have fun!
+
+* _Why not just replace the Akka persistence LevelDB plugin currently used in CDS to something else like MongoDB?_  : Not sure that I see how an architecture where you keep Akka and would replace LevelDB (a node local single user embedded KV) to a remote multi user DB makes much sense.  Using something like MongoDB as a data store like this project does for etcd perhaps makes more sense; see question above.  You can, of course, just use MongoDB or whatever else you like (JDBC if you must, anything you fancy...) INSTEAD of a YANG-based data store, if that meets your requirements.
+
+
 ### About etcd
 
 * _What is etcd?_ [etcd](https://coreos.com/etcd/) is a distributed [key value store](https://en.wikipedia.org/wiki/Key-value_database) that provides a reliable way to store data across a cluster of machines.  Communication between etcd machines is handled via the Raft consensus algorithm.
 
 * _Why etcd?_ Among many other users, etcd is the database used in Kubernetes (and its distributions such as OpenShift).  It makes sense to align ODL to this.  With the Core OS acquisition, Red Hat has etcd expertise.
-
-* _Why not XYZ as a KV DB?_ There are a number of other Key Value DBs.  Some of the code from this project likely is a good basis for you to write adapters from YANG to other KV DBs.  Have fun!
-
-* _Why not just replace the Akka persistence LevelDB plugin currently used in CDS to something else like MongoDB?_  : Not sure that I see how an architecture where you keep Akka and would replace LevelDB (a node local single user embedded KV) to a remote multi user DB makes much sense.  Using something like MongoDB as a data store like this project does for etcd perhaps makes more sense; see question above.  You can, of course, just use MongoDB or whatever else you like (JDBC if you must, anything you fancy...) INSTEAD of a YANG-based data store, if that meets your requirements.
 
 * _I [read somewhere online](https://coreos.com/etcd/docs/latest/learning/api_guarantees.html) that "etcd clients may have issues with operations that time out (network disruption for example) and will not send an abort respond". How do we plan on dealing with this?_  This will cause a timeout at [the GRPC layer](https://grpc.io) internally, which will lead to a failure on the MD SAL (commit) operation, which will be propagated to the ODL application client - as it should; all good.
 
