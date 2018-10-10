@@ -7,14 +7,9 @@
  */
 package org.opendaylight.etcd.demo;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 
 import io.etcd.jetcd.Client;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -22,7 +17,6 @@ import org.opendaylight.etcd.testutils.TestEtcdDataBrokerProvider;
 import org.opendaylight.infrautils.metrics.MetricDescriptor;
 import org.opendaylight.infrautils.metrics.Timer;
 import org.opendaylight.infrautils.metrics.internal.MetricProviderImpl;
-import org.opendaylight.infrautils.metrics.internal.MetricsFileReporter;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.WriteTransaction;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.etcd.test.rev180628.HelloWorldContainer;
@@ -74,11 +68,12 @@ public final class PerformanceMain {
     }
 
     private static void dumpMetricsToStdOut(MetricProviderImpl metricProvider) {
-        try (PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out, UTF_8)))) {
+        //TODO: rewrite printing of metrics. unfortunately 'getRegistry()' is not implemented in MetricProviderImpl
+        /*try (PrintWriter pw = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out, UTF_8)))) {
             try (MetricsFileReporter reporter = new MetricsFileReporter(metricProvider.getRegistry(), Duration.ZERO)) {
                 reporter.report(pw);
             }
-        }
+        }*/
     }
 
     private PerformanceMain() { }
