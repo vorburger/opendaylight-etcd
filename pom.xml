@@ -31,6 +31,7 @@
     <module>ds</module>
     <module>test-model</module>
     <module>testutils</module>
+    <module>test-netconf</module>
     <module>demo</module>
     <module>eos</module>
     <module>features</module>

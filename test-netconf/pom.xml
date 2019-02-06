@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.opendaylight.etcd</groupId>
+    <artifactId>bundle-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../bundle-parent</relativePath>
+  </parent>
+
+  <artifactId>test-netconf</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>testutils</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opendaylight.netconf</groupId>
+      <artifactId>restconf-nb-rfc8040</artifactId>
+      <!-- TODO revert to 1.9.0-SNAPSHOT -->
+      <version>1.10.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.mdsal.binding.model.ietf</groupId>
+      <artifactId>rfc7895</artifactId>
+    </dependency>
+<!--
+    <dependency>
+      <groupId>org.opendaylight.netconf</groupId>
+      <artifactId>restconf-nb-bierman02</artifactId>
+      <version>1.9.0-SNAPSHOT</version>
+    </dependency>
+ -->
+  </dependencies>
+</project>
+
