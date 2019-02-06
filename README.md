@@ -7,7 +7,7 @@ See this [presentation given in 2018.09 at the ODL DDF during ONS Europe in Amst
 The plan is contribute this to opendaylight.org, if and when successful.
 
 
-## How to build?
+## How to build? [![Build Status](https://travis-ci.org/vorburger/opendaylight-etcd.svg?branch=master)](https://travis-ci.org/vorburger/opendaylight-etcd)
 
 1. To get a more recent version of jetcd-core than the currently used 0.0.2, just
 `git clone https://github.com/coreos/jetcd.git ; cd jetcd ; mvn [-DskipTests] clean install`
