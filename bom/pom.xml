@@ -22,7 +22,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <jetcd.version>0.3.0-SNAPSHOT</jetcd.version>
+    <jetcd.version>0.3.0</jetcd.version>
   </properties>
 
   <dependencyManagement>

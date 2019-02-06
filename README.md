@@ -9,9 +9,9 @@ The plan is contribute this to opendaylight.org, if and when successful.
 
 ## How to build? [![Build Status](https://travis-ci.org/vorburger/opendaylight-etcd.svg?branch=master)](https://travis-ci.org/vorburger/opendaylight-etcd)
 
-1. To get a more recent version of jetcd-core than the currently used 0.0.2, just
+1. To get a more recent version of jetcd-core than the currently used 0.0.3, just
 `git clone https://github.com/coreos/jetcd.git ; cd jetcd ; mvn [-DskipTests] clean install`
-
+and change POMs in bom/, features/odl-mdsal-broker/ & features/odl-etcd-demo-restconf/.
 
 2. If you're hitting an NPE in org.apache.maven.plugins:maven-javadoc-plugin:3.0.0:jar,
 just use `mvn -Dmaven.javadoc.skip=true -Dduplicate-finder.skip -DskipTests -Dcheckstyle.skip clean install` to work around it; it's possibly
