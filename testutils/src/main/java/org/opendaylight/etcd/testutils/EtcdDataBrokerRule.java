@@ -10,12 +10,14 @@ package org.opendaylight.etcd.testutils;
 import io.etcd.jetcd.Client;
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.opendaylight.etcd.ds.impl.TestTool;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.dom.api.DOMDataBroker;
+import org.opendaylight.mdsal.dom.api.DOMSchemaService;
 
 /**
  * JUnit Rule providing a {@link DataBroker} &amp; {@link DOMDataBroker} backed by etcd.
@@ -38,6 +40,11 @@ public class EtcdDataBrokerRule implements TestRule {
         this(launcherRule, EtcdDataBrokerRule.class.getSimpleName());
     }
 
+    public EtcdDataBrokerRule(String etcdServerURI) {
+        etcdServerURIs = Collections.singleton(URI.create(etcdServerURI));
+        name = EtcdDataBrokerRule.class.getSimpleName();
+    }
+
     @Override
     public Statement apply(Statement statement, Description description) {
         return new Statement() {
@@ -53,6 +60,10 @@ public class EtcdDataBrokerRule implements TestRule {
                 }
             }
         };
+    }
+
+    public DOMSchemaService getDOMSchemaService() {
+        return currentProvider.getDOMSchemaService();
     }
 
     public DOMDataBroker getDOMDataBroker() {
