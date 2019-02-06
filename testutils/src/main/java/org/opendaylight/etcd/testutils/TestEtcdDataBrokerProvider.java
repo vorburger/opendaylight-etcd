@@ -27,6 +27,7 @@ import org.opendaylight.mdsal.binding.generator.impl.ModuleInfoBackedContext;
 import org.opendaylight.mdsal.binding.generator.util.JavassistUtils;
 import org.opendaylight.mdsal.binding.spec.reflect.BindingReflections;
 import org.opendaylight.mdsal.dom.api.DOMDataBroker;
+import org.opendaylight.mdsal.dom.api.DOMSchemaService;
 import org.opendaylight.yangtools.yang.binding.YangModuleInfo;
 import org.opendaylight.yangtools.yang.model.api.SchemaContext;
 
@@ -37,13 +38,14 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContext;
  */
 public class TestEtcdDataBrokerProvider implements AutoCloseable {
 
+    private final MockSchemaService schemaService;
     private final EtcdDOMDataBrokerProvider wiring;
     private final DataBroker dataBroker;
 
     // TODO pass Client instead of ClientBuilder
     public TestEtcdDataBrokerProvider(Client client, String name) throws Exception {
         // from org.opendaylight.mdsal.binding.dom.adapter.test.AbstractDataBrokerTestCustomizer
-        MockSchemaService schemaService = new MockSchemaService();
+        schemaService = new MockSchemaService();
 
         // create DOMDataBroker
         wiring = new EtcdDOMDataBrokerProvider(client, name, schemaService);
@@ -68,6 +70,10 @@ public class TestEtcdDataBrokerProvider implements AutoCloseable {
     @PostConstruct
     public void close() throws Exception {
         wiring.close();
+    }
+
+    public DOMSchemaService getDOMSchemaService() {
+        return schemaService;
     }
 
     public DOMDataBroker getDOMDataBroker() {
