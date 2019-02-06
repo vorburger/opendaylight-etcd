@@ -18,7 +18,11 @@
   <modules>
     <module>odl-etcd-datastore</module>
     <module>odl-mdsal-broker</module>
+<!--
+    TODO https://github.com/vorburger/opendaylight-etcd/issues/8 
+
     <module>odl-etcd-demo-restconf</module>
+ -->
     <module>features-etcd</module>
   </modules>
 </project>
