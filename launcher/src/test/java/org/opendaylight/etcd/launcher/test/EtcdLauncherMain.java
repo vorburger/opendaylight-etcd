@@ -7,7 +7,6 @@
  */
 package org.opendaylight.etcd.launcher.test;
 
-import ch.vorburger.exec.ManagedProcessException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,7 +24,7 @@ public final class EtcdLauncherMain {
     private EtcdLauncherMain() {
     }
 
-    public static void main(String[] args) throws ManagedProcessException, IOException {
+    public static void main(String[] args) throws IOException {
         EtcdLauncher etcd = new EtcdLauncher(Paths.get("target/etcd-main"), true);
         etcd.start();
         waitForKeyPressToCleanlyExit();
