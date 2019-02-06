@@ -15,7 +15,6 @@ import static org.opendaylight.infrautils.testutils.Asserts.assertThrows;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL;
 
-import ch.vorburger.exec.ManagedProcessException;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
@@ -23,22 +22,19 @@ import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.etcd.ds.impl.EtcdDataStore;
-import org.opendaylight.etcd.launcher.EtcdLauncher;
+import org.opendaylight.etcd.testutils.EtcdLauncherRule;
 import org.opendaylight.etcd.testutils.TestEtcdDataBrokerProvider;
 import org.opendaylight.infrautils.testutils.LogRule;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -77,7 +73,7 @@ public class EtcdDBTest {
 
     private static final InstanceIdentifier<Top> TOP_PATH = InstanceIdentifier.create(Top.class);
 
-    private static EtcdLauncher etcdServer;
+    public static @ClassRule EtcdLauncherRule etcdLauncher = new EtcdLauncherRule();
 
     private Client client;
     private TestEtcdDataBrokerProvider dbProviderA;
@@ -89,17 +85,9 @@ public class EtcdDBTest {
     // public @Rule LogCaptureRule logCaptureRule = new LogCaptureRule();
     public @Rule LogRule logRule = new LogRule();
 
-    // TODO Make an EtcdClassRule to replace the @BeforeClass
-
-    @BeforeClass
-    public static void beforeClass() throws ManagedProcessException, IOException {
-        etcdServer = new EtcdLauncher(Paths.get("target/etcd"), true);
-        etcdServer.start();
-    }
-
     @Before
     public void before() throws Exception {
-        client = Client.builder().endpoints(etcdServer.getEndpointURL()).build();
+        client = Client.builder().endpoints(etcdLauncher.getClusterURIs()).build();
 
         // STOP any DB Watcher that is possibly still running from previous test
         closeProviders();
@@ -132,12 +120,6 @@ public class EtcdDBTest {
     public void after() throws Exception {
         closeProviders();
         client.close();
-    }
-
-    @AfterClass
-    public static void afterClass() throws ManagedProcessException {
-        etcdServer.close();
-        etcdServer = null;
     }
 
     @Test
