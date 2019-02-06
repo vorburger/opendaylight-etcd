@@ -9,9 +9,9 @@ package org.opendaylight.etcd.eos.impl;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import org.apache.aries.blueprint.annotation.service.Service;
 import org.opendaylight.mdsal.eos.dom.api.DOMEntityOwnershipService;
 import org.opendaylight.mdsal.eos.dom.simple.SimpleDOMEntityOwnershipService;
-import org.ops4j.pax.cdi.api.OsgiServiceProvider;
 
 /**
  * DOMEntityOwnershipService implementation, based on etcd.
@@ -19,7 +19,7 @@ import org.ops4j.pax.cdi.api.OsgiServiceProvider;
  * @author Michael Vorburger.ch
  */
 @Singleton
-@OsgiServiceProvider(classes = DOMEntityOwnershipService.class)
+@Service(classes = DOMEntityOwnershipService.class)
 public class EtcdDOMEntityOwnershipService extends DelegatingDOMEntityOwnershipService {
 
     // TODO replace this fake (simple) EOS by a real one backed by etcd...
