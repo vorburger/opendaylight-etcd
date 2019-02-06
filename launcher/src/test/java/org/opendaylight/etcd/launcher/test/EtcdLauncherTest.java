@@ -7,8 +7,8 @@
  */
 package org.opendaylight.etcd.launcher.test;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import ch.vorburger.exec.ManagedProcessException;
 import io.etcd.jetcd.ByteSequence;
