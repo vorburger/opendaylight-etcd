@@ -10,13 +10,11 @@ package org.opendaylight.etcd.launcher.test;
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import ch.vorburger.exec.ManagedProcessException;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.kv.GetResponse;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,7 +32,7 @@ public class EtcdLauncherTest {
      * Trivial test just to make sure it starts, without exception.
      */
     @Test
-    public void testLaunchEtcd() throws ManagedProcessException, IOException {
+    public void testLaunchEtcd() {
         try (EtcdLauncher etcd = new EtcdLauncher(Paths.get("target/etcd"), true)) {
             etcd.start();
         }

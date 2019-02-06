@@ -7,63 +7,37 @@
  */
 package org.opendaylight.etcd.launcher;
 
-import ch.vorburger.exec.ManagedProcess;
-import ch.vorburger.exec.ManagedProcessBuilder;
-import ch.vorburger.exec.ManagedProcessException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.ServerSocket;
+import io.etcd.jetcd.launcher.EtcdCluster;
+import io.etcd.jetcd.launcher.EtcdClusterFactory;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Launcher for external etcd processes.
  * Useful for integration tests.
  *
+ * @deprecated Use io.etcd.jetcd.launcher.EtcdClusterFactory directly.
+ *
  * @author Michael Vorburger.ch
  */
+@Deprecated
 public class EtcdLauncher implements AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EtcdLauncher.class);
+    private final EtcdCluster etcdCluster;
 
-    // TODO write a custom log pattern matcher which reacts to I/W/E/N and uses correct log level
+    // NB: wipe doesn't work anymore now; and clientPort & clusterPort are ignored
 
-    // TODO refactor this and introduce an EtcdLauncherBuilder, with a start() that returns an EtcdLauncher
-
-    private final ManagedProcess process;
-    private final int clientPort;
-    private final int clusterPort;
-
-    public EtcdLauncher(Path etcdWorkingDirectory, boolean wipe) throws ManagedProcessException, IOException {
-        this(etcdWorkingDirectory, wipe, findNextAvailablePort(), findNextAvailablePort());
+    public EtcdLauncher(Path etcdWorkingDirectory, boolean wipe) {
+        this(etcdWorkingDirectory, wipe, 0, 0);
     }
 
-    public EtcdLauncher(Path etcdWorkingDirectory, boolean wipe, int clientPort, int clusterPort)
-            throws ManagedProcessException, IOException {
-        if (wipe) {
-            deleteDirectory(etcdWorkingDirectory);
+    public EtcdLauncher(Path etcdWorkingDirectory, boolean wipe, int clientPort, int clusterPort) {
+        if (!wipe) {
+            throw new IllegalArgumentException("Not wiping is no longer supported since running in a fresh container");
         }
-        mkdirs(etcdWorkingDirectory);
-        this.clientPort = clientPort;
-        this.clusterPort = clusterPort;
-        process = new ManagedProcessBuilder("etcd")
-                // .addArgument("arg1");
-                .setWorkingDirectory(etcdWorkingDirectory.toFile())
-                .addArgument("--advertise-client-urls").addArgument(getEndpointURL())
-                .addArgument("--listen-client-urls").addArgument(getEndpointURL())
-                .addArgument("--listen-peer-urls").addArgument(getClusterURI().toString())
-                .addArgument("--initial-cluster").addArgument("default=" + getClusterURI().toString())
-                .addArgument("--initial-advertise-peer-urls").addArgument(getClusterURI().toString())
-                .setDestroyOnShutdown(true)
-                .build();
+        etcdCluster = EtcdClusterFactory.buildCluster(EtcdLauncher.class.getName(), 1, false, false);
     }
 
     /**
@@ -71,56 +45,21 @@ public class EtcdLauncher implements AutoCloseable {
      * Typically used to pass as an argument to jetcd Client.builder().endpoints().
      */
     public final String getEndpointURL() {
-        return "http://localhost:" + clientPort;
+        return getClusterURI().toString();
     }
 
     public final URI getClusterURI() {
-        return URI.create("http://localhost:" + clusterPort);
+        return etcdCluster.getClientEndpoints().get(0);
     }
 
     @PostConstruct
-    public void start() throws ManagedProcessException {
-        process.startAndWaitForConsoleMessageMaxMs("embed: ready to serve client requests", 5000);
+    public void start() {
+        etcdCluster.start();
     }
 
     @Override
     @PreDestroy
-    public void close() throws ManagedProcessException {
-        if (process.isAlive()) {
-            process.destroy();
-        }
-    }
-
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
-    private static void mkdirs(Path etcdWorkingDirectory) {
-        etcdWorkingDirectory.toFile().mkdirs();
-    }
-
-    @SuppressWarnings("checkstyle:AvoidHidingCauseException")
-    private static void deleteDirectory(Path directory) throws IOException {
-        if (!directory.toFile().exists()) {
-            LOG.info("Directory to delete did not exist: {}", directory);
-            return;
-        }
-        try {
-            try (Stream<Path> stream = Files.walk(directory)) {
-                stream.sorted(Comparator.reverseOrder()).forEach(t -> {
-                    try {
-                        Files.delete(t);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                });
-            }
-            LOG.info("Successfully deleted directory: {}", directory);
-        } catch (UncheckedIOException e) {
-            throw e.getCause();
-        }
-    }
-
-    private static int findNextAvailablePort() throws IOException {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        }
+    public void close() {
+        etcdCluster.close();
     }
 }

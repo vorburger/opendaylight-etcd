@@ -26,8 +26,12 @@
   </properties>
 
   <dependencyManagement>
-    <!-- Bump all Netty dependencies from 4.1.8 from odlparent to 4.1.16 required by jetcd -->
     <dependencies>
+      <dependency>
+        <groupId>io.etcd</groupId>
+        <artifactId>jetcd-launcher</artifactId>
+        <version>${jetcd.version}</version>
+      </dependency>
       <dependency>
         <groupId>io.etcd</groupId>
         <artifactId>jetcd-core</artifactId>
@@ -71,6 +75,7 @@
       </dependency>
 
       <!-- Netty -->
+      <!-- Bump all Netty dependencies from 4.1.8 from odlparent to 4.1.16 required by jetcd -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>

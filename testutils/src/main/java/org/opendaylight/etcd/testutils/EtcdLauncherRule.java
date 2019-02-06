@@ -20,8 +20,11 @@ import org.opendaylight.etcd.launcher.EtcdLauncher;
 /**
  * JUnit Rule for {@link EtcdLauncher}.
  *
+ * @deprecated Use io.etcd.jetcd.launcher.junit.EtcdClusterResource instead.
+ *
  * @author Michael Vorburger.ch
  */
+@Deprecated
 public class EtcdLauncherRule implements TestRule {
 
     // TODO upstream this into jetcd ...
