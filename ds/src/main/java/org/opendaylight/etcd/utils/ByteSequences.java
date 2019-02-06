@@ -8,7 +8,7 @@
 package org.opendaylight.etcd.utils;
 
 import com.google.errorprone.annotations.Var;
-import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.ByteSequence;
 import java.util.Arrays;
 
 /**
