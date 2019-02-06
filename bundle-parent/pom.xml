@@ -50,6 +50,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+       <!-- TODO remove this again when pax-cdi-api has been replaced with Blueprint annotations. -->
+       <groupId>org.ops4j.pax.cdi</groupId>
+       <artifactId>pax-cdi-api</artifactId>
+       <optional>true</optional>
+       <version>1.0.0.RC2</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -64,5 +71,4 @@
       <artifactId>truth</artifactId>
     </dependency>
   </dependencies>
-
 </project>
