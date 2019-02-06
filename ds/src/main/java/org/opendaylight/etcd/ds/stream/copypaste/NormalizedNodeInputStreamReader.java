@@ -8,7 +8,6 @@
 
 package org.opendaylight.etcd.ds.stream.copypaste;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.errorprone.annotations.Var;
 import java.io.DataInput;
@@ -51,6 +50,8 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * NormalizedNodeInputStreamReader reads the byte stream and constructs the normalized node including its children
  * nodes. This process goes in recursive manner, where each NodeTypes object signifies the start of the object, except
@@ -79,7 +80,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     private boolean readSignatureMarker = true;
 
     protected NormalizedNodeInputStreamReader(DataInput input, boolean versionChecked) {
-        this.input = Preconditions.checkNotNull(input);
+        this.input = requireNonNull(input);
         readSignatureMarker = !versionChecked;
     }
 

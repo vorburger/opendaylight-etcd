@@ -10,8 +10,8 @@ package org.opendaylight.etcd.ds.impl;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import io.etcd.jetcd.KV;
-import io.etcd.jetcd.data.ByteSequence;
-import io.etcd.jetcd.data.Response.Header;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.Response.Header;
 import io.etcd.jetcd.options.GetOption;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;

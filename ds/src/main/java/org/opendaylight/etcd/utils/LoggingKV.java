@@ -13,7 +13,7 @@ import com.google.common.base.MoreObjects;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.etcd.jetcd.KV;
 import io.etcd.jetcd.Txn;
-import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.kv.CompactResponse;
 import io.etcd.jetcd.kv.DeleteResponse;
 import io.etcd.jetcd.kv.GetResponse;

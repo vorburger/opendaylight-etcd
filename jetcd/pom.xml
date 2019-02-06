@@ -21,12 +21,8 @@
 
   <dependencies>
     <dependency>
-<!--
       <groupId>io.etcd</groupId>
       <artifactId>jetcd-core</artifactId>
- -->
-      <groupId>io.etcd</groupId>
-      <artifactId>jetcd-all</artifactId>
     </dependency>
   </dependencies>
 

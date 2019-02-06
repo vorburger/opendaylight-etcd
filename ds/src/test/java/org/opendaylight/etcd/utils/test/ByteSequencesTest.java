@@ -8,10 +8,10 @@
 package org.opendaylight.etcd.utils.test;
 
 import static com.google.common.truth.Truth.assertThat;
-import static io.etcd.jetcd.data.ByteSequence.from;
+import static io.etcd.jetcd.ByteSequence.from;
 import static org.opendaylight.etcd.utils.ByteSequences.toStringable;
 
-import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.ByteSequence;
 import org.junit.Test;
 
 /**

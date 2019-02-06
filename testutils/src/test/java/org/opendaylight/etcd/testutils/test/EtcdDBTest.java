@@ -18,8 +18,8 @@ import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.OPERATIONAL
 import ch.vorburger.exec.ManagedProcessException;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
-import io.etcd.jetcd.data.ByteSequence;
-import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;

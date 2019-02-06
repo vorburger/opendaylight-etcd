@@ -7,19 +7,20 @@
  */
 package org.opendaylight.etcd.ds.inmemory.copypaste;
 
-import com.google.common.base.Preconditions;
 import org.opendaylight.mdsal.dom.spi.store.AbstractSnapshotBackedTransactionChain;
 import org.opendaylight.mdsal.dom.spi.store.DOMStoreThreePhaseCommitCohort;
 import org.opendaylight.mdsal.dom.spi.store.SnapshotBackedWriteTransaction;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeModification;
 import org.opendaylight.yangtools.yang.data.api.schema.tree.DataTreeSnapshot;
 
+import static java.util.Objects.requireNonNull;
+
 @SuppressWarnings("Var")
 final class DOMStoreTransactionChainImpl extends AbstractSnapshotBackedTransactionChain<String> {
     private final InMemoryDOMDataStore store;
 
     DOMStoreTransactionChainImpl(final InMemoryDOMDataStore store) {
-        this.store = Preconditions.checkNotNull(store);
+        this.store = requireNonNull(store);
     }
 
     @Override

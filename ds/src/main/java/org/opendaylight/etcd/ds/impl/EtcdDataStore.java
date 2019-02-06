@@ -9,8 +9,8 @@ package org.opendaylight.etcd.ds.impl;
 
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KV;
-import io.etcd.jetcd.data.ByteSequence;
-import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.watch.WatchEvent;
 import java.time.Duration;
 import java.util.List;

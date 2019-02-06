@@ -7,7 +7,6 @@
  */
 package org.opendaylight.etcd.ds.inmemory.copypaste;
 
-import com.google.common.base.Preconditions;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,6 +38,8 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContextListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * In-memory DOM Data Store.
  *
@@ -69,8 +70,8 @@ public class InMemoryDOMDataStore extends TransactionReadyPrototype<String> impl
 
     public InMemoryDOMDataStore(final String name, final ExecutorService dataChangeListenerExecutor,
             final int maxDataChangeListenerQueueSize, final boolean debugTransactions) {
-        this.name = Preconditions.checkNotNull(name);
-        this.dataChangeListenerExecutor = Preconditions.checkNotNull(dataChangeListenerExecutor);
+        this.name = requireNonNull(name);
+        this.dataChangeListenerExecutor = requireNonNull(dataChangeListenerExecutor);
         this.debugTransactions = debugTransactions;
         changePublisher = new InMemoryDOMStoreTreeChangePublisher(this.dataChangeListenerExecutor,
                 maxDataChangeListenerQueueSize);

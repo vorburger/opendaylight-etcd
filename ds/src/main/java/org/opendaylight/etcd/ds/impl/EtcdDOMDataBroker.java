@@ -7,8 +7,6 @@
  */
 package org.opendaylight.etcd.ds.impl;
 
-import static com.google.common.base.Charsets.US_ASCII;
-
 import com.google.common.io.Files;
 import io.etcd.jetcd.Client;
 import java.io.File;
@@ -19,6 +17,8 @@ import org.opendaylight.mdsal.dom.api.DOMDataBroker;
 import org.opendaylight.mdsal.dom.api.DOMSchemaService;
 import org.opendaylight.mdsal.dom.spi.ForwardingDOMDataBroker;
 import org.ops4j.pax.cdi.api.OsgiService;
+
+import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
  * {@link DOMDataBroker} registered in the OSGi service registry.

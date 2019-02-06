@@ -10,7 +10,7 @@ package org.opendaylight.etcd.ds.impl;
 import static com.google.common.truth.Truth.assertThat;
 
 import io.etcd.jetcd.Client;
-import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.ByteSequence;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.opendaylight.etcd.utils.ByteSequences;

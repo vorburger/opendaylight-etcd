@@ -7,7 +7,7 @@
  */
 package org.opendaylight.etcd.eos.impl;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import org.opendaylight.mdsal.eos.common.api.CandidateAlreadyRegisteredException;
 import org.opendaylight.mdsal.eos.common.api.EntityOwnershipState;
 import org.opendaylight.mdsal.eos.dom.api.DOMEntity;
