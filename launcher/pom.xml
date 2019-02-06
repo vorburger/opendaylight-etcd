@@ -20,9 +20,18 @@
 
   <dependencies>
     <dependency>
-      <groupId>ch.vorburger.exec</groupId>
-      <artifactId>exec</artifactId>
-      <version>3.0.0</version>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-launcher</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>annotations</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
