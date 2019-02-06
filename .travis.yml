@@ -12,4 +12,4 @@ jdk:
 install: true
 
 script:
-  - mvn -U -s .travis-maven-settings.xml clean package -B -V
+  - mvn -s .travis-maven-settings.xml clean install -B -V
