@@ -45,10 +45,10 @@
       <artifactId>sal-core-compat</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.ops4j.pax.cdi</groupId>
-      <artifactId>pax-cdi-api</artifactId>
-      <optional>true</optional>
-    </dependency>
+     <groupId>org.apache.aries.blueprint</groupId>
+     <artifactId>blueprint-maven-plugin-annotation</artifactId>
+     <optional>true</optional>
+   </dependency>
 
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -73,14 +73,6 @@
       <plugin>
         <groupId>org.apache.aries.blueprint</groupId>
         <artifactId>blueprint-maven-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <!-- TODO remove this weird hack after version bump... -->
-            <groupId>org.opendaylight.mdsal</groupId>
-            <artifactId>mdsal-dom-api</artifactId>
-            <version>3.0.6</version>
-          </dependency>
-        </dependencies>
       </plugin>
     </plugins>
   </build>
