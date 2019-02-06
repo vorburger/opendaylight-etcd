@@ -8,7 +8,8 @@
 
 package org.opendaylight.etcd.ds.stream.copypaste;
 
-import com.google.common.base.Preconditions;
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.Strings;
 import com.google.errorprone.annotations.Var;
 import java.io.DataInput;
@@ -79,7 +80,7 @@ public class NormalizedNodeInputStreamReader implements NormalizedNodeDataInput 
     private boolean readSignatureMarker = true;
 
     protected NormalizedNodeInputStreamReader(DataInput input, boolean versionChecked) {
-        this.input = Preconditions.checkNotNull(input);
+        this.input = requireNonNull(input);
         readSignatureMarker = !versionChecked;
     }
 
