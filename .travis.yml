@@ -1,0 +1,15 @@
+language: java
+
+sudo: false
+
+cache:
+  directories:
+    - "$HOME/.m2"
+
+jdk:
+  - openjdk8
+
+install: true
+
+script:
+  - mvn -U -s .travis-maven-settings.xml clean package -B -V
