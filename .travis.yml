@@ -13,3 +13,6 @@ install: true
 
 script:
   - mvn -U -s .travis-maven-settings.xml clean package -B -V
+
+before_install:
+  - sudo apt-get install -y etcd
