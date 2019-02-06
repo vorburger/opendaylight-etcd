@@ -16,8 +16,9 @@ import static org.opendaylight.etcd.utils.ByteSequences.fromBytes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import io.etcd.jetcd.data.ByteSequence;
-import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.KeyValue;
+import io.etcd.jetcd.shaded.com.google.protobuf.ByteString;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.etcd.jetcd.watch.WatchEvent.EventType;
 import java.util.Collections;
@@ -87,8 +88,9 @@ public class EtcdWatcherSplittingConsumerTest {
 
     private static WatchEvent newWatchEvent(ByteSequence key) {
         return new WatchEvent(
-                new KeyValue(io.etcd.jetcd.api.KeyValue.newBuilder().setKey(key.getByteString()).build()), null,
-                EventType.PUT);
+                new KeyValue(
+                        io.etcd.jetcd.api.KeyValue.newBuilder().setKey(ByteString.copyFrom(key.getBytes())).build()),
+                null, EventType.PUT);
     }
 
     private static class TestConsumer implements CheckedConsumer<List<WatchEvent>, EtcdException> {

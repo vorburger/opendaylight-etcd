@@ -12,7 +12,7 @@ import static com.google.common.collect.ImmutableMap.builderWithExpectedSize;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
-import io.etcd.jetcd.data.ByteSequence;
+import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.watch.WatchEvent;
 import java.util.ArrayList;
 import java.util.List;

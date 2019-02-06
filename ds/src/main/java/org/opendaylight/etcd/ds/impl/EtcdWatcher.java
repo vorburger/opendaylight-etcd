@@ -9,18 +9,13 @@ package org.opendaylight.etcd.ds.impl;
 
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.Watch.Watcher;
-import io.etcd.jetcd.common.exception.ClosedClientException;
-import io.etcd.jetcd.data.ByteSequence;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
-import io.etcd.jetcd.watch.WatchResponse;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.PreDestroy;
@@ -76,36 +71,21 @@ class EtcdWatcher implements AutoCloseable {
     }
 
     private Watcher watch(long revision) {
-        Watcher watcher = etcdWatch.watch(prefix,
-                WatchOption.newBuilder().withPrefix(prefix).withRevision(revision).build());
-                // TODO is .withRange(prefix + 1) needed?!
-        Futures.addCallback(executor.submit(() -> {
-            while (isOpen.get()) {
-                WatchResponse response = watcher.listen();
-                List<WatchEvent> events = response.getEvents();
-                for (WatchEvent event : events) {
-                    LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
-                            KeyValues.toStringable(event.getKeyValue()));
-                }
+        Watch.Listener listener = Watch.listener(response -> {
+            List<WatchEvent> events = response.getEvents();
+            for (WatchEvent event : events) {
+                LOG.info("{} watch: eventType={}, KV={}", name, event.getEventType(),
+                        KeyValues.toStringable(event.getKeyValue()));
+            }
+            try {
                 consumer.accept(response.getHeader().getRevision(), events);
+            } catch (EtcdException e) {
+                LOG.error("watch consumer accept failed", e);
             }
-            return null;
-        }), new FutureCallback<Void>() {
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                // InterruptedException is normal during close() above
-                // ClosedClientException happens if we close abruptly due to an error (not normally)
-                if (!(throwable instanceof InterruptedException) && !(throwable instanceof ClosedClientException)) {
-                    LOG.error("{} watch: executor.submit() (eventually) failed: ", name, throwable);
-                }
-            }
-
-            @Override
-            public void onSuccess(Void nothing) {
-                // This will happen when isOpen becomes false on close()
-            }
-        }, MoreExecutors.directExecutor());
+        });
+        Watcher watcher = etcdWatch.watch(prefix,
+                WatchOption.newBuilder().withPrefix(prefix).withRevision(revision).build(), listener);
+        // TODO is .withRange(prefix + 1) needed?!
         return watcher;
     }
 }

@@ -14,9 +14,9 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 
 import com.google.common.collect.Lists;
+import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
-import io.etcd.jetcd.data.ByteSequence;
-import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.options.GetOption;
 import java.util.List;
 import java.util.concurrent.ExecutionException;

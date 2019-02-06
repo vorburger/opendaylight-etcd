@@ -7,8 +7,8 @@
  */
 package org.opendaylight.etcd.utils;
 
-import io.etcd.jetcd.data.ByteSequence;
-import io.etcd.jetcd.data.KeyValue;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.KeyValue;
 
 /**
  * Utilities for {@link ByteSequence}.
