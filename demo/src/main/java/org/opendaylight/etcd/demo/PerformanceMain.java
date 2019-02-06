@@ -7,7 +7,7 @@
  */
 package org.opendaylight.etcd.demo;
 
-import static com.google.common.base.Charsets.UTF_8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 
 import io.etcd.jetcd.Client;
