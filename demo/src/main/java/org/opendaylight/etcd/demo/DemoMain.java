@@ -7,9 +7,9 @@
  */
 package org.opendaylight.etcd.demo;
 
-import static com.google.common.base.Charsets.US_ASCII;
 import static io.etcd.jetcd.options.GetOption.SortOrder.ASCEND;
 import static io.etcd.jetcd.options.GetOption.SortTarget.KEY;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.opendaylight.mdsal.common.api.LogicalDatastoreType.CONFIGURATION;
 
