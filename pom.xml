@@ -25,7 +25,6 @@
   <modules>
     <module>bom</module>
     <module>bundle-parent</module>
-    <!--  TODO git filter etc. to move to separate repo: <module>dom2kv</module> -->
     <module>launcher</module>
     <module>jetcd</module>
     <module>ds</module>
