@@ -24,7 +24,7 @@
 - [ ] build a JUnitRule for EtcdLauncher, like https://github.com/vorburger/MariaDB4j/pull/139 did for MariaDB4j
 
 - [ ] ODL repo and carry on there
-- [ ] git filter out the (un-used) dom2kv/ sub-project into a separate repo
+- [X] git filter out the (un-used) dom2kv/ sub-project [into a separate repo](https://github.com/vorburger/dom2kv)
 - [ ] apply existing mdsal ds tests to this new impl (upstream refactoring?)
 - [ ] instead EtcdDataStore extends InMemoryDOMDataStore, discuss an upstream artifact for what is shared
       "you should just need an InMemoryDataTree. Pattern after ShardDataTree instead."

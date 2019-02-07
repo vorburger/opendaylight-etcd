@@ -180,3 +180,8 @@ and have a closer look at the logs this will print to understand what happened, 
 * _I heard that "On network split (AKA split brain) read request may be served mistakenly by the minority split." How do we plan on dealing with this?_ [According to this documentation](https://github.com/coreos/etcd/blob/master/Documentation/op-guide/failures.md), "there is no 'split-brain' in etcd".
 
 * _But, but, but..._ Please consult with the opensource etcd community, or obtain professional support, for further doubts about and issues with etcd - just like you would say in OpenStack if you had a problem with its MariaDB (mysql) database.  Relying on a well established and here-to-stay persistence engine, instead of building, debugging and maintaining a home grown one, is really the main point of this project! ;-)
+
+
+### History
+
+This project originally included a more generic "DOM-to-KV" abstraction layer, with the idea of also supporting other KV stores than etcd.  That code was moved out into https://github.com/vorburger/dom2kv and removed from this repo in 154bd8aace51395c7d58f6e2905b2101187fd5b8.
