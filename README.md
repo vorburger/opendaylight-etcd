@@ -1,10 +1,10 @@
+**THIS REPOSITORY IS ARCHIVED BECAUSE THIS PROJECT NOW LIVES ON INSIDE THE `etcd/` DIRECTORY OF THE `alt-datastores` GIT REPOSITORY ON `git.opendaylight.org` - see https://git.opendaylight.org/gerrit/gitweb?p=alt-datastores.git;a=summary (also mirrored on https://github.com/opendaylight/alt-datastores).**
+
 This project started as a personal POC by Michael Vorburger.ch to
 evaluate the feasibility of using etcd as data store for YANG data in OpenDaylight (ODL),
 instead of its current "home made" CDS based on Akka.
 
 See this [presentation given in 2018.09 at the ODL DDF during ONS Europe in Amsterdam](https://docs.google.com/presentation/d/160GrKDb9kR-M48FKale09A-VF2_HSu3po_s0M4UReyU) for some background.
-
-The plan is contribute this to opendaylight.org, if and when successful.
 
 
 ## How to build? [![Build Status](https://travis-ci.org/vorburger/opendaylight-etcd.svg?branch=master)](https://travis-ci.org/vorburger/opendaylight-etcd)
